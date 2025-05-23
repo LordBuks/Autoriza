@@ -1,0 +1,71 @@
+# Configuração do Netlify para o Sistema de Autorizações
+
+[build]
+  # Diretório base do projeto
+  base = "/"
+  
+  # Comando de build (não é necessário para este projeto estático)
+  # command = "echo 'Nenhum build necessário'"
+  
+  # Diretório que será publicado (a raiz do projeto)
+  publish = "/"
+
+# Configurações de segurança
+[headers]
+  # Aplicar cabeçalhos de segurança a todos os arquivos
+  for = "/*"
+    [headers.values]
+      # Habilitar HTTPS estrito
+      Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+      
+      # Prevenir clickjacking
+      X-Frame-Options = "DENY"
+      
+      # Proteção XSS
+      X-XSS-Protection = "1; mode=block"
+      
+      # Prevenir MIME sniffing
+      X-Content-Type-Options = "nosniff"
+      
+      # Política de segurança de conteúdo
+      Content-Security-Policy = "default-src 'self' https://www.gstatic.com https://*.firebaseio.com https://*.googleapis.com; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://*.firebaseio.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.githubusercontent.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com; frame-src 'self' https://*.firebaseapp.com;"
+      
+      # Referrer Policy
+      Referrer-Policy = "strict-origin-when-cross-origin"
+      
+      # Permissões
+      Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Redirecionamentos
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  # Aplicar apenas quando o arquivo solicitado não existir
+  force = false
+
+# Configurações de cache
+[[headers]]
+  for = "/*.js"
+    [headers.values]
+      Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/*.css"
+    [headers.values]
+      Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/*.png"
+    [headers.values]
+      Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/*.jpg"
+    [headers.values]
+      Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/*.svg"
+    [headers.values]
+      Cache-Control = "public, max-age=86400"

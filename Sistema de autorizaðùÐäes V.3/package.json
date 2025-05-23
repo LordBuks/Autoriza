@@ -1,0 +1,17 @@
+{
+  "name": "sistema-autorizacoes",
+  "version": "1.0.0",
+  "description": "Sistema de Autorizações Digitais - SC Internacional",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve",
+    "build": "echo Criando diretorio public e copiando arquivos && if not exist public mkdir public && xcopy /E /I /Y index.html public\ && xcopy /E /I /Y primeiro-acesso.html public\ && xcopy /E /I /Y Converter_Para_PDF.html public\ && xcopy /E /I /Y content.png public\ && xcopy /E /I /Y css public\css\ && xcopy /E /I /Y js public\js\ && xcopy /E /I /Y templates public\templates\"
+  },
+  "dependencies": {
+    "serve": "^14.2.1",
+    "firebase": "^8.10.1" 
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}

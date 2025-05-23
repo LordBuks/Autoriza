@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalhe da Solicitação - SC Internacional</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body>
+  <header class="header">
+    <img src="https://i.imgur.com/odzcc03.png" alt="Logo SC Internacional" class="header-logo">
+    <h1 class="header-title">Sistema de Autorizações Digitais</h1>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h2 class="card-title">Detalhes da Solicitação</h2>
+      
+      <div id="detalhe-solicitacao">
+        <div class="auth-details">
+          <h3>Dados do Atleta</h3>
+          <p><strong>Nome:</strong> <span id="nome-atleta">Carregando...</span></p>
+          <p><strong>Categoria:</strong> <span id="categoria-atleta">Carregando...</span></p>
+          <p><strong>Data de Nascimento:</strong> <span id="data-nascimento">Carregando...</span></p>
+          <p><strong>Telefone:</strong> <span id="telefone-atleta">Carregando...</span></p>
+          
+          <h3>Dados da Solicitação</h3>
+          <p><strong>Data de Saída:</strong> <span id="data-saida">Carregando...</span></p>
+          <p><strong>Horário de Saída:</strong> <span id="horario-saida">Carregando...</span></p>
+          <p><strong>Data de Retorno:</strong> <span id="data-retorno">Carregando...</span></p>
+          <p><strong>Horário de Retorno:</strong> <span id="horario-retorno">Carregando...</span></p>
+          <p><strong>Motivo/Destino:</strong> <span id="motivo-destino">Carregando...</span></p>
+          
+          <h3>Dados do Responsável</h3>
+          <p><strong>Nome:</strong> <span id="nome-responsavel">Carregando...</span></p>
+          <p><strong>Telefone:</strong> <span id="telefone-responsavel">Carregando...</span></p>
+          
+          <h3>Status da Solicitação</h3>
+          <p><strong>Status Supervisor:</strong> <span id="status-supervisor" class="badge badge-approved">Aprovado</span></p>
+          <p><strong>Data da Aprovação:</strong> <span id="data-aprovacao-supervisor">Carregando...</span></p>
+          <p><strong>Status Serviço Social:</strong> <span id="status-servico-social" class="badge badge-pending">Aguardando</span></p>
+          <p><strong>Status Final:</strong> <span id="status-final" class="badge badge-pending">Em Processamento</span></p>
+        </div>
+        
+        <div class="auth-actions">
+          <button id="btn-enviar-whatsapp" class="btn btn-primary">Enviar Mensagem ao Responsável</button>
+          <button id="btn-validar" class="btn btn-primary">Validar Autorização</button>
+          <button id="btn-reprovar" class="btn btn-secondary">Reprovar Autorização</button>
+        </div>
+      </div>
+      
+      <div id="mensagem-whatsapp" class="card" style="display: none;">
+        <h3 class="card-title">Mensagem para o Responsável</h3>
+        <div class="form-group">
+          <textarea id="texto-whatsapp" class="form-control" rows="10" readonly></textarea>
+        </div>
+        <div class="form-group text-center">
+          <button id="btn-copiar" class="btn btn-primary">Copiar Mensagem</button>
+          <button id="btn-abrir-whatsapp" class="btn btn-primary">Abrir WhatsApp</button>
+          <button id="btn-fechar-mensagem" class="btn btn-secondary">Fechar</button>
+        </div>
+      </div>
+      
+      <div class="form-group text-center mt-3">
+        <a href="dashboard.html" class="btn btn-secondary">Voltar ao Painel</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/detalhe-monitor.js"></script>
+</body>
+</html>

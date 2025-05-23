@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitar Autorização - SC Internacional</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body>
+  <header class="header">
+    <img src="https://i.imgur.com/odzcc03.png" alt="Logo SC Internacional" class="header-logo">
+    <h1 class="header-title">Sistema de Autorizações Digitais</h1>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h2 class="card-title">Solicitar Nova Autorização</h2>
+      
+      <div id="alert-message" class="alert alert-success" style="display: none;">
+        Solicitação enviada com sucesso! Seu código de acompanhamento será enviado por e-mail.
+      </div>
+      
+      <form id="autorizacao-form">
+        <div class="form-group">
+          <label for="nome" class="form-label">Nome Completo</label>
+          <input type="text" id="nome" name="nome" class="form-control" placeholder="Seu nome completo" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="email" class="form-label">E-mail</label>
+          <input type="email" id="email" name="email" class="form-control" placeholder="Seu e-mail" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="data_nascimento" class="form-label">Data de Nascimento</label>
+          <input type="date" id="data_nascimento" name="data_nascimento" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="telefone" class="form-label">Telefone (WhatsApp)</label>
+          <input type="tel" id="telefone" name="telefone" class="form-control" placeholder="(51) 99999-9999" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="categoria" class="form-label">Categoria</label>
+          <select id="categoria" name="categoria" class="form-control" required>
+            <option value="">Selecione sua categoria</option>
+	          <option value="Sub14">Sub-14</option>
+            <option value="Sub15">Sub-15</option>
+            <option value="Sub16">Sub-16</option>
+            <option value="Sub17">Sub-17</option>
+            <option value="Sub20">Sub-20</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="data_saida" class="form-label">Data de Saída</label>
+          <input type="date" id="data_saida" name="data_saida" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="horario_saida" class="form-label">Horário de Saída</label>
+          <input type="time" id="horario_saida" name="horario_saida" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="data_retorno" class="form-label">Data de Retorno</label>
+          <input type="date" id="data_retorno" name="data_retorno" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="horario_retorno" class="form-label">Horário de Retorno</label>
+          <input type="time" id="horario_retorno" name="horario_retorno" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="motivo_destino" class="form-label">Motivo/Destino</label>
+          <textarea id="motivo_destino" name="motivo_destino" class="form-control" rows="3" placeholder="Descreva o motivo da saída e o destino" required></textarea>
+        </div>
+        
+        <h3 class="card-title">Dados do Responsável</h3>
+        
+        <div class="form-group">
+          <label for="nome_responsavel" class="form-label">Nome do Responsável</label>
+          <input type="text" id="nome_responsavel" name="nome_responsavel" class="form-control" placeholder="Nome completo do responsável" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="telefone_responsavel" class="form-label">Telefone do Responsável (WhatsApp)</label>
+          <input type="tel" id="telefone_responsavel" name="telefone_responsavel" class="form-control" placeholder="(51) 99999-9999" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">
+            <input type="checkbox" id="termo_consentimento" name="termo_consentimento" required>
+            Declaro que todas as informações fornecidas são verdadeiras e estou ciente de que o responsável será contatado para confirmar esta autorização.
+          </label>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">
+            <input type="checkbox" id="termo_lgpd" name="termo_lgpd" required>
+            Autorizo o tratamento dos meus dados pessoais e do meu responsável para fins de processamento desta solicitação, conforme a Lei Geral de Proteção de Dados (LGPD).
+          </label>
+        </div>
+        
+        <div class="form-group text-center">
+          <button type="submit" class="btn btn-primary">Enviar Solicitação</button>
+          <a href="dashboard.html" class="btn btn-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../../js/solicitar.js"></script>
+</body>
+</html>
