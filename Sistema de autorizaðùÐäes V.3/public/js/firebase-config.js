@@ -1,14 +1,24 @@
-// Configuração do Firebase para o Sistema de Autorizações
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Inicialização do Firebase
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAgpmqVDS1IjWmOp9BlgC_hAwQjou9nPBQ",
-  authDomain: "sistema-autorizaces.firebaseapp.com",
-  projectId: "sistema-autorizaces",
-  storageBucket: "sistema-autorizaces.firebasestorage.app",
-  messagingSenderId: "106686090758",
-  appId: "1:106686090758:web:3631080ad60a1b43943d87"
+  apiKey: "AIzaSyBWP6QblKqmOKFWqDJZEmWR7hhJ-2GEPr4",
+  authDomain: "sistema-de-autorizacoes.firebaseapp.com",
+  projectId: "sistema-de-autorizacoes",
+  storageBucket: "sistema-de-autorizacoes.firebasestorage.app",
+  messagingSenderId: "380824234132",
+  appId: "1:380824234132:web:5c605aebd6b4b38569ac81",
+  measurementId: "G-0HK2KFESG9"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 // Inicializar Firebase
 class FirebaseService {
