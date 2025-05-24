@@ -56,18 +56,80 @@ Este documento fornece um guia passo a passo para implementar o banco de dados F
 
 ### Passo 2: Criar as Coleções Necessárias
 
-O sistema utiliza as seguintes coleções principais:
+O sistema utiliza as seguintes coleções principais. Vamos criar cada uma delas seguindo o processo detalhado abaixo:
+
+#### Para criar a coleção "solicitacoes":
 
 1. No Firestore Database, clique em **"Iniciar coleção"**
 2. Digite o ID da coleção: **"solicitacoes"**
 3. Clique em **"Próxima"**
-4. Você pode pular a criação do primeiro documento clicando em **"Cancelar"**
+4. Agora o Firebase pedirá que você crie o primeiro documento. Você tem duas opções:
+   
+   **Opção A: Criar um documento vazio (recomendado para iniciantes)**
+   - No campo **"ID do documento"**, selecione **"ID automático"** (o Firebase gerará um ID aleatório)
+   - Clique em **"Salvar"** sem adicionar nenhum campo
+   
+   **Opção B: Criar um documento com campos (para usuários que desejam adicionar dados de teste)**
+   - No campo **"ID do documento"**, selecione **"ID automático"** (ou digite um ID personalizado se preferir)
+   - Para adicionar um campo, clique em **"Adicionar campo"**
+   - No campo **"Nome do campo"**, digite um nome (por exemplo: "status")
+   - No menu suspenso **"Tipo"**, selecione o tipo de dado (por exemplo: "string")
+   - No campo **"Valor"**, digite o valor do campo (por exemplo: "pendente")
+   - Você pode adicionar mais campos clicando em **"Adicionar campo"** novamente
+   - Quando terminar, clique em **"Salvar"**
+
 5. Repita os passos 1-4 para criar as seguintes coleções:
-   - **"usuarios"**
-   - **"confirmacoes"**
-   - **"notificacoes"**
-   - **"arquivos"**
-   - **"emails_enviados"**
+
+#### Para criar a coleção "usuarios":
+
+1. No Firestore Database, clique em **"Iniciar coleção"**
+2. Digite o ID da coleção: **"usuarios"**
+3. Clique em **"Próxima"**
+4. Siga a Opção A ou B acima para criar o primeiro documento
+   - Se escolher a Opção B, você pode adicionar campos como "nome" (tipo: string), "perfil" (tipo: string, valor: "atleta"), "email" (tipo: string)
+
+#### Para criar a coleção "confirmacoes":
+
+1. No Firestore Database, clique em **"Iniciar coleção"**
+2. Digite o ID da coleção: **"confirmacoes"**
+3. Clique em **"Próxima"**
+4. Siga a Opção A ou B acima para criar o primeiro documento
+
+#### Para criar a coleção "notificacoes":
+
+1. No Firestore Database, clique em **"Iniciar coleção"**
+2. Digite o ID da coleção: **"notificacoes"**
+3. Clique em **"Próxima"**
+4. Siga a Opção A ou B acima para criar o primeiro documento
+
+#### Para criar a coleção "arquivos":
+
+1. No Firestore Database, clique em **"Iniciar coleção"**
+2. Digite o ID da coleção: **"arquivos"**
+3. Clique em **"Próxima"**
+4. Siga a Opção A ou B acima para criar o primeiro documento
+
+#### Para criar a coleção "emails_enviados":
+
+1. No Firestore Database, clique em **"Iniciar coleção"**
+2. Digite o ID da coleção: **"emails_enviados"**
+3. Clique em **"Próxima"**
+4. Siga a Opção A ou B acima para criar o primeiro documento
+
+### Explicação dos Tipos de Campos no Firestore:
+
+Quando o Firebase pede para você selecionar um "Tipo" para um campo, estas são as opções disponíveis:
+
+- **string**: Para textos (nomes, descrições, status, etc.)
+- **number**: Para valores numéricos (idade, quantidade, etc.)
+- **boolean**: Para valores verdadeiro/falso (sim/não, ativo/inativo)
+- **map**: Para objetos que contêm outros campos
+- **array**: Para listas de valores
+- **timestamp**: Para datas e horários
+- **geopoint**: Para coordenadas geográficas (latitude e longitude)
+- **reference**: Para referências a outros documentos no Firestore
+
+Para a maioria dos campos no sistema de autorizações, você usará principalmente os tipos **string**, **number**, **boolean** e **timestamp**.
 
 ## 3. Configurando a Autenticação
 

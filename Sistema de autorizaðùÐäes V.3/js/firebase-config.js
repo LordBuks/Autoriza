@@ -2,13 +2,19 @@
 
 // Inicialização do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyAZH66DnsNwrq_49NT1EeJiBg37rtmGl88",
-  authDomain: "autorizabase.firebaseapp.com",
-  projectId: "autorizabase",
-  storageBucket: "autorizabase.firebasestorage.app",
-  messagingSenderId: "453219674879",
-  appId: "1:453219674879:web:aca4bee337532eff83faca"
+  apiKey: "AIzaSyBWP6QblKqmOKFWqDJZEmWR7hhJ-2GEPr4",
+  authDomain: "sistema-de-autorizacoes.firebaseapp.com",
+  projectId: "sistema-de-autorizacoes",
+  storageBucket: "sistema-de-autorizacoes.firebasestorage.app",
+  messagingSenderId: "380824234132",
+  appId: "1:380824234132:web:5c605aebd6b4b38569ac81",
+  measurementId: "G-0HK2KFESG9"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
 
 // Inicializar Firebase
 class FirebaseService {
