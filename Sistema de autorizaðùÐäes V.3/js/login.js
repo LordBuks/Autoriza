@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     atleta: {
       // Para atletas, o login é genérico. Usaremos um e-mail/senha fixo no Auth.
       // IMPORTANTE: Criar este usuário no Firebase Auth Console: atleta@dominio.com / senha_atleta_fixa
-      email: "atleta@dominio.com", // E-mail fixo para login de atleta
+      email: "atleta@inter.com", // E-mail fixo para login de atleta
       redirect: "templates/atleta/dashboard.html",
     },
     supervisor: {
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // Para outros perfis, construir e-mail a partir do username
       // ASSUMINDO que o e-mail no Firebase Auth é username@dominio.com
       // É crucial que os usuários sejam criados no Firebase Auth com este padrão de e-mail.
-      email = `${username}@dominio.com`;
+      email = `${username}@inter.com`;
     }
 
     // Tentar login com Firebase Auth
