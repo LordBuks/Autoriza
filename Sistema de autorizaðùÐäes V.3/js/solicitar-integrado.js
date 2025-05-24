@@ -1,26 +1,34 @@
-// Integração com serviço de notificações
+// Integração com serviço de notificações e Firestore
 document.addEventListener('DOMContentLoaded', function() {
-  // Verificar se o script de notificação foi carregado
+  // Verificar se os serviços necessários foram carregados
   if (!window.notificacaoService) {
     console.error('Serviço de notificação não encontrado!');
-    return;
+    // Poderia adicionar um alerta visual para o usuário aqui
+    // return;
   }
-  
-  // Sobrescrever a função de envio de notificação no script de solicitação
+  if (!window.firebaseService) {
+    console.error('Serviço Firebase não encontrado!');
+    // Poderia adicionar um alerta visual para o usuário aqui
+    // return;
+  }
+
   const autorizacaoForm = document.getElementById('autorizacao-form');
-  
+
   if (autorizacaoForm) {
-    autorizacaoForm.addEventListener('submit', function(e) {
+    autorizacaoForm.addEventListener('submit', async function(e) { // Adicionado async aqui
       e.preventDefault();
-      
-      // Validar o formulário (reaproveitando a lógica existente)
+
+      // Validar o formulário
       if (!validarFormulario()) {
         return;
       }
-      
+
+      // Mostrar indicador de carregamento (opcional, mas bom para UX)
+      mostrarAlerta('Enviando solicitação...', 'alert-info');
+
       // Coletar dados do formulário
       const formData = {
-        id: gerarId(),
+        id: gerarId(), // Gerar ID único para a solicitação
         nome: document.getElementById('nome').value,
         email: document.getElementById('email').value,
         data_nascimento: document.getElementById('data_nascimento').value,
@@ -37,69 +45,105 @@ document.addEventListener('DOMContentLoaded', function() {
         status_supervisor: 'Pendente',
         status_servico_social: 'Pendente',
         status_final: 'Em Análise'
+        // Adicionar o UID do atleta logado, se disponível e necessário para regras
+        // atletaUid: window.firebaseService.auth.currentUser ? window.firebaseService.auth.currentUser.uid : null
       };
-      
-      // Recuperar solicitações existentes ou inicializar array vazio
-      let solicitacoes = JSON.parse(localStorage.getItem('solicitacoes')) || [];
-      
-      // Adicionar nova solicitação
-      solicitacoes.push(formData);
-      
-      // Salvar no localStorage
-      localStorage.setItem('solicitacoes', JSON.stringify(solicitacoes));
-      
-      // Enviar notificação ao supervisor usando o serviço de notificações
-      window.notificacaoService.enviarNotificacaoSupervisor(formData);
-      
-      // Mostrar mensagem de sucesso
-      mostrarAlerta('Solicitação enviada com sucesso! Seu código de acompanhamento é: ' + formData.id, 'alert-success');
-      
-      // Limpar o formulário
-      autorizacaoForm.reset();
-      
-      // Redirecionar após 3 segundos
-      setTimeout(function() {
-        window.location.href = 'consultar.html?id=' + formData.id;
-      }, 3000);
+
+      try {
+        // Salvar no Firestore usando o ID gerado
+        const resultadoSalvar = await window.firebaseService.salvarDocumento('solicitacoes', formData, formData.id);
+
+        if (resultadoSalvar.sucesso) {
+          // Enviar notificação ao supervisor (se necessário)
+          if (window.notificacaoService) {
+             window.notificacaoService.enviarNotificacaoSupervisor(formData); // Idealmente, esta função também deveria ser assíncrona ou lidar com erros
+          }
+
+          // Mostrar mensagem de sucesso
+          mostrarAlerta('Solicitação enviada com sucesso! Seu código de acompanhamento é: ' + formData.id, 'alert-success');
+
+          // Limpar o formulário
+          autorizacaoForm.reset();
+
+          // Redirecionar após 3 segundos
+          setTimeout(function() {
+            // Idealmente, redirecionar para uma página que busca do Firestore
+            window.location.href = 'consultar.html?id=' + formData.id;
+          }, 3000);
+
+        } else {
+          // Mostrar mensagem de erro do Firestore
+          console.error('Erro ao salvar no Firestore:', resultadoSalvar.erro);
+          mostrarAlerta('Erro ao salvar solicitação: ' + resultadoSalvar.erro, 'alert-danger');
+        }
+      } catch (error) {
+        // Mostrar mensagem de erro genérico
+        console.error('Erro inesperado ao enviar formulário:', error);
+        mostrarAlerta('Ocorreu um erro inesperado ao enviar a solicitação. Tente novamente.', 'alert-danger');
+      }
     });
   }
-  
-  // Funções auxiliares (reaproveitadas do script original)
+
+  // Funções auxiliares
   function validarFormulario() {
-    const dataSaida = new Date(document.getElementById('data_saida').value);
-    const dataRetorno = new Date(document.getElementById('data_retorno').value);
+    // Adicionar validações mais robustas se necessário
+    const dataSaidaInput = document.getElementById('data_saida');
+    const dataRetornoInput = document.getElementById('data_retorno');
+
+    if (!dataSaidaInput.value || !dataRetornoInput.value) {
+        mostrarAlerta('Por favor, preencha as datas de saída e retorno.', 'alert-danger');
+        return false;
+    }
+
+    const dataSaida = new Date(dataSaidaInput.value + 'T00:00:00'); // Considerar fuso horário se relevante
+    const dataRetorno = new Date(dataRetornoInput.value + 'T00:00:00');
     const hoje = new Date();
-    
-    // Verificar se a data de saída é futura
+    hoje.setHours(0, 0, 0, 0); // Zerar horas para comparar apenas datas
+
+    // Verificar se a data de saída é futura ou hoje
     if (dataSaida < hoje) {
-      mostrarAlerta('A data de saída deve ser futura.', 'alert-danger');
+      mostrarAlerta('A data de saída não pode ser anterior a hoje.', 'alert-danger');
       return false;
     }
-    
-    // Verificar se a data de retorno é posterior à data de saída
+
+    // Verificar se a data de retorno é posterior ou igual à data de saída
     if (dataRetorno < dataSaida) {
-      mostrarAlerta('A data de retorno deve ser posterior à data de saída.', 'alert-danger');
+      mostrarAlerta('A data de retorno deve ser igual ou posterior à data de saída.', 'alert-danger');
       return false;
     }
-    
+
+    // Outras validações podem ser adicionadas aqui (campos obrigatórios, formato de email, etc.)
+
     return true;
   }
-  
+
   function mostrarAlerta(mensagem, tipo) {
     const alertMessage = document.getElementById('alert-message');
     if (alertMessage) {
       alertMessage.textContent = mensagem;
-      alertMessage.className = `alert ${tipo}`;
+      // Limpar classes antigas e adicionar novas
+      alertMessage.className = 'alert'; // Reset classes
+      alertMessage.classList.add(tipo); // Adiciona a classe do tipo (alert-success, alert-danger, alert-info)
       alertMessage.style.display = 'block';
-      
-      // Esconder a mensagem após 5 segundos
-      setTimeout(function() {
-        alertMessage.style.display = 'none';
-      }, 5000);
+
+      // Esconder a mensagem após 5 segundos, exceto se for de informação (carregando)
+      if (tipo !== 'alert-info') {
+          setTimeout(function() {
+              if (alertMessage.style.display === 'block') { // Só esconde se ainda estiver visível
+                 alertMessage.style.display = 'none';
+              }
+          }, 5000);
+      }
+    } else {
+        console.warn('Elemento de alerta #alert-message não encontrado na página.');
+        // Fallback para alert padrão do navegador
+        alert(mensagem);
     }
   }
-  
+
   function gerarId() {
-    return 'AUTH-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    // Gerador de ID simples - considere usar UUIDs mais robustos se necessário
+    return 'AUTH-' + Math.random().toString(36).substring(2, 11).toUpperCase();
   }
 });
+
