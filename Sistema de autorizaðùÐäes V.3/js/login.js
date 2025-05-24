@@ -1,160 +1,162 @@
-// Lógica de login e autenticação com Firebase
+// Lógica de login e autenticação com Firebase Authentication
 document.addEventListener("DOMContentLoaded", function () {
   const loginForm = document.getElementById("login-form");
   const alertMessage = document.getElementById("alert-message");
+  const usernameInput = document.getElementById("username");
+  const passwordInput = document.getElementById("password");
+  const profileSelect = document.getElementById("profile");
 
-  // Mapeamento de perfis para redirecionamento e e-mails (se necessário)
-  const profileConfig = {
-    atleta: {
-      // Para atletas, o login é genérico. Usaremos um e-mail/senha fixo no Auth.
-      // IMPORTANTE: Criar este usuário no Firebase Auth Console: atleta@dominio.com / senha_atleta_fixa
-      email: "atleta@inter.com", // E-mail fixo para login de atleta
-      redirect: "templates/atleta/dashboard.html",
-    },
-    supervisor: {
-      // Assumindo que o username no form é o prefixo do email. Ex: 'supervisor' -> supervisor@dominio.com
-      // A senha será a digitada pelo usuário.
-      redirect: "templates/supervisor/dashboard.html",
-    },
-    servico_social: {
-      redirect: "templates/servico_social/dashboard.html",
-    },
-    monitor: {
-      redirect: "templates/monitor/dashboard.html",
-    },
-  };
-
-  // Verificar se o Firebase Service está pronto
+  // Verificar se o Firebase Service está disponível
   if (!window.firebaseService) {
-    console.error("Firebase Service não encontrado!");
-    showAlert("Erro crítico na inicialização. Recarregue a página.");
-    return; // Impede a adição do listener
+    console.error("Firebase Service não encontrado! A autenticação não funcionará.");
+    showAlert("Erro crítico: Serviço de autenticação indisponível.");
+    // Desabilitar o formulário para evitar tentativas inúteis
+    if(loginForm) {
+        loginForm.querySelectorAll("input, select, button").forEach(el => el.disabled = true);
+    }
+    return; // Interromper a execução se o Firebase não estiver carregado
   }
 
-  loginForm.addEventListener("submit", async function (e) {
-    e.preventDefault();
-    hideAlert(); // Esconder alerta anterior
+  // Mapeamento de perfis para redirecionamento
+  const profileRedirects = {
+    atleta: "templates/atleta/dashboard.html",
+    supervisor: "templates/supervisor/dashboard.html",
+    servico_social: "templates/servico_social/dashboard.html",
+    monitor: "templates/monitor/dashboard.html",
+  };
 
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value;
-    const profile = document.getElementById("profile").value;
+  if (loginForm) {
+    loginForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      hideAlert(); // Esconder alertas anteriores
 
-    if (!profile) {
-      showAlert("Por favor, selecione seu perfil de acesso.");
-      return;
-    }
+      const email = usernameInput.value; // Assumindo que o campo username é usado para o email
+      const password = passwordInput.value;
+      const profile = profileSelect.value;
 
-    let email;
-    if (profile === "atleta") {
-      // Login especial para atleta com credencial fixa
-      if (username !== "atleta") {
-         // Poderia validar o username aqui se necessário, mas o requisito é login genérico
-         console.warn("Username digitado para atleta ignorado, usando credencial fixa.");
-      }
-      email = profileConfig.atleta.email;
-      // A senha usada será a digitada no campo senha, comparada com a senha fixa no Auth
-    } else {
-      // Para outros perfis, construir e-mail a partir do username
-      // ASSUMINDO que o e-mail no Firebase Auth é username@dominio.com
-      // É crucial que os usuários sejam criados no Firebase Auth com este padrão de e-mail.
-      email = `${username}@inter.com`;
-    }
-
-    // Tentar login com Firebase Auth
-    const loginResult = await window.firebaseService.loginComEmailSenha(
-      email,
-      password
-    );
-
-    if (loginResult.sucesso) {
-      const user = loginResult.usuario;
-      console.log("Login bem-sucedido para:", user.email, "UID:", user.uid);
-
-      // Salvar perfil selecionado no localStorage para uso posterior nas telas
-      localStorage.setItem("user_profile", profile);
-      localStorage.setItem("user_uid", user.uid);
-      localStorage.setItem("user_email", user.email);
-
-      // Se for atleta, redirecionar direto (não precisa checar Firestore para passwordSet)
-      if (profile === "atleta") {
-        redirectToProfile(profileConfig.atleta.redirect);
+      // Validações básicas
+      if (!email || !password || !profile) {
+        showAlert("Por favor, preencha todos os campos: Usuário (Email), Senha e Perfil.");
         return;
       }
 
-      // Para outros perfis, verificar no Firestore se a senha já foi definida
-      const userDoc = await window.firebaseService.obterDocumento(
-        "usuarios",
-        user.uid
-      );
+      // Mostrar indicador de carregamento (opcional)
+      showAlert("Autenticando...", "alert-info");
 
-      if (userDoc.sucesso && userDoc.dados) {
-        const userData = userDoc.dados;
-        // Verificar se o perfil no documento corresponde ao selecionado no login
-        if (userData.profile !== profile) {
-            console.error(`Discrepância de perfil: Login como ${profile}, mas Firestore indica ${userData.profile} para UID ${user.uid}`);
-            showAlert("Erro: Seu perfil de acesso não corresponde ao registrado. Contate o suporte.");
-            await window.firebaseService.logout(); // Deslogar por segurança
-            localStorage.clear(); // Limpar localStorage
-            return;
-        }
+      try {
+        // Tentar login com Firebase Auth
+        const resultadoLogin = await window.firebaseService.loginComEmailSenha(email, password);
 
-        if (userData.passwordSet) {
-          // Senha já definida, redirecionar para o dashboard correspondente
-          console.log("Usuário já definiu a senha. Redirecionando para dashboard...");
-          redirectToProfile(profileConfig[profile].redirect);
+        if (resultadoLogin.sucesso && resultadoLogin.usuario) {
+          // Login bem-sucedido no Firebase Auth
+          const user = resultadoLogin.usuario;
+
+          // **Passo Adicional: Verificar o perfil do usuário no Firestore**
+          // É crucial verificar se o perfil selecionado no formulário corresponde
+          // ao perfil armazenado no Firestore para este usuário autenticado.
+          const perfilFirestore = await verificarPerfilUsuario(user.uid);
+
+          if (perfilFirestore === profile) {
+            // Perfil corresponde! Login autorizado.
+            hideAlert(); // Limpar mensagem de "Autenticando..."
+            console.log(`Login bem-sucedido para ${email} com perfil ${profile}`);
+
+            // Salvar informações da sessão (opcional, mas útil)
+            saveSession(profile, email, user.uid);
+
+            // Redirecionar para o dashboard correspondente
+            redirectToProfile(profileRedirects[profile]);
+
+          } else if (perfilFirestore) {
+            // Usuário autenticado, mas perfil selecionado não corresponde ao do banco
+            console.warn(`Usuário ${email} autenticado, mas selecionou perfil incorreto (${profile}). Perfil real: ${perfilFirestore}`);
+            showAlert(`Autenticação bem-sucedida, mas o perfil selecionado (${profile}) não corresponde ao seu perfil registrado (${perfilFirestore}). Faça login com o perfil correto.`);
+            // Deslogar o usuário para evitar confusão?
+            // await window.firebaseService.logout();
+          } else {
+            // Usuário autenticado, mas não foi possível verificar o perfil no Firestore
+            console.error(`Usuário ${email} autenticado, mas não foi encontrado registro na coleção 'usuarios' ou houve erro ao buscar.`);
+            showAlert("Usuário autenticado, mas houve um problema ao verificar seu perfil. Contate o suporte.");
+            // Deslogar?
+            // await window.firebaseService.logout();
+          }
+
         } else {
-          // Primeiro acesso (senha padrão funcionou, mas não foi alterada)
-          console.log("Primeiro acesso detectado. Redirecionando para definir senha...");
-          // Usar localStorage como flag temporária para a próxima página
-          localStorage.setItem("temp_profile", profile); // Indica que veio do login
-          window.location.href = "primeiro-acesso.html";
+          // Falha no login do Firebase Auth
+          console.error("Falha na autenticação Firebase:", resultadoLogin.erro);
+          let mensagemErro = "Credenciais inválidas. Verifique seu email e senha.";
+          // Personalizar mensagem para erros comuns, se necessário
+          if (resultadoLogin.erro && resultadoLogin.erro.includes("auth/user-not-found")) {
+              mensagemErro = "Usuário não encontrado.";
+          } else if (resultadoLogin.erro && resultadoLogin.erro.includes("auth/wrong-password")) {
+              mensagemErro = "Senha incorreta.";
+          }
+          showAlert(mensagemErro);
         }
+      } catch (error) {
+        // Erro inesperado durante o processo
+        console.error("Erro inesperado durante o login:", error);
+        showAlert("Ocorreu um erro inesperado durante a autenticação. Tente novamente.");
+      }
+    });
+  }
+
+  // Função para verificar o perfil do usuário no Firestore
+  async function verificarPerfilUsuario(uid) {
+    try {
+      const resultadoDoc = await window.firebaseService.obterDocumento("usuarios", uid);
+      if (resultadoDoc.sucesso && resultadoDoc.dados && resultadoDoc.dados.profile) {
+        return resultadoDoc.dados.profile; // Retorna o perfil (ex: 'atleta', 'supervisor')
       } else {
-        // Erro ao buscar documento no Firestore ou documento não encontrado
-        console.error(
-          "Erro ao buscar dados do usuário no Firestore ou usuário não cadastrado:",
-          userDoc.erro || "Documento não encontrado"
-        );
-        showAlert(
-          "Login realizado, mas não foi possível verificar seu perfil. Contate o suporte."
-        );
-        // Manter logado ou deslogar? Decidir regra de negócio.
-        // Por segurança, vamos deslogar:
-        await window.firebaseService.logout();
-        localStorage.clear();
+        console.warn(`Documento do usuário ${uid} não encontrado na coleção 'usuarios' ou sem campo 'profile'.`);
+        return null; // Usuário não encontrado ou sem perfil definido
       }
-    } else {
-      // Falha no login (Firebase Auth)
-      console.error("Falha no login:", loginResult.erro);
-      let friendlyMessage = "Credenciais inválidas. Verifique seu usuário e senha.";
-      if (loginResult.erro.includes("auth/user-not-found")) {
-          friendlyMessage = "Usuário não encontrado. Verifique o nome de usuário ou contate o suporte.";
-      } else if (loginResult.erro.includes("auth/wrong-password")) {
-          friendlyMessage = "Senha incorreta. Tente novamente.";
-      } else if (loginResult.erro.includes("auth/invalid-email")) {
-          friendlyMessage = "Formato de e-mail inválido (gerado a partir do usuário). Contate o suporte.";
-      }
-      // Adicionar mais tratamentos de erro conforme necessário
-
-      showAlert(friendlyMessage);
+    } catch (error) {
+      console.error(`Erro ao buscar perfil do usuário ${uid} no Firestore:`, error);
+      return null; // Erro ao buscar
     }
-  });
-
-  function showAlert(message) {
-    alertMessage.textContent = message;
-    alertMessage.style.display = "block";
   }
 
+  // Função para salvar informações da sessão no localStorage (simplificado)
+  function saveSession(profile, email, uid) {
+    const session = {
+      profile: profile,
+      email: email,
+      uid: uid,
+      loginTime: new Date().toISOString(),
+    };
+    localStorage.setItem("current_session", JSON.stringify(session));
+    // Você pode querer usar sessionStorage se preferir que a sessão expire ao fechar o navegador
+  }
+
+  // Função para mostrar alertas
+  function showAlert(message, type = "alert-danger") {
+    if (alertMessage) {
+      alertMessage.textContent = message;
+      alertMessage.className = "alert"; // Reset classes
+      alertMessage.classList.add(type);
+      alertMessage.style.display = "block";
+    } else {
+        // Fallback se o elemento de alerta não existir
+        alert(message);
+    }
+  }
+
+  // Função para esconder alertas
   function hideAlert() {
-      alertMessage.style.display = "none";
+      if(alertMessage) {
+          alertMessage.style.display = "none";
+      }
   }
 
+  // Função para redirecionar
   function redirectToProfile(url) {
-    window.location.href = url;
+    if (url) {
+      window.location.href = url;
+    } else {
+      console.error("URL de redirecionamento não definida para este perfil.");
+      showAlert("Login bem-sucedido, mas não foi possível redirecionar.");
+    }
   }
-
-  // Remover funções antigas que usavam localStorage para usuários
-  // initializeUsers();
-  // captureDeviceInfo();
-  // saveSession();
 });
+
