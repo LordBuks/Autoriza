@@ -62,15 +62,15 @@ const SolicitacaoController = (function() {
     
     if (resultado.sucesso) {
       // Mostrar mensagem de sucesso
-      mostrarAlerta(`Solicitação enviada com sucesso! Seu código de acompanhamento é: ${resultado.solicitacao.id}`, 'alert-success');
+      mostrarAlerta(`Solicitação enviada com sucesso! Você receberá atualizações sobre o status por e-mail.`, 'alert-success');
       
       // Limpar o formulário
       autorizacaoForm.reset();
       
-      // Redirecionar após 3 segundos
-      setTimeout(function() {
-        window.location.href = 'consultar.html?id=' + resultado.solicitacao.id;
-      }, 3000);
+      // Não redirecionar mais, o acompanhamento é por email
+      // setTimeout(function() {
+      //   window.location.href = 'consultar.html?id=' + resultado.solicitacao.id;
+      // }, 3000);
     } else {
       // Mostrar mensagem de erro
       mostrarAlerta(resultado.mensagem, 'alert-danger');
