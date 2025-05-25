@@ -34,7 +34,7 @@ const SolicitacaoController = (function() {
     // Esconder a mensagem após 5 segundos
     setTimeout(function() {
       alertMessage.style.display = 'none';
-    }, 5000);
+    }, 8000);
   }
   
   // Manipulador de envio do formulário
