@@ -52,6 +52,20 @@ document.addEventListener('DOMContentLoaded', function() {
       // solicitacoes.push(formData);
       // localStorage.setItem('solicitacoes', JSON.stringify(solicitacoes));
 
+      // Obter o UID do atleta logado
+      const currentUser = firebase.auth().currentUser;
+      
+      if (currentUser) {
+        // Adiciona o UID do atleta logado aos dados que serão salvos
+        formData.atletaUid = currentUser.uid;
+        console.log("UID do atleta adicionado aos dados:", currentUser.uid);
+      } else {
+        // Se não houver usuário logado, mostra um erro e impede o envio
+        console.error("Erro crítico: Tentativa de envio de formulário sem usuário autenticado.");
+        mostrarAlerta('Erro de autenticação. Você não está logado. Por favor, faça login novamente antes de enviar a solicitação.', 'alert-danger');
+        return; // Interrompe a execução da função de envio
+      }
+      
       // Salvar no Firebase Firestore usando o serviço
       window.firebaseService.salvarDocumento('solicitacoes', formData.id, formData)
         .then(() => {
@@ -164,4 +178,3 @@ document.addEventListener('DOMContentLoaded', function() {
     return `AUTH-${timestamp}-${randomPart}`.toUpperCase();
   }
 });
-
