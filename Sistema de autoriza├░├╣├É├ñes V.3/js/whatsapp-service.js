@@ -11,10 +11,10 @@ class WhatsAppService {
     let numeroLimpo = telefone.replace(/\D/g, '');
 
     // 2. Verificar e formatar para o padrão brasileiro (55 + DDD + número)
-    if (numeroLimpo.startsWith('55') && (numeroLimpo.length === 12 || numeroLimpo.length === 13)) {
+    if (numeroLimpo.startsWith('+55') && (numeroLimpo.length === 12 || numeroLimpo.length === 13)) {
       // Número já está no formato correto (55 + DDD + número)
       // Ex: 55119XXXXXXXX ou 5511XXXXXXXX
-    } else if (!numeroLimpo.startsWith('55') && (numeroLimpo.length === 10 || numeroLimpo.length === 11)) {
+    } else if (!numeroLimpo.startsWith('+55') && (numeroLimpo.length === 10 || numeroLimpo.length === 11)) {
       // Número não tem 55, mas tem tamanho de DDD + número (10 ou 11 dígitos)
       // Adicionar o 55
       numeroLimpo = `55${numeroLimpo}`;
