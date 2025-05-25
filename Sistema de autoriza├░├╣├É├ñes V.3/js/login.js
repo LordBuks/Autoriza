@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const profileRedirects = {
     atleta: "templates/atleta/dashboard.html",
     supervisor: "templates/supervisor/dashboard.html",
-    servico_social: "templates/servico_social/dashboard.html",
+    servico_social: "templates/monitor/dashboard.html",
     monitor: "templates/monitor/dashboard.html",
   };
 
