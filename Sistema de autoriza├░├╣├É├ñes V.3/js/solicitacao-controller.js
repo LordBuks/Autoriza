@@ -13,14 +13,14 @@ const SolicitacaoController = (function() {
   // Inicialização do controlador
   function inicializar() {
     // Capturar elementos do DOM
-    autorizacaoForm = document.getElementById('autorizacao-form');
-    alertMessage = document.getElementById('alert-message');
+    autorizacaoForm = document.getElementById("autorizacao-form");
+    alertMessage = document.getElementById("alert-message");
     
     // Verificar se estamos na página correta
     if (!autorizacaoForm) return;
     
     // Configurar eventos
-    autorizacaoForm.addEventListener('submit', handleSubmit);
+    autorizacaoForm.addEventListener("submit", handleSubmit);
   }
   
   // Função para mostrar alertas
@@ -29,61 +29,69 @@ const SolicitacaoController = (function() {
     
     alertMessage.textContent = mensagem;
     alertMessage.className = `alert ${tipo}`;
-    alertMessage.style.display = 'block';
+    alertMessage.style.display = "block";
     
-    // Esconder a mensagem após 5 segundos
+    // Esconder a mensagem após 8 segundos (aumentei um pouco)
     setTimeout(function() {
-      alertMessage.style.display = 'none';
+      alertMessage.style.display = "none";
     }, 8000);
   }
   
-  // Manipulador de envio do formulário
-  function handleSubmit(e) {
+  // Manipulador de envio do formulário (CORRIGIDO: adicionado 'async')
+  async function handleSubmit(e) {
     e.preventDefault();
     
     // Coletar dados do formulário
     const formData = {
-      nome: document.getElementById('nome').value,
-      email: document.getElementById('email').value,
-      data_nascimento: document.getElementById('data_nascimento').value,
-      telefone: document.getElementById('telefone').value,
-      categoria: document.getElementById('categoria').value,
-      data_saida: document.getElementById('data_saida').value,
-      horario_saida: document.getElementById('horario_saida').value,
-      data_retorno: document.getElementById('data_retorno').value,
-      horario_retorno: document.getElementById('horario_retorno').value,
-      motivo_destino: document.getElementById('motivo_destino').value,
-      nome_responsavel: document.getElementById('nome_responsavel').value,
-      telefone_responsavel: document.getElementById('telefone_responsavel').value
+      nome: document.getElementById("nome").value,
+      email: document.getElementById("email").value,
+      data_nascimento: document.getElementById("data_nascimento").value,
+      telefone: document.getElementById("telefone").value,
+      categoria: document.getElementById("categoria").value,
+      data_saida: document.getElementById("data_saida").value,
+      horario_saida: document.getElementById("horario_saida").value,
+      data_retorno: document.getElementById("data_retorno").value,
+      horario_retorno: document.getElementById("horario_retorno").value,
+      motivo_destino: document.getElementById("motivo_destino").value,
+      nome_responsavel: document.getElementById("nome_responsavel").value,
+      telefone_responsavel: document.getElementById("telefone_responsavel").value
     };
-    
-    // Usar o serviço de autorização para criar a solicitação
-    const resultado = window.AutorizacaoService.criarSolicitacao(formData);
-    
-    if (resultado.sucesso) {
-      // Mostrar mensagem de sucesso
-      mostrarAlerta(`Solicitação enviada com sucesso! Você receberá atualizações sobre o status por e-mail.`, 'alert-success');
+
+    let resultado; // Declarar resultado fora do try para o escopo do catch (embora não usado no catch corrigido)
+    try {
+      // Usar o serviço de autorização para criar a solicitação (CORRIGIDO: await agora funciona)
+      resultado = await window.AutorizacaoService.criarSolicitacao(formData);
       
-      // Limpar o formulário
-      autorizacaoForm.reset();
-      
-      // Não redirecionar mais, o acompanhamento é por email
-      // setTimeout(function() {
-      //   window.location.href = 'consultar.html?id=' + resultado.solicitacao.id;
-      // }, 3000);
-    } else {
-      // Mostrar mensagem de erro
-      mostrarAlerta(resultado.mensagem, 'alert-danger');
+      if (resultado.sucesso && resultado.solicitacao && resultado.solicitacao.id) {
+        // Mostrar mensagem de sucesso com o código
+        mostrarAlerta(`Solicitação enviada com sucesso! Seu código de acompanhamento é: ${resultado.solicitacao.id}. Você receberá atualizações sobre o status por e-mail.`, "alert-success");
+        
+        // Limpar o formulário
+        autorizacaoForm.reset();
+        
+        // Não redirecionar mais, o acompanhamento é por email
+        // setTimeout(function() {
+        //   window.location.href = 'consultar.html?id=' + resultado.solicitacao.id;
+        // }, 3000);
+      } else {
+        // Mostrar mensagem de erro vinda do serviço
+        mostrarAlerta(resultado.mensagem || "Ocorreu um erro ao enviar a solicitação.", "alert-danger");
+      }
+    } catch (error) {
+      // Capturar erros da chamada await ou outros erros inesperados
+      console.error("Erro ao processar envio do formulário:", error);
+      // Mostrar mensagem de erro genérica (CORRIGIDO: usa error.message)
+      mostrarAlerta(`Ocorreu um erro ao processar sua solicitação: ${error.message}. Por favor, tente novamente mais tarde.`, "alert-danger");
     }
   }
-  
-  // API pública
+
+  // Inicializar o controlador quando o DOM estiver pronto
+  document.addEventListener("DOMContentLoaded", function() {
+    SolicitacaoController.inicializar();
+  });
+
+  // Retornar o objeto do controlador para uso externo (CORRIGIDO: dentro do IIFE)
   return {
     inicializar: inicializar
   };
-})();
-
-// Inicializar o controlador quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', function() {
-  SolicitacaoController.inicializar();
-});
+})(); // Fim do IIFE

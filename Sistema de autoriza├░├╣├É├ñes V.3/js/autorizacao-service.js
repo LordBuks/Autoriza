@@ -137,6 +137,9 @@ const AutorizacaoService = (function() {
         // Notificar se o serviço de notificação estiver disponível
         if (window.notificacaoService) {
           window.notificacaoService.enviarNotificacaoSupervisor(solicitacao);
+          
+          // Passar 'Pendente' ou um status inicial apropriado
+    window.notificacaoService.enviarNotificacaoAtleta(solicitacao, 'Recebida'); 
         }
 
         return {
