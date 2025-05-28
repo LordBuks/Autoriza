@@ -104,25 +104,49 @@ document.addEventListener("DOMContentLoaded", async function() {
             let filtros = {}; // Inicia sem filtros
             try {
                 const supervisorDoc = await window.firebaseService.obterDocumento("usuarios", supervisorUid);
-                if (supervisorDoc.sucesso && supervisorDoc.dados && supervisorDoc.dados.categoria) {
-                    supervisorCategoria = supervisorDoc.dados.categoria;
-                    console.log("Supervisor logado pertence à categoria:", supervisorCategoria);
-                    filtros = { categoria: supervisorCategoria }; // Define o filtro se a categoria existir
+                if (supervisorDoc.sucesso && supervisorDoc.dados) {
+                    if (supervisorDoc.dados.categoria) {
+                        supervisorCategoria = supervisorDoc.dados.categoria;
+                        console.log("Supervisor logado pertence à categoria:", supervisorCategoria);
+                        filtros = { categoria: supervisorCategoria }; // Define o filtro se a categoria existir
+                    } else {
+                        console.warn(`Supervisor ${supervisorUid} não tem campo 'categoria' definido no Firestore.`);
+                        mostrarErro(solicitacoesPendentesContainer, 
+                            "Seu perfil de supervisor não possui uma categoria atribuída. Entre em contato com o administrador do sistema.");
+                        mostrarErro(historicoAprovacoesContainer, 
+                            "Seu perfil de supervisor não possui uma categoria atribuída. Entre em contato com o administrador do sistema.");
+                        return; // Interrompe o carregamento se não houver categoria
+                    }
                 } else {
-                    console.warn(`Supervisor ${supervisorUid} não tem campo 'categoria' definido no Firestore. Exibindo todas as solicitações.`);
-                    // Não define o filtro, buscará todas as solicitações
+                    console.warn(`Dados do supervisor ${supervisorUid} não encontrados no Firestore.`);
+                    mostrarErro(solicitacoesPendentesContainer, 
+                        "Seu perfil de supervisor não foi encontrado no sistema. Entre em contato com o administrador do sistema.");
+                    mostrarErro(historicoAprovacoesContainer, 
+                        "Seu perfil de supervisor não foi encontrado no sistema. Entre em contato com o administrador do sistema.");
+                    return; // Interrompe o carregamento se não encontrar o supervisor
                 }
             } catch (error) {
                  console.error("Erro ao buscar dados do supervisor no Firestore:", error);
-                 // Continua sem filtro, mas loga o erro
-                 console.warn("Não foi possível buscar a categoria do supervisor. Exibindo todas as solicitações.");
+                 mostrarErro(solicitacoesPendentesContainer, 
+                    "Erro ao carregar seu perfil de supervisor. Tente novamente ou entre em contato com o administrador do sistema.");
+                 mostrarErro(historicoAprovacoesContainer, 
+                    "Erro ao carregar seu perfil de supervisor. Tente novamente ou entre em contato com o administrador do sistema.");
+                 return; // Interrompe o carregamento se houver erro
             }
 
-            // 3. Buscar as solicitações (com ou sem filtro de categoria)
-            todasSolicitacoes = await window.AutorizacaoService.listarSolicitacoes(filtros);
-
-            // 4. Filtrar e renderizar pendentes e histórico inicial (todos)
-            filtrarERenderizar();
+            // 3. Buscar as solicitações (com filtro de categoria)
+            try {
+                todasSolicitacoes = await window.AutorizacaoService.listarSolicitacoes(filtros);
+                
+                // 4. Filtrar e renderizar pendentes e histórico inicial (todos)
+                filtrarERenderizar();
+            } catch (error) {
+                console.error("Erro ao listar solicitações:", error);
+                mostrarErro(solicitacoesPendentesContainer, 
+                    "Erro ao carregar solicitações. Tente novamente mais tarde.");
+                mostrarErro(historicoAprovacoesContainer, 
+                    "Erro ao carregar histórico. Tente novamente mais tarde.");
+            }
 
         } catch (error) {
             console.error("Erro ao carregar dados do dashboard:", error);

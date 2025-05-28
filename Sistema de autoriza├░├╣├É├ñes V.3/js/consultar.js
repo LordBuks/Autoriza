@@ -1,199 +1,179 @@
-// Lógica para a tela de consulta de solicitações (Refatorada para Firestore)
-document.addEventListener("DOMContentLoaded", async function () {
-  const btnConsultar = document.getElementById("btn-consultar");
-  const inputCodigo = document.getElementById("codigo");
-  const resultadoConsulta = document.getElementById("resultado-consulta");
-  const solicitacoesRecentesContainer = document.getElementById("solicitacoes-recentes");
-  const loadingIndicatorConsulta = document.getElementById("loading-indicator-consulta"); // Para consulta específica
-  const loadingIndicatorRecentes = document.getElementById("loading-indicator-recentes"); // Para lista de recentes
-  const alertContainerConsulta = document.getElementById("alert-container-consulta"); // Alertas para consulta
-  const alertContainerRecentes = document.getElementById("alert-container-recentes"); // Alertas para recentes
-
-  // Verificar dependências
-  if (!window.AutorizacaoService) {
-    console.error("AutorizacaoService não encontrado!");
-    mostrarAlerta("Erro crítico: Serviço de dados indisponível.", "alert-danger", alertContainerConsulta);
-    mostrarAlerta("Erro crítico: Serviço de dados indisponível.", "alert-danger", alertContainerRecentes);
+// Lógica para a tela de solicitação de autorização
+document.addEventListener('DOMContentLoaded', function() {
+  const autorizacaoForm = document.getElementById('autorizacao-form');
+  const alertMessage = document.getElementById('alert-message');
+  
+  // Verificar se os serviços necessários estão disponíveis
+  if (!window.firebaseService) {
+    console.error("Serviço Firebase não encontrado!");
+    mostrarAlerta("Erro crítico: Serviço de dados indisponível.", "alert-danger");
     return;
   }
+  
+  // Função para validar o formulário
+  function validarFormulario() {
+    const dataSaidaStr = document.getElementById('data_saida').value;
+    const horaSaidaStr = document.getElementById('horario_saida').value;
+    const dataRetornoStr = document.getElementById('data_retorno').value;
+    const horaRetornoStr = document.getElementById('horario_retorno').value;
 
-  // Verificar se há um ID na URL (redirecionamento após envio)
-  const urlParams = new URLSearchParams(window.location.search);
-  const idConsultaUrl = urlParams.get("id");
+    // Combinar data e hora para criar objetos Date completos
+    const dataSaida = new Date(`${dataSaidaStr}T${horaSaidaStr}`);
+    const dataRetorno = new Date(`${dataRetornoStr}T${horaRetornoStr}`);
+    const agora = new Date();
 
-  if (idConsultaUrl) {
-    inputCodigo.value = idConsultaUrl;
-    await consultarSolicitacao(idConsultaUrl);
-  }
+    // Ajustar 'agora' para não considerar segundos e milissegundos na comparação de tempo
+    agora.setSeconds(0, 0);
 
-  // Carregar solicitações recentes (assíncrono)
-  await carregarSolicitacoesRecentes();
-
-  // Manipulador do botão de consulta
-  btnConsultar.addEventListener("click", async function () {
-    const codigo = inputCodigo.value.trim();
-
-    if (!codigo) {
-      mostrarAlerta("Por favor, digite um código de solicitação.", "alert-warning", alertContainerConsulta);
-      resultadoConsulta.style.display = "none"; // Esconde área de resultado
-      return;
+    // Verificar se a data e hora de saída são futuras
+    if (dataSaida < agora) {
+      mostrarAlerta('A data e hora de saída devem ser futuras.', 'alert-danger');
+      return false;
     }
 
-    await consultarSolicitacao(codigo);
+    // Verificar se a data e hora de retorno são posteriores à data e hora de saída
+    if (dataRetorno <= dataSaida) {
+      mostrarAlerta('A data e hora de retorno devem ser posteriores à data e hora de saída.', 'alert-danger');
+      return false;
+    }
+
+    return true;
+  }
+  
+  // Função para mostrar alertas
+  function mostrarAlerta(mensagem, tipo) {
+    alertMessage.textContent = mensagem;
+    alertMessage.className = `alert ${tipo}`;
+    alertMessage.style.display = 'block';
+    
+    // Esconder a mensagem após 5 segundos
+    setTimeout(function() {
+      alertMessage.style.display = 'none';
+    }, 5000);
+  }
+  
+  // Função para gerar um ID único
+  function gerarId() {
+    return 'AUTH-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+  }
+  
+  // Manipulador de envio do formulário
+  autorizacaoForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Validar o formulário
+    if (!validarFormulario()) {
+      return;
+    }
+    
+    // Desabilitar o botão de envio para evitar múltiplos envios
+    const submitButton = autorizacaoForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Enviando...';
+    
+    // Obter informações do dispositivo da sessão atual
+    const session = JSON.parse(localStorage.getItem('current_session')) || {};
+    const deviceInfo = session.deviceInfo || capturarInfoDispositivo();
+    
+    // Função para capturar informações do dispositivo caso não esteja na sessão
+    function capturarInfoDispositivo() {
+      return {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        screenWidth: window.screen.width,
+        screenHeight: window.screen.height,
+        language: navigator.language,
+        timestamp: new Date().toISOString(),
+        referrer: document.referrer,
+        colorDepth: window.screen.colorDepth,
+        pixelRatio: window.devicePixelRatio || 1
+      };
+    }
+    
+    // Gerar ID único para a solicitação
+    const solicitacaoId = gerarId();
+    
+    // Coletar dados do formulário
+    const formData = {
+      id: solicitacaoId,
+      nome: document.getElementById('nome').value,
+      email: document.getElementById('email').value,
+      data_nascimento: document.getElementById('data_nascimento').value,
+      telefone: document.getElementById('telefone').value,
+      categoria: document.getElementById('categoria').value,
+      data_saida: document.getElementById('data_saida').value,
+      horario_saida: document.getElementById('horario_saida').value,
+      data_retorno: document.getElementById('data_retorno').value,
+      horario_retorno: document.getElementById('horario_retorno').value,
+      motivo_destino: document.getElementById('motivo_destino').value,
+      nome_responsavel: document.getElementById('nome_responsavel').value,
+      telefone_responsavel: document.getElementById('telefone_responsavel').value,
+      data_solicitacao: new Date().toISOString(),
+      status_supervisor: 'Pendente',
+      status_servico_social: 'Pendente',
+      status_final: 'Em Análise',
+      dispositivo: deviceInfo // Adicionar informações do dispositivo à solicitação
+    };
+    
+    try {
+      // Salvar no Firestore usando o serviço Firebase
+      const resultado = await window.firebaseService.salvarDocumento('solicitacoes', formData, solicitacaoId);
+      
+      if (!resultado.sucesso) {
+        throw new Error(resultado.erro || 'Erro ao salvar no banco de dados');
+      }
+      
+      // Também salvar no localStorage para compatibilidade com código existente
+      let solicitacoes = JSON.parse(localStorage.getItem('solicitacoes')) || [];
+      solicitacoes.push(formData);
+      localStorage.setItem('solicitacoes', JSON.stringify(solicitacoes));
+      
+      // Simular envio de notificação ao supervisor
+      enviarNotificacaoSupervisor(formData);
+      
+      // Mostrar mensagem de sucesso
+      mostrarAlerta('Solicitação enviada com sucesso! Seu código de acompanhamento é: ' + solicitacaoId, 'alert-success');
+      
+      // Limpar o formulário
+      autorizacaoForm.reset();
+      
+      // Redirecionar após 3 segundos
+      setTimeout(function() {
+        window.location.href = 'consultar.html?id=' + solicitacaoId;
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Erro ao salvar solicitação:', error);
+      mostrarAlerta('Erro ao enviar solicitação: ' + error.message, 'alert-danger');
+      
+      // Reativar o botão de envio
+      submitButton.disabled = false;
+      submitButton.textContent = 'Enviar Solicitação';
+    }
   });
-
-  // Função para mostrar/ocultar indicador de carregamento
-  function setLoading(isLoading, indicator) {
-    if (indicator) {
-      indicator.style.display = isLoading ? "block" : "none";
-    }
+  
+  // Função para simular o envio de notificação ao supervisor
+  function enviarNotificacaoSupervisor(dados) {
+    console.log('Notificação enviada ao supervisor da categoria ' + dados.categoria);
+    console.log('Dados da notificação:', dados);
+    
+    // Em um sistema real, enviaríamos um e-mail ou outra forma de notificação
+    // Aqui, apenas simulamos o registro da notificação
+    
+    // Recuperar notificações existentes ou inicializar array vazio
+    let notificacoes = JSON.parse(localStorage.getItem('notificacoes')) || [];
+    
+    // Adicionar nova notificação
+    notificacoes.push({
+      tipo: 'supervisor',
+      categoria: dados.categoria,
+      id_solicitacao: dados.id,
+      nome_atleta: dados.nome,
+      data_envio: new Date().toISOString(),
+      mensagem: `Nova solicitação de autorização de saída. Atleta: ${dados.nome}, Categoria: ${dados.categoria}`
+    });
+    
+    // Salvar no localStorage
+    localStorage.setItem('notificacoes', JSON.stringify(notificacoes));
   }
-
-  // Função para exibir alertas
-  function mostrarAlerta(mensagem, tipo, container) {
-    if (!container) {
-      console.error("Container de alerta não encontrado!");
-      alert(mensagem); // Fallback
-      return;
-    }
-    container.innerHTML = `<div class="alert ${tipo} alert-dismissible fade show" role="alert">
-                              ${mensagem}
-                              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>`;
-    container.style.display = "block";
-  }
-
-  // Função para consultar uma solicitação específica (assíncrona)
-  async function consultarSolicitacao(codigo) {
-    setLoading(true, loadingIndicatorConsulta);
-    resultadoConsulta.style.display = "none"; // Esconde resultado anterior
-    mostrarAlerta("Consultando solicitação...", "alert-info", alertContainerConsulta);
-
-    try {
-      // Usar o serviço (assíncrono) para buscar a solicitação
-      const solicitacao = await window.AutorizacaoService.buscarSolicitacao(codigo);
-
-      if (!solicitacao) {
-        mostrarAlerta("Solicitação não encontrada. Verifique o código e tente novamente.", "alert-danger", alertContainerConsulta);
-        setLoading(false, loadingIndicatorConsulta);
-        return;
-      }
-
-      // Construir o HTML do resultado
-      const html = construirHtmlDetalhes(solicitacao);
-      resultadoConsulta.innerHTML = html;
-      resultadoConsulta.style.display = "block";
-      mostrarAlerta("Consulta realizada com sucesso.", "alert-success", alertContainerConsulta);
-      setTimeout(() => { if (alertContainerConsulta) alertContainerConsulta.style.display = 'none'; }, 3000);
-
-    } catch (error) {
-      console.error("Erro ao consultar solicitação:", error);
-      mostrarAlerta("Erro ao realizar a consulta. Tente novamente mais tarde.", "alert-danger", alertContainerConsulta);
-    } finally {
-      setLoading(false, loadingIndicatorConsulta);
-    }
-  }
-
-  // Função para carregar solicitações recentes (assíncrona)
-  async function carregarSolicitacoesRecentes() {
-    setLoading(true, loadingIndicatorRecentes);
-    mostrarAlerta("Carregando solicitações recentes...", "alert-info", alertContainerRecentes);
-    solicitacoesRecentesContainer.innerHTML = "<p>Carregando...</p>";
-
-    try {
-      // Usar o serviço (assíncrono) para listar solicitações
-      // Idealmente, o serviço deveria permitir buscar apenas as do usuário logado
-      // ou limitar a quantidade no backend.
-      // Por enquanto, buscamos todas e filtramos/limitamos no frontend.
-      const todasSolicitacoes = await window.AutorizacaoService.listarSolicitacoes();
-
-      // Simulação: Pegar as 5 mais recentes (já ordenadas pelo serviço)
-      const recentes = todasSolicitacoes.slice(0, 5);
-
-      if (recentes.length === 0) {
-        solicitacoesRecentesContainer.innerHTML = '<p class="text-center">Nenhuma solicitação recente encontrada.</p>';
-        mostrarAlerta("Nenhuma solicitação recente.", "alert-secondary", alertContainerRecentes);
-      } else {
-        // Construir o HTML das solicitações recentes
-        const html = recentes.map(construirHtmlRecente).join("");
-        solicitacoesRecentesContainer.innerHTML = html;
-        mostrarAlerta(`${recentes.length} solicitações recentes carregadas.`, "alert-success", alertContainerRecentes);
-        setTimeout(() => { if (alertContainerRecentes) alertContainerRecentes.style.display = 'none'; }, 3000);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar solicitações recentes:", error);
-      solicitacoesRecentesContainer.innerHTML = '<p class="text-center text-danger">Erro ao carregar solicitações.</p>';
-      mostrarAlerta("Erro ao buscar solicitações recentes.", "alert-danger", alertContainerRecentes);
-    } finally {
-      setLoading(false, loadingIndicatorRecentes);
-    }
-  }
-
-  // Função auxiliar para obter a classe do badge com base no status
-  function getBadgeClass(status) {
-    switch (status) {
-      case "Aprovado": return "bg-success";
-      case "Reprovado": return "bg-danger";
-      case "Pendente": return "bg-secondary";
-      default: return "bg-warning text-dark"; // Em Análise ou outros
-    }
-  }
-
-  // Função para construir o HTML dos detalhes de uma solicitação
-  function construirHtmlDetalhes(solicitacao) {
-    const statusFinal = solicitacao.status_final || "Em Análise";
-    const statusSupervisor = solicitacao.status_supervisor || "Pendente";
-    const statusServicoSocial = solicitacao.status_servico_social || "Pendente";
-
-    return `
-        <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Detalhes da Solicitação: ${solicitacao.id || "N/A"}</h5>
-                <span class="badge ${getBadgeClass(statusFinal)}">${statusFinal}</span>
-            </div>
-            <div class="card-body">
-                <p><strong>Data da Solicitação:</strong> ${window.AutorizacaoService.formatarData(solicitacao.data_solicitacao) || "N/A"}</p>
-                <hr>
-                <h6>Dados da Saída</h6>
-                <p><strong>Data de Saída:</strong> ${window.AutorizacaoService.formatarData(solicitacao.data_saida) || "N/A"}</p>
-                <p><strong>Horário de Saída:</strong> ${solicitacao.horario_saida || "N/A"}</p>
-                <p><strong>Data de Retorno:</strong> ${window.AutorizacaoService.formatarData(solicitacao.data_retorno) || "N/A"}</p>
-                <p><strong>Horário de Retorno:</strong> ${solicitacao.horario_retorno || "N/A"}</p>
-                <p><strong>Motivo/Destino:</strong> ${solicitacao.motivo_destino || "N/A"}</p>
-                <hr>
-                <h6>Status de Aprovação</h6>
-                <p><strong>Supervisor:</strong> <span class="badge ${getBadgeClass(statusSupervisor)}">${statusSupervisor}</span></p>
-                ${solicitacao.observacao_supervisor ? `<p class="text-muted small"><em>Obs. Supervisor: ${solicitacao.observacao_supervisor}</em></p>` : ''}
-                <p><strong>Serviço Social:</strong> <span class="badge ${getBadgeClass(statusServicoSocial)}">${statusServicoSocial}</span></p>
-                ${solicitacao.observacao_servico_social ? `<p class="text-muted small"><em>Obs. Serviço Social: ${solicitacao.observacao_servico_social}</em></p>` : ''}
-            </div>
-        </div>
-    `;
-  }
-
-  // Função para construir o HTML de uma solicitação recente
-  function construirHtmlRecente(solicitacao) {
-    const statusFinal = solicitacao.status_final || "Em Análise";
-    return `
-        <div class="card mb-2">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="card-title mb-0">${solicitacao.id || "N/A"}</h6>
-                    <span class="badge ${getBadgeClass(statusFinal)}">${statusFinal}</span>
-                </div>
-                <p class="card-text small mb-1"><strong>Data:</strong> ${window.AutorizacaoService.formatarData(solicitacao.data_solicitacao) || "N/A"}</p>
-                <p class="card-text small mb-2"><strong>Destino:</strong> ${solicitacao.motivo_destino || "N/A"}</p>
-                <button class="btn btn-outline-primary btn-sm" 
-                        onclick="document.getElementById('codigo').value='${solicitacao.id}'; document.getElementById('btn-consultar').click();">
-                    Ver Detalhes
-                </button>
-            </div>
-        </div>
-    `;
-  }
-
-  // Tornar a função de consulta acessível globalmente se o botão usa onclick="consultarSolicitacao(...)"
-  // No entanto, o código atual usa addEventListener, então isso não é estritamente necessário.
-  // window.consultarSolicitacao = consultarSolicitacao; 
 });
-
