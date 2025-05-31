@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Consultar Solicitações - SC Internacional</title>
+  <title>Consultar Solicitação - SC Internacional</title> <!-- Título ajustado -->
   <link rel="stylesheet" href="../../css/styles.css">
   
   <!-- Firebase SDK (NECESSÁRIO AQUI) -->
@@ -19,7 +19,7 @@
 
   <div class="container">
     <div class="card">
-      <h2 class="card-title">Consultar Minhas Solicitações</h2>
+      <h2 class="card-title">Consultar Minha Solicitação</h2> <!-- Título ajustado -->
       
       <!-- Container para alertas da consulta específica -->
       <div id="alert-container-consulta" style="display: none;"></div>
@@ -33,7 +33,7 @@
       
       <div class="form-group text-center">
         <button id="btn-consultar" class="btn btn-primary">Consultar</button>
-        <a href="dashboard.html" class="btn btn-secondary">Voltar</a>
+        <a href="dashboard.html" class="btn btn-secondary">Voltar</a> <!-- Ajuste o href se necessário -->
       </div>
       
       <div id="resultado-consulta" style="display: none;">
@@ -41,21 +41,13 @@
       </div>
     </div>
     
-    <div class="card">
-      <h3 class="card-title">Minhas Solicitações Recentes</h3>
-      <!-- Container para alertas das solicitações recentes -->
-      <div id="alert-container-recentes" style="display: none;"></div>
-       <!-- Indicador de carregamento para solicitações recentes -->
-      <div id="loading-indicator-recentes" style="display: none; text-align: center; margin-bottom: 1rem;">Carregando...</div>
-      <div id="solicitacoes-recentes">
-        <p class="text-center">Carregando solicitações...</p>
-      </div>
-    </div>
+    <!-- SEÇÃO "MINHAS SOLICITAÇÕES RECENTES" REMOVIDA -->
+
   </div>
 
   <!-- Scripts Essenciais (NECESSÁRIO CARREGAR ANTES DE consultar.js) -->
   <script src="../../js/firebase-config.js"></script> 
-  <script src="../../js/autorizacao-service.js"></script>
+  <!-- <script src="../../js/autorizacao-service.js"></script> --> <!-- Comentado, verificar se consultar.js ainda usa -->
   
   <!-- Script específico da página (Carregar por último) -->
   <script src="../../js/consultar.js"></script>
