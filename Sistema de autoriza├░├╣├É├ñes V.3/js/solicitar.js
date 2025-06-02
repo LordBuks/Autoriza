@@ -112,6 +112,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // Salvar no localStorage
     localStorage.setItem('solicitacoes', JSON.stringify(solicitacoes));
     
+    // Registrar evento de auditoria
+    if (window.auditoriaService) {
+      window.auditoriaService.registrarSubmissaoAtleta(
+        formData.id,
+        {
+          nome: formData.nome,
+          email: formData.email,
+          categoria: formData.categoria,
+          telefone: formData.telefone
+        },
+        deviceInfo
+      ).then(resultado => {
+        console.log('Evento de auditoria registrado:', resultado);
+      }).catch(erro => {
+        console.error('Erro ao registrar evento de auditoria:', erro);
+      });
+    } else {
+      console.warn('Serviço de auditoria não disponível');
+    }
+    
     // Simular envio de notificação ao supervisor
     enviarNotificacaoSupervisor(formData);
     

@@ -162,6 +162,21 @@ const SupervisorController = (function() {
       observacao
     );
     
+    // Registrar evento de auditoria
+    if (window.auditoriaService) {
+      window.auditoriaService.registrarDecisaoSupervisor(
+        solicitacaoAtual.id,
+        'Aprovado',
+        observacao
+      ).then(resultadoAuditoria => {
+        console.log('Evento de auditoria registrado:', resultadoAuditoria);
+      }).catch(erro => {
+        console.error('Erro ao registrar evento de auditoria:', erro);
+      });
+    } else {
+      console.warn('Serviço de auditoria não disponível');
+    }
+    
     if (resultado.sucesso) {
       alert('Solicitação aprovada com sucesso!');
       window.location.reload();
@@ -181,6 +196,21 @@ const SupervisorController = (function() {
       'Reprovado',
       observacao
     );
+    
+    // Registrar evento de auditoria
+    if (window.auditoriaService) {
+      window.auditoriaService.registrarDecisaoSupervisor(
+        solicitacaoAtual.id,
+        'Reprovado',
+        observacao
+      ).then(resultadoAuditoria => {
+        console.log('Evento de auditoria registrado:', resultadoAuditoria);
+      }).catch(erro => {
+        console.error('Erro ao registrar evento de auditoria:', erro);
+      });
+    } else {
+      console.warn('Serviço de auditoria não disponível');
+    }
     
     if (resultado.sucesso) {
       alert('Solicitação reprovada.');
