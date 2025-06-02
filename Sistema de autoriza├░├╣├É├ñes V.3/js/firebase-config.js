@@ -28,11 +28,13 @@ class FirebaseService {
     this.db = firebase.firestore();
     this.auth = firebase.auth();
     
-    // Habilitar persistência offline para melhorar a experiência do usuário
-    this.db.enablePersistence()
-      .catch((err) => {
-        console.error('Erro ao habilitar persistência:', err);
-      });
+    // Comentando a persistência offline para evitar o erro de compatibilidade
+    // this.db.enablePersistence()
+    //   .catch((err) => {
+    //     console.error('Erro ao habilitar persistência:', err);
+    //   });
+    
+    console.log('Firebase inicializado com sucesso sem persistência offline');
   }
   
   // Métodos para autenticação

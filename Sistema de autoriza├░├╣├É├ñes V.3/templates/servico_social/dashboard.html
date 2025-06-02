@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Serviço Social - SC Internacional</title>
   <link rel="stylesheet" href="../../css/styles.css">
+  
+  <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <header class="header">
@@ -90,6 +95,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Firebase Config (deve ser carregado antes dos outros scripts) -->
+  <script src="../../js/firebase-config.js"></script>
 
   <!-- Bibliotecas para PDF e Hash -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
