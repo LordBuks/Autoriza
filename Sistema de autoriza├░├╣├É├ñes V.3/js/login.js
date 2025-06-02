@@ -4,97 +4,99 @@ document.addEventListener("DOMContentLoaded", function () {
   const alertMessage = document.getElementById("alert-message");
   const usernameInput = document.getElementById("username");
   const passwordInput = document.getElementById("password");
-  const profileSelect = document.getElementById("profile");
+  const profileSelect = document.getElementById("profile"); // Mantém o ID do elemento HTML
 
   // Verificar se o Firebase Service está disponível
   if (!window.firebaseService) {
     console.error("Firebase Service não encontrado! A autenticação não funcionará.");
     showAlert("Erro crítico: Serviço de autenticação indisponível.");
-    // Desabilitar o formulário para evitar tentativas inúteis
     if(loginForm) {
         loginForm.querySelectorAll("input, select, button").forEach(el => el.disabled = true);
     }
-    return; // Interromper a execução se o Firebase não estiver carregado
+    return;
   }
 
   // Mapeamento de perfis para redirecionamento
   const profileRedirects = {
     atleta: "templates/atleta/dashboard.html",
     supervisor: "templates/supervisor/dashboard.html",
-    servico_social: "templates/monitor/dashboard.html",
+    servico_social: "templates/servico_social/dashboard.html", // Corrigido redirecionamento Serv. Social
     monitor: "templates/monitor/dashboard.html",
   };
 
   if (loginForm) {
     loginForm.addEventListener("submit", async function (e) {
       e.preventDefault();
-      hideAlert(); // Esconder alertas anteriores
+      hideAlert();
 
-      const email = usernameInput.value; // Assumindo que o campo username é usado para o email
+      const email = usernameInput.value;
       const password = passwordInput.value;
-      const profile = profileSelect.value;
+      const perfilSelecionado = profileSelect.value; // Perfil selecionado no dropdown
 
-      // Validações básicas
-      if (!email || !password || !profile) {
+      if (!email || !password || !perfilSelecionado) {
         showAlert("Por favor, preencha todos os campos: Usuário (Email), Senha e Perfil.");
         return;
       }
 
-      // Mostrar indicador de carregamento (opcional)
       showAlert("Autenticando...", "alert-info");
 
       try {
-        // Tentar login com Firebase Auth
         const resultadoLogin = await window.firebaseService.loginComEmailSenha(email, password);
 
         if (resultadoLogin.sucesso && resultadoLogin.usuario) {
-          // Login bem-sucedido no Firebase Auth
           const user = resultadoLogin.usuario;
 
-          // **Passo Adicional: Verificar o perfil do usuário no Firestore**
-          // É crucial verificar se o perfil selecionado no formulário corresponde
-          // ao perfil armazenado no Firestore para este usuário autenticado.
+          // **CORREÇÃO APLICADA AQUI:** Buscar o campo 'perfil' do Firestore
           const perfilFirestore = await verificarPerfilUsuario(user.uid);
 
-          if (perfilFirestore === profile) {
+          if (perfilFirestore === perfilSelecionado) {
             // Perfil corresponde! Login autorizado.
-            hideAlert(); // Limpar mensagem de "Autenticando..."
-            console.log(`Login bem-sucedido para ${email} com perfil ${profile}`);
+            hideAlert();
+            console.log(`Login bem-sucedido para ${email} com perfil ${perfilSelecionado}`);
 
-            // Salvar informações da sessão (opcional, mas útil)
-            saveSession(profile, email, user.uid);
+            // Salvar informações da sessão
+            saveSession(perfilFirestore, email, user.uid);
+
+            // Salvar categoria no localStorage se for supervisor
+            if (perfilFirestore === 'supervisor') {
+                const dadosUsuario = await window.firebaseService.obterDocumento("usuarios", user.uid);
+                if (dadosUsuario.sucesso && dadosUsuario.dados.categoria) {
+                    localStorage.setItem('supervisor_categoria', dadosUsuario.dados.categoria);
+                    console.log(`Categoria do supervisor (${dadosUsuario.dados.categoria}) salva no localStorage.`);
+                } else {
+                    console.warn(`Não foi possível obter a categoria para o supervisor ${email}`);
+                }
+            }
 
             // Redirecionar para o dashboard correspondente
-            redirectToProfile(profileRedirects[profile]);
+            redirectToProfile(profileRedirects[perfilFirestore]);
 
           } else if (perfilFirestore) {
             // Usuário autenticado, mas perfil selecionado não corresponde ao do banco
-            console.warn(`Usuário ${email} autenticado, mas selecionou perfil incorreto (${profile}). Perfil real: ${perfilFirestore}`);
-            showAlert(`Autenticação bem-sucedida, mas o perfil selecionado (${profile}) não corresponde ao seu perfil registrado (${perfilFirestore}). Faça login com o perfil correto.`);
-            // Deslogar o usuário para evitar confusão?
-            // await window.firebaseService.logout();
+            console.warn(`Usuário ${email} autenticado, mas selecionou perfil incorreto (${perfilSelecionado}). Perfil real: ${perfilFirestore}`);
+            showAlert(`Autenticação bem-sucedida, mas o perfil selecionado (${perfilSelecionado}) não corresponde ao seu perfil registrado (${perfilFirestore}). Faça login com o perfil correto.`);
+            await window.firebaseService.logout(); // Deslogar para evitar confusão
           } else {
             // Usuário autenticado, mas não foi possível verificar o perfil no Firestore
             console.error(`Usuário ${email} autenticado, mas não foi encontrado registro na coleção 'usuarios' ou houve erro ao buscar.`);
-            showAlert("Usuário autenticado, mas houve um problema ao verificar seu perfil. Contate o suporte.");
-            // Deslogar?
-            // await window.firebaseService.logout();
+            showAlert("Usuário autenticado, mas houve um problema ao verificar seu perfil. Verifique se seu cadastro está completo no sistema ou contate o suporte.");
+            await window.firebaseService.logout(); // Deslogar
           }
 
         } else {
           // Falha no login do Firebase Auth
           console.error("Falha na autenticação Firebase:", resultadoLogin.erro);
           let mensagemErro = "Credenciais inválidas. Verifique seu email e senha.";
-          // Personalizar mensagem para erros comuns, se necessário
           if (resultadoLogin.erro && resultadoLogin.erro.includes("auth/user-not-found")) {
               mensagemErro = "Usuário não encontrado.";
           } else if (resultadoLogin.erro && resultadoLogin.erro.includes("auth/wrong-password")) {
               mensagemErro = "Senha incorreta.";
+          } else if (resultadoLogin.erro && resultadoLogin.erro.includes("auth/invalid-credential")) { // Erro mais genérico
+              mensagemErro = "Credenciais inválidas.";
           }
           showAlert(mensagemErro);
         }
       } catch (error) {
-        // Erro inesperado durante o processo
         console.error("Erro inesperado durante o login:", error);
         showAlert("Ocorreu um erro inesperado durante a autenticação. Tente novamente.");
       }
@@ -105,19 +107,20 @@ document.addEventListener("DOMContentLoaded", function () {
   async function verificarPerfilUsuario(uid) {
     try {
       const resultadoDoc = await window.firebaseService.obterDocumento("usuarios", uid);
-      if (resultadoDoc.sucesso && resultadoDoc.dados && resultadoDoc.dados.profile) {
-        return resultadoDoc.dados.profile; // Retorna o perfil (ex: 'atleta', 'supervisor')
+      // **CORREÇÃO APLICADA AQUI:** Verificar o campo 'perfil'
+      if (resultadoDoc.sucesso && resultadoDoc.dados && resultadoDoc.dados.perfil) {
+        return resultadoDoc.dados.perfil; // Retorna o perfil (ex: 'atleta', 'supervisor')
       } else {
-        console.warn(`Documento do usuário ${uid} não encontrado na coleção 'usuarios' ou sem campo 'profile'.`);
-        return null; // Usuário não encontrado ou sem perfil definido
+        console.warn(`Documento do usuário ${uid} não encontrado na coleção 'usuarios' ou sem campo 'perfil'.`);
+        return null;
       }
     } catch (error) {
       console.error(`Erro ao buscar perfil do usuário ${uid} no Firestore:`, error);
-      return null; // Erro ao buscar
+      return null;
     }
   }
 
-  // Função para salvar informações da sessão no localStorage (simplificado)
+  // Função para salvar informações da sessão no localStorage
   function saveSession(profile, email, uid) {
     const session = {
       profile: profile,
@@ -126,18 +129,16 @@ document.addEventListener("DOMContentLoaded", function () {
       loginTime: new Date().toISOString(),
     };
     localStorage.setItem("current_session", JSON.stringify(session));
-    // Você pode querer usar sessionStorage se preferir que a sessão expire ao fechar o navegador
   }
 
   // Função para mostrar alertas
   function showAlert(message, type = "alert-danger") {
     if (alertMessage) {
       alertMessage.textContent = message;
-      alertMessage.className = "alert"; // Reset classes
+      alertMessage.className = "alert";
       alertMessage.classList.add(type);
       alertMessage.style.display = "block";
     } else {
-        // Fallback se o elemento de alerta não existir
         alert(message);
     }
   }
@@ -159,4 +160,3 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 });
-
