@@ -36,30 +36,22 @@
           <p><strong>Telefone:</strong> <span id="telefone-responsavel">Carregando...</span></p>
           
           <h3>Status da Solicitação</h3>
-          <p><strong>Status Supervisor:</strong> <span id="status-supervisor" class="badge badge-approved">Aprovado</span></p>
-          <p><strong>Data da Aprovação:</strong> <span id="data-aprovacao-supervisor">Carregando...</span></p>
-          <p><strong>Status Serviço Social:</strong> <span id="status-servico-social" class="badge badge-pending">Aguardando</span></p>
-          <p><strong>Status Final:</strong> <span id="status-final" class="badge badge-pending">Em Processamento</span></p>
+          <p><strong>Status Supervisor:</strong> <span id="status-supervisor" class="badge">Carregando...</span></p>
+          <p><strong>Data da Aprovação Supervisor:</strong> <span id="data-aprovacao-supervisor">Carregando...</span></p>
+          <p><strong>Status Serviço Social:</strong> <span id="status-servico-social" class="badge">Carregando...</span></p>
+          <p><strong>Data da Aprovação Serviço Social:</strong> <span id="data-aprovacao-servico-social">Carregando...</span></p>
+          <p><strong>Status Final:</strong> <span id="status-final" class="badge">Carregando...</span></p>
         </div>
         
         <div class="auth-actions">
-          <button id="btn-enviar-whatsapp" class="btn btn-primary">Enviar Mensagem ao Responsável</button>
-          <button id="btn-validar" class="btn btn-primary">Validar Autorização</button>
-          <button id="btn-reprovar" class="btn btn-secondary">Reprovar Autorização</button>
+          <!-- Botões podem ser adicionados dinamicamente pelo JS se necessário -->
+          <!-- <button id="btn-enviar-whatsapp" class="btn btn-primary">Enviar Mensagem ao Responsável</button> -->
+          <!-- <button id="btn-validar" class="btn btn-primary">Validar Autorização</button> -->
+          <!-- <button id="btn-reprovar" class="btn btn-secondary">Reprovar Autorização</button> -->
         </div>
       </div>
       
-      <div id="mensagem-whatsapp" class="card" style="display: none;">
-        <h3 class="card-title">Mensagem para o Responsável</h3>
-        <div class="form-group">
-          <textarea id="texto-whatsapp" class="form-control" rows="10" readonly></textarea>
-        </div>
-        <div class="form-group text-center">
-          <button id="btn-copiar" class="btn btn-primary">Copiar Mensagem</button>
-          <button id="btn-abrir-whatsapp" class="btn btn-primary">Abrir WhatsApp</button>
-          <button id="btn-fechar-mensagem" class="btn btn-secondary">Fechar</button>
-        </div>
-      </div>
+      <!-- Seção de mensagem WhatsApp removida, pode ser controlada pelo JS se necessário -->
       
       <div class="form-group text-center mt-3">
         <a href="dashboard.html" class="btn btn-secondary">Voltar ao Painel</a>
@@ -67,6 +59,21 @@
     </div>
   </div>
 
+  <!-- Firebase SDK (Adicionado - usar versão consistente) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <!-- Firebase Config (Adicionado - inicializa firebaseService) -->
+  <script src="../../js/firebase-config.js"></script>
+
+  <!-- Serviços da aplicação (Adicionar se detalhe-monitor.js depender de outros serviços) -->
+  <!-- <script src="../../js/autorizacao-service.js"></script> --> 
+  <!-- <script src="../../js/auditoria-service.js"></script> -->
+  <!-- <script src="../../js/pdf-service.js"></script> -->
+
+  <!-- Script de lógica da página de detalhes -->
   <script src="../../js/detalhe-monitor.js"></script>
 </body>
 </html>
+

@@ -51,12 +51,12 @@
       <h2 class="card-title">Todas as Solicitações</h2>
       <div class="form-group">
         <label for="filtro-status" class="form-label">Filtrar por Status</label>
-        <select id="filtro-status" class="form-control">00:41 19/05/2025
+        <select id="filtro-status" class="form-control">
           <option value="todos">Todos</option>
-          <option value="pendente">Pendente (Supervisor ainda não aprovou)</option>
-          <option value="pre-aprovado">Pré-Aprovado (Supervisor aprovou aguardando Serviço Social)</option>
-          <option value="aprovado">Aprovado (Supervisor, Responsáveis e Serviço Social aprovaram)</option>
-          <option value="reprovado">Reprovado (Supervisor ou Serviço Social Reprovaram)</option>
+          <option value="pendente">Pendente</option> 
+          <option value="pre-aprovado">Pré-Aprovado</option>
+          <option value="aprovado">Aprovado</option>
+          <option value="reprovado">Reprovado</option>
         </select>
       </div>
       
@@ -64,11 +64,11 @@
         <label for="filtro-categoria" class="form-label">Filtrar por Categoria</label>
         <select id="filtro-categoria" class="form-control">
           <option value="todas">Todas</option>
-          <option value="Sub-14">Sub-14</option>
-          <option value="Sub-15">Sub-15</option>
-          <option value="Sub-16">Sub-16</option>
-          <option value="Sub-17">Sub-17</option>
-          <option value="Sub-20">Sub-20</option>
+          <option value="Sub14">Sub14</option> <!-- Corrigido valor -->
+          <option value="Sub15">Sub15</option> <!-- Corrigido valor -->
+          <option value="Sub16">Sub16</option> <!-- Corrigido valor -->
+          <option value="Sub17">Sub17</option> <!-- Corrigido valor -->
+          <option value="Sub20">Sub20</option> <!-- Corrigido valor -->
         </select>
       </div>
       
@@ -90,6 +90,21 @@
     </div>
   </div>
 
+  <!-- Firebase SDK (Adicionado - usar versão consistente) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <!-- Firebase Config (Adicionado - inicializa firebaseService) -->
+  <script src="../../js/firebase-config.js"></script>
+
+  <!-- Serviços da aplicação (Adicionar se monitor.js depender de outros serviços) -->
+  <!-- <script src="../../js/autorizacao-service.js"></script> --> 
+  <!-- <script src="../../js/auditoria-service.js"></script> -->
+  <!-- <script src="../../js/pdf-service.js"></script> -->
+
+  <!-- Script de lógica do painel -->
   <script src="../../js/monitor.js"></script>
 </body>
 </html>
+

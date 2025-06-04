@@ -47,11 +47,12 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Função para gerar um ID único
   function gerarId() {
+    // Usar o próprio Firestore para gerar ID pode ser uma opção, mas manteremos o formato original por enquanto
     return 'AUTH-' + Math.random().toString(36).substr(2, 9).toUpperCase();
   }
   
-  // Manipulador de envio do formulário
-  autorizacaoForm.addEventListener('submit', function(e) {
+  // Manipulador de envio do formulário (agora assíncrono para esperar o Firebase)
+  autorizacaoForm.addEventListener('submit', async function(e) { // Adicionado async
     e.preventDefault();
     
     // Validar o formulário
@@ -80,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Coletar dados do formulário
     const formData = {
-      id: gerarId(),
+      // Não incluímos o ID aqui, pois vamos usar o ID gerado como nome do documento
       nome: document.getElementById('nome').value,
       email: document.getElementById('email').value,
       data_nascimento: document.getElementById('data_nascimento').value,
@@ -96,79 +97,88 @@ document.addEventListener('DOMContentLoaded', function() {
       data_solicitacao: new Date().toISOString(),
       status_supervisor: 'Pendente',
       status_servico_social: 'Pendente',
+      status_monitor: 'Pendente', // Adicionando status monitor como pendente por padrão
       status_final: 'Em Análise',
       dispositivo: deviceInfo // Adicionar informações do dispositivo à solicitação
     };
-    
-    // Em um sistema real, enviaríamos esses dados para o servidor
-    // Aqui, vamos simular o armazenamento local
-    
-    // Recuperar solicitações existentes ou inicializar array vazio
-    let solicitacoes = JSON.parse(localStorage.getItem('solicitacoes')) || [];
-    
-    // Adicionar nova solicitação
-    solicitacoes.push(formData);
-    
-    // Salvar no localStorage
-    localStorage.setItem('solicitacoes', JSON.stringify(solicitacoes));
-    
-    // Registrar evento de auditoria
-    if (window.auditoriaService) {
-      window.auditoriaService.registrarSubmissaoAtleta(
-        formData.id,
-        {
-          nome: formData.nome,
-          email: formData.email,
-          categoria: formData.categoria,
-          telefone: formData.telefone
-        },
-        deviceInfo
-      ).then(resultado => {
-        console.log('Evento de auditoria registrado:', resultado);
-      }).catch(erro => {
-        console.error('Erro ao registrar evento de auditoria:', erro);
-      });
-    } else {
-      console.warn('Serviço de auditoria não disponível');
+
+    const solicitacaoId = gerarId(); // Gerar o ID da solicitação
+
+    // Verificar se o serviço Firebase está disponível
+    if (!window.firebaseService) {
+        mostrarAlerta('Erro: Serviço de banco de dados não inicializado.', 'alert-danger');
+        return;
     }
-    
-    // Simular envio de notificação ao supervisor
-    enviarNotificacaoSupervisor(formData);
-    
-    // Mostrar mensagem de sucesso
-    mostrarAlerta('Solicitação enviada com sucesso! Seu código de acompanhamento é: ' + formData.id, 'alert-success');
-    
-    // Limpar o formulário
-    autorizacaoForm.reset();
-    
-    // Redirecionar após 3 segundos
-    setTimeout(function() {
-      window.location.href = 'consultar.html?id=' + formData.id;
-    }, 3000);
+
+    try {
+        // Salvar no Firestore usando o ID gerado como nome do documento
+        const resultadoSalvar = await window.firebaseService.salvarDocumento('solicitacoes', formData, solicitacaoId);
+
+        if (!resultadoSalvar.sucesso) {
+            console.error('Erro ao salvar no Firestore:', resultadoSalvar.erro);
+            mostrarAlerta(`Erro ao enviar solicitação: ${resultadoSalvar.erro}`, 'alert-danger');
+            return;
+        }
+
+        // --- Código de Auditoria e Notificação (mantido como estava, mas pode precisar de ajustes) ---
+        // Registrar evento de auditoria
+        if (window.auditoriaService) {
+          window.auditoriaService.registrarSubmissaoAtleta(
+            solicitacaoId, // Usar o ID gerado
+            {
+              nome: formData.nome,
+              email: formData.email,
+              categoria: formData.categoria,
+              telefone: formData.telefone
+            },
+            deviceInfo
+          ).then(resultado => {
+            console.log('Evento de auditoria registrado:', resultado);
+          }).catch(erro => {
+            console.error('Erro ao registrar evento de auditoria:', erro);
+          });
+        } else {
+          console.warn('Serviço de auditoria não disponível');
+        }
+        
+        // Simular envio de notificação ao supervisor (manter ou integrar com Firebase Functions/Cloud Messaging)
+        enviarNotificacaoSupervisor({...formData, id: solicitacaoId}); // Passar o ID gerado
+        // ----------------------------------------------------------------------------------------
+
+        // Mostrar mensagem de sucesso
+        mostrarAlerta('Solicitação enviada com sucesso! Seu código de acompanhamento é: ' + solicitacaoId, 'alert-success');
+        
+        // Limpar o formulário
+        autorizacaoForm.reset();
+        
+        // Redirecionar após 3 segundos para a tela de consulta com o ID
+        setTimeout(function() {
+          window.location.href = 'consultar.html?id=' + solicitacaoId;
+        }, 3000);
+
+    } catch (error) {
+        console.error('Erro inesperado ao processar a solicitação:', error);
+        mostrarAlerta('Ocorreu um erro inesperado. Tente novamente mais tarde.', 'alert-danger');
+    }
   });
   
-  // Função para simular o envio de notificação ao supervisor
+  // Função para simular o envio de notificação ao supervisor (manter ou refatorar para Firebase)
   function enviarNotificacaoSupervisor(dados) {
-    console.log('Notificação enviada ao supervisor da categoria ' + dados.categoria);
+    console.log('Simulando notificação para supervisor da categoria ' + dados.categoria);
     console.log('Dados da notificação:', dados);
     
-    // Em um sistema real, enviaríamos um e-mail ou outra forma de notificação
-    // Aqui, apenas simulamos o registro da notificação
-    
-    // Recuperar notificações existentes ou inicializar array vazio
+    // A lógica de salvar notificação no localStorage pode ser mantida para fins de log local
+    // ou substituída por uma chamada ao Firestore/Cloud Functions
     let notificacoes = JSON.parse(localStorage.getItem('notificacoes')) || [];
-    
-    // Adicionar nova notificação
     notificacoes.push({
       tipo: 'supervisor',
       categoria: dados.categoria,
-      id_solicitacao: dados.id,
+      id_solicitacao: dados.id, // Usar o ID correto
       nome_atleta: dados.nome,
       data_envio: new Date().toISOString(),
       mensagem: `Nova solicitação de autorização de saída. Atleta: ${dados.nome}, Categoria: ${dados.categoria}`
     });
-    
-    // Salvar no localStorage
     localStorage.setItem('notificacoes', JSON.stringify(notificacoes));
   }
 });
+

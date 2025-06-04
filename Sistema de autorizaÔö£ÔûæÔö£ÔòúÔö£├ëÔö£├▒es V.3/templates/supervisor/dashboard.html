@@ -46,14 +46,18 @@
     </div>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <!-- Firebase SDK (Padronizado para 9.22.0 compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   
-  <!-- Serviços da aplicação -->
+  <!-- Serviços da aplicação (Carregar ANTES do script da página) -->
   <script src="../../js/firebase-config.js"></script>
-  <script src="../../js/autorizacao-service.js"></script>
+  <script src="../../js/autorizacao-service.js"></script> 
+  <!-- Adicionar outros serviços se supervisor.js depender deles -->
+
+  <!-- Script de lógica do painel -->
   <script src="../../js/supervisor.js"></script>
 </body>
 </html>
+
