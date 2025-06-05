@@ -65,81 +65,103 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Função para carregar os dados da solicitação
-  function carregarSolicitacao(id) {
-    // Recuperar solicitações do localStorage
-    const solicitacoes = JSON.parse(localStorage.getItem('solicitacoes')) || [];
-    
-    // Buscar a solicitação pelo ID
-    const solicitacao = solicitacoes.find(s => s.id === id);
-    
-    if (!solicitacao) {
-      alert('Solicitação não encontrada. Redirecionando para o painel.');
-      window.location.href = 'dashboard.html';
-      return;
+  async function carregarSolicitacao(id) { // Adicionado async
+    if (!window.firebaseService) {
+        console.error("FirebaseService não está disponível.");
+        alert("Erro ao conectar com o banco de dados. Tente recarregar a página.");
+        window.location.href = 'dashboard.html';
+        return;
     }
-    
+
+    try {
+        // Tentar buscar do Firestore primeiro
+        const resultado = await window.firebaseService.obterDocumento('solicitacoes', id);
+
+        if (resultado.sucesso && resultado.dados) {
+            solicitacaoAtual = resultado.dados;
+            preencherDadosPagina(solicitacaoAtual);
+        } else {
+            // Fallback: Tentar buscar do localStorage (opcional, pode ser removido)
+            console.warn("Solicitação não encontrada no Firestore, tentando localStorage (fallback).");
+            const solicitacoesStorage = JSON.parse(localStorage.getItem('solicitacoes')) || [];
+            const solicitacaoStorage = solicitacoesStorage.find(s => s.id === id);
+
+            if (solicitacaoStorage) {
+                solicitacaoAtual = solicitacaoStorage;
+                preencherDadosPagina(solicitacaoAtual);
+            } else {
+                console.error("Erro ao buscar solicitação:", resultado.erro || 'Não encontrado no Firestore ou localStorage');
+                alert('Solicitação não encontrada. Redirecionando para o painel.');
+                window.location.href = 'dashboard.html';
+            }
+        }
+    } catch (error) {
+        console.error("Erro crítico ao carregar solicitação:", error);
+        alert('Ocorreu um erro ao carregar os detalhes da solicitação. Redirecionando.');
+        window.location.href = 'dashboard.html';
+    }
+  }
+
+  // Função separada para preencher os dados na página
+  function preencherDadosPagina(solicitacao) {
     // Armazenar a solicitação atual
     solicitacaoAtual = solicitacao;
     
     // Preencher os dados na página
-    document.getElementById('nome-atleta').textContent = solicitacao.nome;
-    document.getElementById('categoria-atleta').textContent = solicitacao.categoria;
-    document.getElementById('data-nascimento').textContent = formatarData(new Date(solicitacao.data_nascimento));
-    document.getElementById('telefone-atleta').textContent = solicitacao.telefone;
+    document.getElementById('nome-atleta').textContent = solicitacao.nome || 'N/A';
+    document.getElementById('categoria-atleta').textContent = solicitacao.categoria || 'N/A';
+    document.getElementById('data-nascimento').textContent = solicitacao.data_nascimento ? formatarData(solicitacao.data_nascimento) : 'N/A'; // Usar formatarData
+    document.getElementById('telefone-atleta').textContent = solicitacao.telefone || 'N/A';
     
-    document.getElementById('data-saida').textContent = formatarData(new Date(solicitacao.data_saida));
-    document.getElementById('horario-saida').textContent = solicitacao.horario_saida;
-    document.getElementById('data-retorno').textContent = formatarData(new Date(solicitacao.data_retorno));
-    document.getElementById('horario-retorno').textContent = solicitacao.horario_retorno;
-    document.getElementById('motivo-destino').textContent = solicitacao.motivo_destino;
+    document.getElementById('data-saida').textContent = solicitacao.data_saida ? formatarData(solicitacao.data_saida) : 'N/A';
+    document.getElementById('horario-saida').textContent = solicitacao.horario_saida || 'N/A';
+    document.getElementById('data-retorno').textContent = solicitacao.data_retorno ? formatarData(solicitacao.data_retorno) : 'N/A';
+    document.getElementById('horario-retorno').textContent = solicitacao.horario_retorno || 'N/A';
+    document.getElementById('motivo-destino').textContent = solicitacao.motivo_destino || 'N/A';
     
-    document.getElementById('nome-responsavel').textContent = solicitacao.nome_responsavel;
-    document.getElementById('telefone-responsavel').textContent = solicitacao.telefone_responsavel;
+    document.getElementById('nome-responsavel').textContent = solicitacao.nome_responsavel || 'N/A';
+    document.getElementById('telefone-responsavel').textContent = solicitacao.telefone_responsavel || 'N/A';
     
     const statusSupervisor = document.getElementById('status-supervisor');
-    statusSupervisor.textContent = solicitacao.status_supervisor;
-    
-    // Ajustar a classe do badge de acordo com o status
-    if (solicitacao.status_supervisor === 'Aprovado') {
-      statusSupervisor.className = 'badge badge-approved';
-    } else if (solicitacao.status_supervisor === 'Reprovado') {
-      statusSupervisor.className = 'badge badge-rejected';
-    } else {
-      statusSupervisor.className = 'badge badge-pending';
-    }
+    statusSupervisor.textContent = solicitacao.status_supervisor || 'Pendente';
+    statusSupervisor.className = getStatusBadgeClass(solicitacao.status_supervisor);
     
     document.getElementById('data-aprovacao-supervisor').textContent = 
       solicitacao.data_aprovacao_supervisor ? 
-      formatarData(new Date(solicitacao.data_aprovacao_supervisor)) : 
+      formatarData(solicitacao.data_aprovacao_supervisor) : 
       'N/A';
     
     const statusServicoSocial = document.getElementById('status-servico-social');
-    statusServicoSocial.textContent = solicitacao.status_servico_social;
-    
-    // Ajustar a classe do badge de acordo com o status
-    if (solicitacao.status_servico_social === 'Aprovado') {
-      statusServicoSocial.className = 'badge badge-approved';
-    } else if (solicitacao.status_servico_social === 'Reprovado') {
-      statusServicoSocial.className = 'badge badge-rejected';
-    } else {
-      statusServicoSocial.className = 'badge badge-pending';
-    }
+    statusServicoSocial.textContent = solicitacao.status_servico_social || 'Pendente';
+    statusServicoSocial.className = getStatusBadgeClass(solicitacao.status_servico_social);
+
+    document.getElementById('data-aprovacao-servico-social').textContent = 
+      solicitacao.data_aprovacao_servico_social ? 
+      formatarData(solicitacao.data_aprovacao_servico_social) : 
+      'N/A';
     
     const statusFinal = document.getElementById('status-final');
-    statusFinal.textContent = solicitacao.status_final;
-    
-    // Ajustar a classe do badge de acordo com o status
-    if (solicitacao.status_final === 'Aprovado') {
-      statusFinal.className = 'badge badge-approved';
-    } else if (solicitacao.status_final === 'Reprovado') {
-      statusFinal.className = 'badge badge-rejected';
-    } else {
-      statusFinal.className = 'badge badge-pending';
-    }
+    statusFinal.textContent = solicitacao.status_final || 'Em Análise';
+    statusFinal.className = getStatusBadgeClass(solicitacao.status_final);
     
     // Desabilitar botões de validação para o monitor (apenas visualização)
-    btnValidar.disabled = true;
-    btnReprovar.disabled = true;
+    // Verificar se os botões existem antes de tentar desabilitar
+    if(btnValidar) btnValidar.disabled = true;
+    if(btnReprovar) btnReprovar.disabled = true;
+    // Habilitar botão de WhatsApp se existir
+    if(btnEnviarWhatsapp) btnEnviarWhatsapp.style.display = 'inline-block'; // Ou 'block'
+  }
+
+  // Função auxiliar para classes de badge (pode ser movida para um utilitário)
+  function getStatusBadgeClass(status) {
+      status = status ? status.toLowerCase() : 'pendente';
+      if (status === 'aprovado' || status === 'autorizado') {
+          return 'badge bg-success';
+      } else if (status === 'reprovado' || status === 'não autorizado') {
+          return 'badge bg-danger';
+      } else { // Pendente, Em Análise, Pré-Aprovado
+          return 'badge bg-warning text-dark';
+      }
   }
   
   // Função para preparar a mensagem de WhatsApp

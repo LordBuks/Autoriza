@@ -184,88 +184,99 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
       carregarDetalhesSolicitacao(id);
   }
 
-  async function carregarDetalhesSolicitacao(id) {
-      if (!detalhesContainer) return;
-      mostrarLoading(detalhesContainer, "Carregando detalhes...");
+    async function carregarDetalhesSolicitacao(id) {
+        if (!detalhesContainer) return;
+        // Mostrar o container e definir campos como "Carregando..." individualmente
+        detalhesContainer.style.display = "block";
+        document.getElementById("solicitacao-id").textContent = "Carregando...";
+        document.getElementById("nome-atleta").textContent = "Carregando...";
+        document.getElementById("categoria-atleta").textContent = "Carregando...";
+        document.getElementById("telefone-atleta").textContent = "Carregando...";
+        document.getElementById("nome-responsavel").textContent = "Carregando...";
+        document.getElementById("telefone-responsavel").textContent = "Carregando...";
+        document.getElementById("data-saida").textContent = "Carregando...";
+        document.getElementById("horario-saida").textContent = "Carregando...";
+        document.getElementById("data-retorno").textContent = "Carregando...";
+        document.getElementById("horario-retorno").textContent = "Carregando...";
+        document.getElementById("motivo-destino").textContent = "Carregando...";
+        document.getElementById("status-supervisor").innerHTML = "Carregando...";
+        document.getElementById("status-servico-social").innerHTML = "Carregando...";
+        document.getElementById("status-final").innerHTML = "Carregando...";
+        // Limpar botões de ação anteriores
+        const acoesServicoSocialContainer = document.getElementById("acoes-servico-social");
+        if (acoesServicoSocialContainer) acoesServicoSocialContainer.innerHTML = "";
 
-      // Buscar a solicitação específica no Firestore (ou usar o cache se preferir)
-      // É mais seguro buscar novamente para garantir dados atualizados
-      try {
-          const resultado = await window.firebaseService.obterDocumento("solicitacoes", id);
-          if (!resultado.sucesso) {
-              throw new Error(resultado.erro || "Solicitação não encontrada.");
-          }
-          solicitacaoAtual = resultado.dados;
+        // Buscar a solicitação específica no Firestore
+        try {
+            const resultado = await window.firebaseService.obterDocumento("solicitacoes", id);
+            if (!resultado.sucesso) {
+                throw new Error(resultado.erro || "Solicitação não encontrada.");
+            }
+            solicitacaoAtual = resultado.dados;
 
-          // Preencher os dados na seção de detalhes
-          document.getElementById("solicitacao-id").textContent = solicitacaoAtual.id || "N/A";
-          document.getElementById("nome-atleta").textContent = solicitacaoAtual.nome || "N/A";
-          document.getElementById("categoria-atleta").textContent = solicitacaoAtual.categoria || "N/A";
-          document.getElementById("telefone-atleta").textContent = solicitacaoAtual.telefone || "N/A";
-          
-          document.getElementById("nome-responsavel").textContent = solicitacaoAtual.nome_responsavel || "N/A";
-          document.getElementById("telefone-responsavel").textContent = solicitacaoAtual.telefone_responsavel || "N/A";
-          
-          document.getElementById("data-saida").textContent = formatarData(solicitacaoAtual.data_saida);
-          document.getElementById("horario-saida").textContent = solicitacaoAtual.horario_saida || "N/A";
-          document.getElementById("data-retorno").textContent = formatarData(solicitacaoAtual.data_retorno);
-          document.getElementById("horario-retorno").textContent = solicitacaoAtual.horario_retorno || "N/A";
-          document.getElementById("motivo-destino").textContent = solicitacaoAtual.motivo_destino || "N/A";
-          
-          // Atualizar badges de status
-          document.getElementById("status-supervisor").innerHTML = getStatusBadge(solicitacaoAtual.status_supervisor, "supervisor");
-          document.getElementById("status-servico-social").innerHTML = getStatusBadge(solicitacaoAtual.status_servico_social, "servico_social");
-          document.getElementById("status-final").innerHTML = getStatusBadge(solicitacaoAtual.status_final, "final");
-          
-          // Exibir o container de detalhes
-          detalhesContainer.style.display = "block";
-          
-          // Configurar botões de ação (buscar elementos aqui para garantir que existam)
-          btnEnviarLink = document.getElementById("btn-enviar-link");
-          btnStatusFinal = document.getElementById("btn-status-final"); // Este botão pode não ser responsabilidade do Serviço Social
-          btnGerarPdf = document.getElementById("btn-gerar-pdf");
-          
-          // Remover listeners antigos e adicionar novos
-          if(btnEnviarLink) {
-              btnEnviarLink.removeEventListener("click", enviarLinkPais);
-              btnEnviarLink.addEventListener("click", enviarLinkPais);
-          }
-          // if(btnStatusFinal) { // Comentado - Provavelmente não é do Serviço Social
-          //     btnStatusFinal.removeEventListener("click", definirStatusFinal);
-          //     btnStatusFinal.addEventListener("click", definirStatusFinal);
-          // }
-          if(btnGerarPdf) {
-              btnGerarPdf.removeEventListener("click", gerarRelatorioPdf);
-              btnGerarPdf.addEventListener("click", gerarRelatorioPdf);
-          }
+            // Preencher os dados na seção de detalhes (agora que os elementos existem)
+            document.getElementById("solicitacao-id").textContent = solicitacaoAtual.id || "N/A";
+            document.getElementById("nome-atleta").textContent = solicitacaoAtual.nome || "N/A";
+            document.getElementById("categoria-atleta").textContent = solicitacaoAtual.categoria || "N/A";
+            document.getElementById("telefone-atleta").textContent = solicitacaoAtual.telefone || "N/A";
+            
+            document.getElementById("nome-responsavel").textContent = solicitacaoAtual.nome_responsavel || "N/A";
+            document.getElementById("telefone-responsavel").textContent = solicitacaoAtual.telefone_responsavel || "N/A";
+            
+            document.getElementById("data-saida").textContent = formatarData(solicitacaoAtual.data_saida);
+            document.getElementById("horario-saida").textContent = solicitacaoAtual.horario_saida || "N/A";
+            document.getElementById("data-retorno").textContent = formatarData(solicitacaoAtual.data_retorno);
+            document.getElementById("horario-retorno").textContent = solicitacaoAtual.horario_retorno || "N/A";
+            document.getElementById("motivo-destino").textContent = solicitacaoAtual.motivo_destino || "N/A";
+            
+            // Atualizar badges de status
+            document.getElementById("status-supervisor").innerHTML = getStatusBadge(solicitacaoAtual.status_supervisor, "supervisor");
+            document.getElementById("status-servico-social").innerHTML = getStatusBadge(solicitacaoAtual.status_servico_social, "servico_social");
+            document.getElementById("status-final").innerHTML = getStatusBadge(solicitacaoAtual.status_final, "final");
+            
+            // Configurar botões de ação (buscar elementos aqui para garantir que existam)
+            btnEnviarLink = document.getElementById("btn-enviar-link");
+            btnStatusFinal = document.getElementById("btn-status-final"); // Este botão pode não ser responsabilidade do Serviço Social
+            btnGerarPdf = document.getElementById("btn-gerar-pdf");
+            
+            // Remover listeners antigos e adicionar novos
+            if(btnEnviarLink) {
+                btnEnviarLink.removeEventListener("click", enviarLinkPais);
+                btnEnviarLink.addEventListener("click", enviarLinkPais);
+            }
+            // if(btnStatusFinal) { // Comentado - Provavelmente não é do Serviço Social
+            //     btnStatusFinal.removeEventListener("click", definirStatusFinal);
+            //     btnStatusFinal.addEventListener("click", definirStatusFinal);
+            // }
+            if(btnGerarPdf) {
+                btnGerarPdf.removeEventListener("click", gerarRelatorioPdf);
+                btnGerarPdf.addEventListener("click", gerarRelatorioPdf);
+            }
 
-          // Adicionar botões específicos do Serviço Social (Aprovar/Reprovar)
-          const acoesServicoSocialContainer = document.getElementById("acoes-servico-social");
-          if (acoesServicoSocialContainer) {
-              // Limpar ações anteriores
-              acoesServicoSocialContainer.innerHTML = ""; 
-              // Adicionar botões apenas se o status do serviço social for pendente
-              if (solicitacaoAtual.status_servico_social === "Pendente") {
-                  const btnAprovar = document.createElement("button");
-                  btnAprovar.className = "btn btn-success me-2";
-                  btnAprovar.textContent = "Aprovar (Serviço Social)";
-                  btnAprovar.onclick = () => atualizarStatusServicoSocial("Aprovado");
-                  acoesServicoSocialContainer.appendChild(btnAprovar);
+            // Adicionar botões específicos do Serviço Social (Aprovar/Reprovar)
+            if (acoesServicoSocialContainer) {
+                // Adicionar botões apenas se o status do serviço social for pendente
+                if (solicitacaoAtual.status_servico_social === "Pendente") {
+                    const btnAprovar = document.createElement("button");
+                    btnAprovar.className = "btn btn-success me-2";
+                    btnAprovar.textContent = "Aprovar (Serviço Social)";
+                    btnAprovar.onclick = () => atualizarStatusServicoSocial("Aprovado");
+                    acoesServicoSocialContainer.appendChild(btnAprovar);
 
-                  const btnReprovar = document.createElement("button");
-                  btnReprovar.className = "btn btn-danger";
-                  btnReprovar.textContent = "Reprovar (Serviço Social)";
-                  btnReprovar.onclick = () => atualizarStatusServicoSocial("Reprovado");
-                  acoesServicoSocialContainer.appendChild(btnReprovar);
-              }
-          }
+                    const btnReprovar = document.createElement("button");
+                    btnReprovar.className = "btn btn-danger";
+                    btnReprovar.textContent = "Reprovar (Serviço Social)";
+                    btnReprovar.onclick = () => atualizarStatusServicoSocial("Reprovado");
+                    acoesServicoSocialContainer.appendChild(btnReprovar);
+                }
+            }
 
-      } catch (error) {
-          console.error("Erro ao carregar detalhes da solicitação:", error);
-          mostrarErro(detalhesContainer, `Erro ao carregar detalhes: ${error.message}`);
-          solicitacaoAtual = null; // Limpa a solicitação atual em caso de erro
-      }
-  }
+        } catch (error) {
+            console.error("Erro ao carregar detalhes da solicitação:", error);
+            mostrarErro(detalhesContainer, `Erro ao carregar detalhes: ${error.message}`);
+            solicitacaoAtual = null; // Limpa a solicitação atual em caso de erro
+        }
+    }
 
   async function atualizarStatusServicoSocial(novoStatus) {
       if (!solicitacaoAtual || !solicitacaoAtual.id) {
@@ -340,13 +351,19 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
       const mensagem = `Olá ${solicitacaoAtual.nome_responsavel || "Responsável"}, o atleta ${solicitacaoAtual.nome || ""} solicitou autorização para sair. Por favor, acesse o link para aprovar ou reprovar: ${linkAprovacao}`;
       console.log("Mensagem para WhatsApp:", mensagem);
       
-      // Registrar evento de auditoria
+      // Registrar evento de auditoria e data de envio do link
       try {
+          // Atualizar a solicitação com a data de envio do link para referência futura
+          await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoAtual.id, { 
+              data_envio_link_pais: firebase.firestore.FieldValue.serverTimestamp() 
+          });
+          
           const resultadoAuditoria = await window.auditoriaService.registrarEnvioLinkPais(
               solicitacaoAtual.id,
               numeroTelefone,
               "WhatsApp"
           );
+          
           if (resultadoAuditoria.sucesso) {
               alert("Link de aprovação gerado e registrado. Abra o WhatsApp para enviar.");
               const whatsappUrl = `https://wa.me/${numeroTelefone.replace(/\D/g, "")}?text=${encodeURIComponent(mensagem)}`;

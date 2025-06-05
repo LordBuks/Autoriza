@@ -1,544 +1,384 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aprovação de Autorização - SC Internacional</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Estilo personalizado para manter a identidade visual do sistema -->
-    <style>
-        :root {
-            --primary-color: #c41e3a; /* Vermelho SC Internacional */
-            --secondary-color: #ffffff; /* Branco */
-            --text-color: #333333;
-            --background-color: #f8f9fa;
-            --border-radius: 4px;
-        }
-        
-        body {
-            font-family: 'Roboto', Arial, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.6;
-        }
-        
-        .header {
-            background-color: white;
-            padding: 20px 0;
-            text-align: center;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .logo {
-            max-width: 100px;
-            margin-bottom: 10px;
-        }
-        
-        .system-title {
-            color: var(--primary-color);
-            font-size: 24px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        
-        .main-container {
-            max-width: 800px;
-            margin: 30px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .authorization-details {
-            margin-bottom: 30px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: var(--border-radius);
-            border-left: 4px solid var(--primary-color);
-        }
-        
-        .authorization-details h3 {
-            color: var(--primary-color);
-            margin-bottom: 15px;
-        }
-        
-        .detail-row {
-            display: flex;
-            margin-bottom: 8px;
-        }
-        
-        .detail-label {
-            font-weight: bold;
-            width: 180px;
-            flex-shrink: 0;
-        }
-        
-        .legal-text {
-            margin: 30px 0;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
-            font-size: 14px;
-        }
-        
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 30px;
-        }
-        
-        .btn-approve {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 30px;
-            border-radius: var(--border-radius);
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .btn-reject {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 30px;
-            border-radius: var(--border-radius);
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            font-size: 12px;
-            color: #666;
-        }
-        
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            display: none;
-        }
-        
-        .result-message {
-            padding: 15px;
-            border-radius: var(--border-radius);
-            margin-top: 20px;
-            display: none;
-        }
-        
-        .success-message {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-        
-        .error-message {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-        
-        .signature-container {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .signature-pad {
-            border: 1px solid #ced4da;
-            border-radius: var(--border-radius);
-            width: 100%;
-            height: 150px;
-            background-color: white;
-        }
-        
-        @media (max-width: 768px) {
-            .main-container {
-                margin: 20px 10px;
-                padding: 15px;
-            }
-            
-            .detail-row {
-                flex-direction: column;
-            }
-            
-            .detail-label {
-                width: 100%;
-                margin-bottom: 4px;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .btn-approve, .btn-reject {
-                width: 100%;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aprovação de Saída - SC Internacional</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --vermelho-inter: #cc0d2e;
+      --branco: #ffffff;
+      --cinza-claro: #f8f9fa;
+      --cinza-medio: #e9ecef;
+      --cinza-escuro: #6c757d;
+      --preto: #212529;
+      --verde: #28a745;
+      --vermelho: #dc3545;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: var(--cinza-claro);
+      color: var(--preto);
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .header {
+      background-color: var(--branco);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px 0;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .header-logo {
+      height: 100px;
+      margin-bottom: 10px;
+    }
+    
+    .header-title {
+      color: var(--vermelho-inter);
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: 1px;
+    }
+    
+    .card {
+      background-color: var(--branco);
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      margin-bottom: 20px;
+    }
+    
+    .card-title {
+      color: var(--vermelho-inter);
+      font-size: 1.5rem;
+      margin-top: 0;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--vermelho-inter);
+      padding-bottom: 10px;
+    }
+    
+    .info-row {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+    
+    .info-group {
+      flex: 1;
+      min-width: 250px;
+      margin-bottom: 15px;
+      padding-right: 15px;
+    }
+    
+    .info-label {
+      font-weight: 600;
+      color: var(--cinza-escuro);
+      margin-bottom: 5px;
+    }
+    
+    .info-value {
+      font-size: 1.1rem;
+    }
+    
+    .timestamp {
+      background-color: var(--cinza-claro);
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+      margin: 20px 0;
+      font-size: 0.9rem;
+      color: var(--cinza-escuro);
+    }
+    
+    .audit-info {
+      background-color: #f8f9fa;
+      border-left: 4px solid var(--vermelho-inter);
+      padding: 15px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+    
+    .message-box {
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--preto);
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--cinza-medio);
+      border-radius: 5px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+    
+    .form-control:focus {
+      border-color: var(--vermelho-inter);
+      outline: none;
+    }
+    
+    .btn-group {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background-color 0.3s, transform 0.2s;
+      width: 48%;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    
+    .btn-approve {
+      background-color: var(--verde);
+      color: var(--branco);
+    }
+    
+    .btn-approve:hover {
+      background-color: #218838;
+    }
+    
+    .btn-reject {
+      background-color: var(--vermelho);
+      color: var(--branco);
+    }
+    
+    .btn-reject:hover {
+      background-color: #c82333;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding: 20px;
+      color: var(--cinza-escuro);
+      font-size: 0.9rem;
+    }
+    
+    .legal-notice {
+      background-color: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+      font-size: 0.9rem;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 1.2rem;
+      color: var(--cinza-escuro);
+    }
+    
+    .error-message {
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    
+    .success-message {
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      
+      .header-logo {
+        height: 80px;
+      }
+      
+      .header-title {
+        font-size: 1.5rem;
+      }
+      
+      .btn-group {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <!-- Cabeçalho -->
-    <div class="header">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/f/f1/Escudo_do_Sport_Club_Internacional.svg" alt="Logo SC Internacional" class="logo">
-        <div class="system-title">Sistema de Autorizações Digitais</div>
+  <header class="header">
+    <img src="https://i.imgur.com/odzcc03.png" alt="Logo SC Internacional" class="header-logo">
+    <h1 class="header-title">Sistema de Autorizações Digitais</h1>
+  </header>
+
+  <div class="container">
+    <!-- Tela de carregamento -->
+    <div id="loading" class="card">
+      <div class="loading">
+        <p>Carregando dados da solicitação...</p>
+      </div>
     </div>
     
-    <!-- Conteúdo Principal -->
-    <div class="container main-container">
-        <h2 class="text-center mb-4">Aprovação de Autorização de Saída</h2>
-        
-        <!-- Detalhes da Solicitação -->
-        <div class="authorization-details" id="detalhes-solicitacao" style="display: none;">
-            <h3>Detalhes da Solicitação</h3>
-            
-            <div class="detail-row">
-                <div class="detail-label">Atleta:</div>
-                <div class="detail-value" id="nome-atleta">Carregando...</div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Categoria:</div>
-                <div class="detail-value" id="categoria-atleta">Carregando...</div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Data de Saída:</div>
-                <div class="detail-value" id="data-saida">Carregando...</div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Horário de Saída:</div>
-                <div class="detail-value" id="horario-saida">Carregando...</div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Data de Retorno:</div>
-                <div class="detail-value" id="data-retorno">Carregando...</div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Horário de Retorno:</div>
-                <div class="detail-value" id="horario-retorno">Carregando...</div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Motivo/Destino:</div>
-                <div class="detail-value" id="motivo-destino">Carregando...</div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Responsável:</div>
-                <div class="detail-value" id="nome-responsavel">Carregando...</div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Telefone do Responsável:</div>
-                <div class="detail-value" id="telefone-responsavel">Carregando...</div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Status Supervisor:</div>
-                <div class="detail-value" id="status-supervisor">Carregando...</div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Status Serviço Social:</div>
-                <div class="detail-value" id="status-servico-social">Carregando...</div>
-            </div>
-        </div>
-        
-        <!-- Indicador de carregamento -->
-        <div id="loading" class="text-center">
-            <div class="spinner-border text-danger" role="status">
-                <span class="visually-hidden">Carregando...</span>
-            </div>
-            <p>Carregando detalhes da solicitação...</p>
-        </div>
-        
-        <!-- Mensagem de erro -->
-        <div id="erro-carregamento" class="result-message error-message" style="display: none;">
-            <strong>Erro!</strong> Não foi possível carregar os detalhes da solicitação. Verifique se o link está correto ou entre em contato com o serviço social.
-        </div>
-        
-        <!-- Texto Legal -->
-        <div class="legal-text" id="legal-text" style="display: none;">
-            <h4>Termo de Responsabilidade</h4>
-            <p>Eu, responsável pelo atleta acima mencionado, declaro estar ciente e concordar com a saída temporária do atleta do alojamento do Sport Club Internacional, conforme as datas e motivos especificados.</p>
-            <p>Declaro ainda que:</p>
-            <ol>
-                <li>Assumo total responsabilidade pela segurança e bem-estar do atleta durante o período de ausência;</li>
-                <li>Comprometo-me a garantir o retorno do atleta na data e horário estabelecidos;</li>
-                <li>Estou ciente de que o não cumprimento dos horários e datas pode resultar em sanções disciplinares conforme o regulamento do clube;</li>
-                <li>Confirmo que todas as informações fornecidas são verdadeiras.</li>
-            </ol>
-            <p>Esta aprovação digital tem o mesmo valor legal de um documento físico assinado, conforme previsto na Lei 14.063/2020.</p>
-        </div>
-        
-        <!-- Observação e Assinatura -->
-        <div id="decisao-container" style="display: none;">
-            <div class="mb-3">
-                <label for="observacao" class="form-label">Observação (opcional):</label>
-                <textarea id="observacao" class="form-control" rows="3" placeholder="Digite aqui qualquer observação ou condição para a saída..."></textarea>
-            </div>
-            
-            <div class="signature-container">
-                <label class="form-label">Assinatura Digital:</label>
-                <div id="signature-pad" class="signature-pad"></div>
-                <button id="btn-limpar-assinatura" class="btn btn-sm btn-secondary mt-2">Limpar Assinatura</button>
-            </div>
-            
-            <!-- Botões de Ação -->
-            <div class="action-buttons">
-                <button class="btn-approve" id="btn-aprovar">APROVAR AUTORIZAÇÃO</button>
-                <button class="btn-reject" id="btn-reprovar">RECUSAR AUTORIZAÇÃO</button>
-            </div>
-        </div>
-        
-        <!-- Mensagem de Resultado -->
-        <div id="decisao-registrada" class="result-message success-message" style="display: none;">
-            <strong>Sucesso!</strong> Sua decisão foi registrada com sucesso. Obrigado por utilizar o Sistema de Autorizações Digitais.
-            <p class="text-center mt-3">Você pode fechar esta página.</p>
-        </div>
+    <!-- Mensagem de erro -->
+    <div id="error-container" class="card hidden">
+      <h2 class="card-title">Erro ao Carregar Solicitação</h2>
+      <div class="error-message" id="error-message">
+        Ocorreu um erro ao carregar os dados da solicitação. Por favor, verifique o link ou entre em contato com o Serviço Social.
+      </div>
     </div>
     
-    <!-- Rodapé -->
+    <!-- Mensagem de sucesso após decisão -->
+    <div id="success-container" class="card hidden">
+      <h2 class="card-title">Decisão Registrada com Sucesso</h2>
+      <div class="success-message" id="success-message">
+        Sua decisão foi registrada com sucesso. Obrigado por utilizar o Sistema de Autorizações Digitais.
+      </div>
+    </div>
+    
+    <!-- Conteúdo principal -->
+    <div id="main-content" class="card hidden">
+      <h2 class="card-title">Aprovação de Saída do Atleta</h2>
+      
+      <div class="audit-info">
+        <p><strong>Código da Solicitação:</strong> <span id="solicitacao-id">Carregando...</span></p>
+        <p><strong>Data de Geração:</strong> <span id="data-geracao">Carregando...</span></p>
+        <p><strong>Responsável:</strong> <span id="nome-responsavel">Carregando...</span></p>
+      </div>
+      
+      <div class="message-box">
+        <p><strong>Prezado(a) <span id="saudacao-responsavel">Responsável</span>,</strong></p>
+        <p>O atleta <span id="nome-atleta-mensagem">solicitou</span> autorização para sair do clube. Por favor, verifique os detalhes abaixo e aprove ou reprove esta solicitação. Sua decisão será registrada e auditada pelo sistema.</p>
+      </div>
+      
+      <h3 style="margin-bottom: 15px;">Dados do Atleta</h3>
+      <div class="info-row">
+        <div class="info-group">
+          <div class="info-label">Nome:</div>
+          <div class="info-value" id="nome-atleta">Carregando...</div>
+        </div>
+        <div class="info-group">
+          <div class="info-label">Categoria:</div>
+          <div class="info-value" id="categoria-atleta">Carregando...</div>
+        </div>
+      </div>
+      
+      <div class="info-row">
+        <div class="info-group">
+          <div class="info-label">Telefone:</div>
+          <div class="info-value" id="telefone-atleta">Carregando...</div>
+        </div>
+      </div>
+      
+      <h3 style="margin: 20px 0 15px;">Detalhes da Saída</h3>
+      <div class="info-row">
+        <div class="info-group">
+          <div class="info-label">Data/Hora Saída:</div>
+          <div class="info-value" id="data-hora-saida">Carregando...</div>
+        </div>
+        <div class="info-group">
+          <div class="info-label">Data/Hora Retorno:</div>
+          <div class="info-value" id="data-hora-retorno">Carregando...</div>
+        </div>
+      </div>
+      
+      <div class="info-row">
+        <div class="info-group">
+          <div class="info-label">Motivo/Destino:</div>
+          <div class="info-value" id="motivo-destino">Carregando...</div>
+        </div>
+      </div>
+      
+      <div class="timestamp">
+        <p>Data e hora atual: <span id="current-timestamp">Carregando...</span></p>
+      </div>
+      
+      <div class="form-group">
+        <label for="observacao" class="form-label">Observação (opcional):</label>
+        <textarea id="observacao" class="form-control" rows="3" placeholder="Adicione uma observação sobre sua decisão..."></textarea>
+      </div>
+      
+      <div class="legal-notice">
+        <p><strong>Aviso Legal:</strong> Ao clicar em "Aprovar" ou "Reprovar", você está confirmando sua identidade como responsável pelo atleta e sua decisão será registrada com valor legal. Os seguintes dados serão armazenados para fins de auditoria: data e hora da decisão, endereço IP, dispositivo utilizado e sua decisão.</p>
+      </div>
+      
+      <div class="btn-group">
+        <button id="btn-aprovar" class="btn btn-approve">APROVAR SAÍDA</button>
+        <button id="btn-reprovar" class="btn btn-reject">REPROVAR SAÍDA</button>
+      </div>
+    </div>
+    
     <div class="footer">
-        <p>© 2025 Sport Club Internacional - Sistema de Autorizações Digitais</p>
-        <p>Esta página é parte do processo oficial de autorização de saída de atletas</p>
+      <p>Sistema de Autorizações Digitais - SC Internacional</p>
+      <p>© 2025 Sport Club Internacional. Todos os direitos reservados.</p>
     </div>
-    
-    <!-- Overlay de Carregamento -->
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="spinner-border text-danger" role="status">
-            <span class="visually-hidden">Carregando...</span>
-        </div>
-    </div>
-    
-    <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    
-    <!-- Firebase Config (deve ser carregado antes dos outros scripts) -->
-    <script src="../../js/firebase-config.js"></script>
-    
-    <!-- Bibliotecas -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
-    
-    <!-- Serviços -->
-    <script src="../../js/auditoria-service.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elementos da interface
-            const loading = document.getElementById('loading');
-            const loadingOverlay = document.getElementById('loading-overlay');
-            const detalhesContainer = document.getElementById('detalhes-solicitacao');
-            const legalText = document.getElementById('legal-text');
-            const decisaoContainer = document.getElementById('decisao-container');
-            const erroContainer = document.getElementById('erro-carregamento');
-            const decisaoRegistrada = document.getElementById('decisao-registrada');
-            const btnAprovar = document.getElementById('btn-aprovar');
-            const btnReprovar = document.getElementById('btn-reprovar');
-            const btnLimparAssinatura = document.getElementById('btn-limpar-assinatura');
-            
-            // Inicializar pad de assinatura
-            const signaturePad = new SignaturePad(document.getElementById('signature-pad'));
-            
-            // Limpar assinatura
-            btnLimparAssinatura.addEventListener('click', function() {
-                signaturePad.clear();
-            });
-            
-            // Funções auxiliares
-            function showLoading() {
-                loadingOverlay.style.display = 'flex';
-            }
-            
-            function hideLoading() {
-                loadingOverlay.style.display = 'none';
-            }
-            
-            function showResultMessage(message, isSuccess) {
-                const resultMessage = document.getElementById('decisao-registrada');
-                resultMessage.innerHTML = `<strong>${isSuccess ? 'Sucesso!' : 'Erro!'}</strong> ${message}`;
-                resultMessage.className = `result-message ${isSuccess ? 'success-message' : 'error-message'}`;
-                resultMessage.style.display = 'block';
-            }
-            
-            function disableButtons() {
-                btnAprovar.disabled = true;
-                btnReprovar.disabled = true;
-                btnAprovar.style.opacity = 0.5;
-                btnReprovar.style.opacity = 0.5;
-            }
-            
-            // Obter parâmetros da URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const solicitacaoId = urlParams.get('id');
-            const token = urlParams.get('token');
-            
-            if (!solicitacaoId || !token) {
-                loading.style.display = 'none';
-                erroContainer.style.display = 'block';
-                return;
-            }
-            
-            // Registrar acesso dos pais
-            if (window.auditoriaService) {
-                window.auditoriaService.registrarAcessoPais(solicitacaoId, token)
-                    .then(resultado => {
-                        console.log('Acesso registrado:', resultado);
-                    })
-                    .catch(erro => {
-                        console.error('Erro ao registrar acesso:', erro);
-                    });
-            }
-            
-            // Carregar dados da solicitação
-            carregarSolicitacao(solicitacaoId);
-            
-            // Adicionar eventos aos botões
-            btnAprovar.addEventListener('click', function() {
-                registrarDecisao('Aprovado');
-            });
-            
-            btnReprovar.addEventListener('click', function() {
-                registrarDecisao('Reprovado');
-            });
-            
-            // Função para carregar os dados da solicitação
-            function carregarSolicitacao(id) {
-                // Em um sistema real, isso seria uma chamada à API
-                // Aqui, vamos simular buscando do localStorage
-                setTimeout(() => {
-                    const solicitacoes = JSON.parse(localStorage.getItem('solicitacoes')) || [];
-                    const solicitacao = solicitacoes.find(s => s.id === id);
-                    
-                    if (!solicitacao) {
-                        loading.style.display = 'none';
-                        erroContainer.style.display = 'block';
-                        return;
-                    }
-                    
-                    // Preencher os dados na página
-                    document.getElementById('nome-atleta').textContent = solicitacao.nome || 'N/A';
-                    document.getElementById('categoria-atleta').textContent = solicitacao.categoria || 'N/A';
-                    document.getElementById('telefone-atleta').textContent = solicitacao.telefone || 'N/A';
-                    
-                    document.getElementById('nome-responsavel').textContent = solicitacao.nome_responsavel || 'N/A';
-                    document.getElementById('telefone-responsavel').textContent = solicitacao.telefone_responsavel || 'N/A';
-                    
-                    document.getElementById('data-saida').textContent = formatarData(new Date(solicitacao.data_saida));
-                    document.getElementById('horario-saida').textContent = solicitacao.horario_saida || 'N/A';
-                    document.getElementById('data-retorno').textContent = formatarData(new Date(solicitacao.data_retorno));
-                    document.getElementById('horario-retorno').textContent = solicitacao.horario_retorno || 'N/A';
-                    document.getElementById('motivo-destino').textContent = solicitacao.motivo_destino || 'N/A';
-                    
-                    // Atualizar status
-                    const statusSupervisor = document.getElementById('status-supervisor');
-                    statusSupervisor.textContent = solicitacao.status_supervisor || 'N/A';
-                    statusSupervisor.className = `detail-value ${solicitacao.status_supervisor === 'Aprovado' ? 'text-success' : 'text-danger'}`;
-                    
-                    const statusServicoSocial = document.getElementById('status-servico-social');
-                    statusServicoSocial.textContent = solicitacao.status_servico_social || 'Pendente';
-                    if (solicitacao.status_servico_social === 'Aprovado') {
-                        statusServicoSocial.className = 'detail-value text-success';
-                    } else if (solicitacao.status_servico_social === 'Reprovado') {
-                        statusServicoSocial.className = 'detail-value text-danger';
-                    } else {
-                        statusServicoSocial.className = 'detail-value text-warning';
-                    }
-                    
-                    // Exibir os containers
-                    loading.style.display = 'none';
-                    detalhesContainer.style.display = 'block';
-                    legalText.style.display = 'block';
-                    decisaoContainer.style.display = 'block';
-                }, 1500); // Simular tempo de carregamento
-            }
-            
-            // Função para registrar a decisão dos pais
-            function registrarDecisao(decisao) {
-                if (signaturePad.isEmpty()) {
-                    alert('Por favor, assine antes de confirmar sua decisão.');
-                    return;
-                }
-                
-                showLoading();
-                
-                const observacao = document.getElementById('observacao').value;
-                const assinaturaBase64 = signaturePad.toDataURL();
-                
-                // Registrar evento de auditoria
-                if (window.auditoriaService) {
-                    window.auditoriaService.registrarDecisaoPais(
-                        solicitacaoId,
-                        decisao,
-                        observacao
-                    ).then(resultado => {
-                        hideLoading();
-                        
-                        if (resultado.sucesso) {
-                            // Em um sistema real, aqui atualizaríamos o status no banco de dados
-                            // Aqui, vamos simular atualizando o localStorage
-                            const solicitacoes = JSON.parse(localStorage.getItem('solicitacoes')) || [];
-                            const index = solicitacoes.findIndex(s => s.id === solicitacaoId);
-                            
-                            if (index !== -1) {
-                                solicitacoes[index].status_pais = decisao;
-                                solicitacoes[index].observacao_pais = observacao;
-                                solicitacoes[index].assinatura_pais = assinaturaBase64;
-                                localStorage.setItem('solicitacoes', JSON.stringify(solicitacoes));
-                            }
-                            
-                            // Mostrar mensagem de sucesso
-                            detalhesContainer.style.display = 'none';
-                            legalText.style.display = 'none';
-                            decisaoContainer.style.display = 'none';
-                            decisaoRegistrada.style.display = 'block';
-                            showResultMessage(`Sua decisão foi registrada com sucesso! A autorização foi ${decisao === 'Aprovado' ? 'APROVADA' : 'RECUSADA'}.`, true);
-                        } else {
-                            showResultMessage('Erro ao registrar decisão: ' + resultado.erro, false);
-                        }
-                    }).catch(erro => {
-                        hideLoading();
-                        console.error('Erro ao registrar evento de auditoria:', erro);
-                        showResultMessage('Erro ao registrar evento de auditoria: ' + erro.message, false);
-                    });
-                } else {
-                    hideLoading();
-                    showResultMessage('Serviço de auditoria não disponível', false);
-                }
-            }
-            
-            // Função para formatar data
-            function formatarData(data) {
-                return data.toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                });
-            }
-        });
-    </script>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  
+  <!-- Scripts do sistema -->
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/autitoria-service.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="aprovacao.js"></script>
 </body>
 </html>

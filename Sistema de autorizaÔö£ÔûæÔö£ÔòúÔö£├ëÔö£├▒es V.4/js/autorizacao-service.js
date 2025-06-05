@@ -164,8 +164,8 @@ const AutorizacaoService = (function() {
     buscarSolicitacao: async function(id) {
       if (!window.firebaseService) return null;
       try {
-        const doc = await window.firebaseService.buscarDocumento(COLLECTION_NAME, id);
-        return doc;
+        const resultado = await window.firebaseService.obterDocumento(COLLECTION_NAME, id); // Corrigido de buscarDocumento para obterDocumento
+        return resultado.sucesso ? resultado.dados : null; // Retorna os dados se sucesso, senão null
       } catch (error) {
         console.error(`Erro ao buscar solicitação ${id} no Firestore:`, error);
         return null;
@@ -182,7 +182,15 @@ const AutorizacaoService = (function() {
         try {
             // Por enquanto, busca todos e filtra no cliente.
             // Idealmente, usar queries do Firestore se firebaseService permitir.
-            let solicitacoes = await window.firebaseService.listarDocumentos(COLLECTION_NAME);
+            let resultado = await window.firebaseService.obterDocumentos(COLLECTION_NAME);
+            let solicitacoes = []; // Inicializa como array vazio
+            if (resultado.sucesso && resultado.dados) {
+                solicitacoes = resultado.dados; // Atribui o array de dados
+            } else {
+                console.error("Falha ao obter documentos ou dados vazios:", resultado.erro);
+                // Retorna array vazio ou lança erro, dependendo da lógica desejada
+                return []; 
+            }
 
             // Aplicar filtros se fornecidos
             if (Object.keys(filtros).length > 0) {
