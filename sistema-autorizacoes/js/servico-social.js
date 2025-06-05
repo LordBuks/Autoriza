@@ -15,6 +15,11 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
   let todasSolicitacoesCache = []; // Cache para dados do Firestore
 
   // Verificar dependências
+  console.log("Verificando serviços:", {
+    firebase: !!window.firebaseService,
+    auditoria: !!window.auditoriaService,
+    pdf: !!window.pdfService
+  });
   if (!window.firebaseService || !window.auditoriaService || !window.pdfService) {
       console.error("Erro crítico: Serviços essenciais (Firebase, Auditoria, PDF) não estão disponíveis.");
       mostrarErro(solicitacoesPreAprovadasContainer, "Erro ao carregar serviços. Tente recarregar a página.");
