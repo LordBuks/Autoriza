@@ -79,7 +79,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     const mensagem = encodeURIComponent(textoWhatsapp.value);
     
     // Abrir WhatsApp Web com o número e mensagem
-    window.open(`https://wa.me/${telefone}?text=${mensagem}`, '_blank');
+    const linkWhatsapp = window.whatsAppService.gerarLinkWhatsApp(telefone, mensagem);
+    if (linkWhatsapp) {
+      window.open(linkWhatsapp, "_blank");
+    } else {
+      alert("Não foi possível gerar o link do WhatsApp. Verifique o número de telefone.");
+    }
   });
   
   btnFecharMensagem.addEventListener('click', function() {
