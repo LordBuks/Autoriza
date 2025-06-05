@@ -1,5 +1,5 @@
 // Lógica para a tela de detalhe do serviço social
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
   // Elementos da página
   const btnEnviarWhatsapp = document.getElementById('btn-enviar-whatsapp');
   const btnValidar = document.getElementById('btn-validar');
@@ -87,12 +87,8 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Função para carregar os dados da solicitação
-  function carregarSolicitacao(id) {
-    // Recuperar solicitações do localStorage
-    const solicitacoes = JSON.parse(localStorage.getItem('solicitacoes')) || [];
-    
-    // Buscar a solicitação pelo ID
-    const solicitacao = solicitacoes.find(s => s.id === id);
+  async function carregarSolicitacao(id) {
+    const solicitacao = await window.AutorizacaoService.buscarSolicitacao(id);
     
     if (!solicitacao) {
       alert('Solicitação não encontrada. Redirecionando para o painel.');
@@ -191,116 +187,96 @@ Serviço Social - Sport Club Internacional`;
   }
   
   // Função para validar a autorização
-  function validarAutorizacao(observacao) {
+  async function validarAutorizacao(observacao) {
     if (!solicitacaoAtual) return;
     
-    // Recuperar solicitações do localStorage
-    const solicitacoes = JSON.parse(localStorage.getItem('solicitacoes')) || [];
-    
-    // Encontrar o índice da solicitação atual
-    const index = solicitacoes.findIndex(s => s.id === solicitacaoAtual.id);
-    
-    if (index === -1) {
-      alert('Erro ao atualizar a solicitação. Por favor, tente novamente.');
-      return;
+    try {
+      const resultado = await window.AutorizacaoService.atualizarStatus(
+        solicitacaoAtual.id,
+        'servico_social',
+        'Aprovado',
+        observacao
+      );
+
+      if (resultado.sucesso) {
+        alert('Autorização validada com sucesso!');
+        window.location.reload();
+      } else {
+        alert(`Erro ao validar autorização: ${resultado.mensagem}`);
+      }
+    } catch (error) {
+      console.error('Erro ao validar autorização:', error);
+      alert('Ocorreu um erro ao validar a autorização. Tente novamente.');
     }
-    
-    // Gerar hash único para validação legal
-    const hashValidacao = gerarHashUnico(solicitacaoAtual);
-    
-    // Atualizar o status da solicitação
-    solicitacoes[index].status_servico_social = 'Aprovado';
-    solicitacoes[index].observacao_servico_social = observacao;
-    solicitacoes[index].data_validacao_servico_social = new Date().toISOString();
-    solicitacoes[index].hash_validacao = hashValidacao;
-    solicitacoes[index].status_final = 'Aprovado';
-    
-    // Salvar no localStorage
-    localStorage.setItem('solicitacoes', JSON.stringify(solicitacoes));
-    
-    // Arquivar a autorização aprovada
-    arquivarAutorizacao(solicitacoes[index], 'aprovadas');
-    
-    // Atualizar a interface
-    alert('Autorização validada com sucesso!');
-    window.location.reload();
   }
   
   // Função para reprovar a autorização
-  function reprovarAutorizacao(observacao) {
+  async function reprovarAutorizacao(observacao) {
     if (!solicitacaoAtual) return;
     
     // Verificar se a observação foi fornecida (obrigatória para reprovação)
     if (!observacao.trim()) {
-      alert('É necessário fornecer um motivo para a reprovação.');
+      alert("É necessário fornecer um motivo para a reprovação.");
       return;
     }
-    
-    // Recuperar solicitações do localStorage
-    const solicitacoes = JSON.parse(localStorage.getItem('solicitacoes')) || [];
-    
-    // Encontrar o índice da solicitação atual
-    const index = solicitacoes.findIndex(s => s.id === solicitacaoAtual.id);
-    
-    if (index === -1) {
-      alert('Erro ao atualizar a solicitação. Por favor, tente novamente.');
-      return;
+
+    try {
+      const resultado = await window.AutorizacaoService.atualizarStatus(
+        solicitacaoAtual.id,
+        "servico_social",
+        "Reprovado",
+        observacao
+      );
+
+      if (resultado.sucesso) {
+        alert("Autorização reprovada.");
+        window.location.reload();
+      } else {
+        alert(`Erro ao reprovar autorização: ${resultado.mensagem}`);
+      }
+    } catch (error) {
+      console.error("Erro ao reprovar autorização:", error);
+      alert("Ocorreu um erro ao reprovar a autorização. Tente novamente.");
     }
-    
-    // Atualizar o status da solicitação
-    solicitacoes[index].status_servico_social = 'Reprovado';
-    solicitacoes[index].observacao_servico_social = observacao;
-    solicitacoes[index].data_reprovacao_servico_social = new Date().toISOString();
-    solicitacoes[index].status_final = 'Reprovado';
-    
-    // Salvar no localStorage
-    localStorage.setItem('solicitacoes', JSON.stringify(solicitacoes));
-    
-    // Arquivar a autorização reprovada
-    arquivarAutorizacao(solicitacoes[index], 'reprovadas');
-    
-    // Atualizar a interface
-    alert('Autorização reprovada.');
-    window.location.reload();
   }
   
   // Função para gerar hash único para validação legal
-  function gerarHashUnico(dados) {
-    // Em um sistema real, usaríamos um algoritmo de hash criptográfico
-    // Aqui, vamos simular um hash baseado nos dados e timestamp
-    const timestamp = new Date().getTime();
-    const randomStr = Math.random().toString(36).substring(2, 15);
-    return `HASH-${timestamp}-${randomStr}-${dados.id}`;
-  }
+  // function gerarHashUnico(dados) {
+  //   // Em um sistema real, usaríamos um algoritmo de hash criptográfico
+  //   // Aqui, vamos simular um hash baseado nos dados e timestamp
+  //   const timestamp = new Date().getTime();
+  //   const randomStr = Math.random().toString(36).substring(2, 15);
+  //   return `HASH-${timestamp}-${randomStr}-${dados.id}`;
+  // }
   
   // Função para arquivar a autorização
-  function arquivarAutorizacao(dados, tipo) {
-    // Em um sistema real, salvaríamos em um banco de dados ou sistema de arquivos
-    // Aqui, vamos simular o arquivamento no localStorage
+  // function arquivarAutorizacao(dados, tipo) {
+  //   // Em um sistema real, salvaríamos em um banco de dados ou sistema de arquivos
+  //   // Aqui, vamos simular o arquivamento no localStorage
     
-    // Recuperar arquivos existentes ou inicializar objeto vazio
-    let arquivos = JSON.parse(localStorage.getItem('arquivos')) || {};
+  //   // Recuperar arquivos existentes ou inicializar objeto vazio
+  //   let arquivos = JSON.parse(localStorage.getItem("arquivos")) || {};
     
-    // Inicializar a categoria se não existir
-    if (!arquivos[tipo]) {
-      arquivos[tipo] = [];
-    }
+  //   // Inicializar a categoria se não existir
+  //   if (!arquivos[tipo]) {
+  //     arquivos[tipo] = [];
+  //   }
     
-    // Adicionar data e hora de arquivamento
-    const dadosArquivados = {
-      ...dados,
-      data_arquivamento: new Date().toISOString(),
-      id_arquivo: `${tipo.toUpperCase()}-${new Date().getTime()}-${dados.id}`
-    };
+  //   // Adicionar data e hora de arquivamento
+  //   const dadosArquivados = {
+  //     ...dados,
+  //     data_arquivamento: new Date().toISOString(),
+  //     id_arquivo: `${tipo.toUpperCase()}-${new Date().getTime()}-${dados.id}`
+  //   };
     
-    // Adicionar ao arquivo
-    arquivos[tipo].push(dadosArquivados);
+  //   // Adicionar ao arquivo
+  //   arquivos[tipo].push(dadosArquivados);
     
-    // Salvar no localStorage
-    localStorage.setItem('arquivos', JSON.stringify(arquivos));
+  //   // Salvar no localStorage
+  //   localStorage.setItem("arquivos", JSON.stringify(arquivos));
     
-    console.log(`Autorização ${dados.id} arquivada em ${tipo}`);
-  }
+  //   console.log(`Autorização ${dados.id} arquivada em ${tipo}`);
+  // }
   
   // Função para formatar data
   function formatarData(data) {
