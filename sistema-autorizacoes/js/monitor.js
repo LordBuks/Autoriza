@@ -182,76 +182,64 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
   }
 
   function renderizarArquivos() {
-      // A lógica de arquivos parece depender de um 'localStorage.getItem("arquivos")'
-      // que não está sendo populado neste fluxo. 
-      // Se a intenção é mostrar solicitações finalizadas (Aprovadas/Reprovadas) como "arquivos",
-      // a lógica precisa ser ajustada para usar 'todasSolicitacoesCache'.
-      // Por enquanto, manteremos a lógica original baseada no localStorage, 
-      // mas ela provavelmente não funcionará como esperado.
       if (!arquivosContainer) return;
       
-      console.warn("A seção 'Arquivos' ainda depende do localStorage e pode não funcionar corretamente.");
+      // Filtrar solicitações finalizadas (Aprovadas ou Reprovadas) do cache do Firestore
+      let filtrados = todasSolicitacoesCache.filter(s => 
+          s.status_final === "Aprovado" || 
+          s.status_final === "Autorizado" ||
+          s.status_final === "Reprovado" || 
+          s.status_final === "Não Autorizado"
+      );
 
-      try {
-          const arquivosData = JSON.parse(localStorage.getItem("arquivos")) || {};
-          const todosArquivos = [
-              ...(arquivosData.aprovadas || []),
-              ...(arquivosData.reprovadas || [])
-          ];
+      const dataFiltro = filtroDataInput ? filtroDataInput.value : null;
 
-          let filtrados = [...todosArquivos];
-          const dataFiltro = filtroDataInput ? filtroDataInput.value : null;
-
-          if (dataFiltro) {
-              // Lógica de filtro de data (mantida como estava)
-              const dataFiltroObj = new Date(dataFiltro);
-              dataFiltroObj.setHours(0, 0, 0, 0);
-              filtrados = filtrados.filter(a => {
-                  const dataArquivamento = new Date(a.data_arquivamento);
-                  dataArquivamento.setHours(0, 0, 0, 0);
-                  return dataArquivamento.getTime() === dataFiltroObj.getTime();
-              });
-          }
-
-          filtrados.sort((a, b) => new Date(b.data_arquivamento) - new Date(a.data_arquivamento));
-
-          if (filtrados.length === 0) {
-              arquivosContainer.innerHTML = 
-                  `<p class="text-center">Nenhum arquivo encontrado com os filtros aplicados (verificar lógica localStorage).</p>`;
-              return;
-          }
-
-          const html = `
-            <table class="table table-striped table-hover">
-              <thead>
-                <tr>
-                  <th>ID Arquivo</th>
-                  <th>Atleta</th>
-                  <th>Categoria</th>
-                  <th>Data Arquivamento</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${filtrados.map(a => `
-                  <tr>
-                    <td>${a.id_arquivo || "N/A"}</td>
-                    <td>${a.nome || "N/A"}</td>
-                    <td>${a.categoria || "N/A"}</td>
-                    <td>${formatarData(a.data_arquivamento)}</td>
-                    <td>${getStatusBadge(a)}</td> 
-                    <td><a href="detalhe.html?id=${a.id}" class="btn btn-primary btn-sm">Ver</a></td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          `;
-          arquivosContainer.innerHTML = html;
-      } catch (error) {
-          console.error("Erro ao renderizar arquivos (localStorage):", error);
-          mostrarErro(arquivosContainer, "Erro ao carregar arquivos.");
+      if (dataFiltro) {
+          const dataFiltroObj = new Date(dataFiltro);
+          dataFiltroObj.setHours(0, 0, 0, 0);
+          filtrados = filtrados.filter(a => {
+              // Usar a data de solicitação ou uma nova propriedade de data de finalização, se existir
+              const dataFinalizacao = new Date(a.data_solicitacao); // Ou a.data_finalizacao se você adicionar essa propriedade
+              dataFinalizacao.setHours(0, 0, 0, 0);
+              return dataFinalizacao.getTime() === dataFiltroObj.getTime();
+          });
       }
+
+      filtrados.sort((a, b) => new Date(b.data_solicitacao) - new Date(a.data_solicitacao)); // Ordenar por data de solicitação
+
+      if (filtrados.length === 0) {
+          arquivosContainer.innerHTML = 
+              `<p class="text-center">Nenhum arquivo encontrado com os filtros aplicados.</p>`;
+          return;
+      }
+
+      const html = `
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Atleta</th>
+              <th>Categoria</th>
+              <th>Data Solicitação</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtrados.map(a => `
+              <tr>
+                <td>${a.id || "N/A"}</td>
+                <td>${a.nome || "N/A"}</td>
+                <td>${a.categoria || "N/A"}</td>
+                <td>${formatarData(a.data_solicitacao)}</td>
+                <td>${getStatusBadge(a)}</td> 
+                <td><a href="detalhe.html?id=${a.id}" class="btn btn-primary btn-sm">Ver</a></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+      arquivosContainer.innerHTML = html;
   }
 
   function atualizarContadores() {
