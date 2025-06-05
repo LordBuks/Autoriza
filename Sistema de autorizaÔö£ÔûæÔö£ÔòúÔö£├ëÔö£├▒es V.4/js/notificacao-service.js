@@ -77,7 +77,7 @@ class NotificacaoService {
           <p><strong>Data de Retorno:</strong> ${this.formatarData(new Date(dados.data_retorno))} às ${dados.horario_retorno}</p>
           <p><strong>Motivo/Destino:</strong> ${dados.motivo_destino}</p>
           <p>
-            <a href="https://autorizacoes.internacional.com.br/supervisor/detalhe.html?id=${dados.id}" class="button">Analisar Solicitação</a>
+            <a href="https://fuzbtjsj.manus.space/supervisor/detalhe.html?id=${dados.id}" class="button">Analisar Solicitação</a>
           </p>
         </div>
         <div class="footer">
@@ -145,7 +145,7 @@ class NotificacaoService {
           <p><strong>Motivo/Destino:</strong> ${dados.motivo_destino}</p>
           <p><strong>Responsável:</strong> ${dados.nome_responsavel} - ${dados.telefone_responsavel}</p>
           <p>
-            <a href="https://autorizacoes.internacional.com.br/servico_social/detalhe.html?id=${dados.id}" class="button">Validar Autorização</a>
+            <a href="https://fuzbtjsj.manus.space/servico_social/detalhe.html?id=${dados.id}" class="button">Validar Autorização</a>
           </p>
         </div>
         <div class="footer">
@@ -216,7 +216,7 @@ class NotificacaoService {
           <p><strong>Data de Retorno:</strong> ${this.formatarData(new Date(dados.data_retorno))} às ${dados.horario_retorno}</p>
           <p><strong>Motivo/Destino:</strong> ${dados.motivo_destino}</p>
           <p>
-            <a href="https://autorizacoes.internacional.com.br/monitor/detalhe.html?id=${dados.id}" class="button">Ver Detalhes</a>
+            <a href="https://fuzbtjsj.manus.space/monitor/detalhe.html?id=${dados.id}" class="button">Ver Detalhes</a>
           </p>
         </div>
         <div class="footer">
@@ -287,7 +287,7 @@ class NotificacaoService {
           ${status === 'Reprovado' && dados.observacao_supervisor ? 
             `<p><strong>Motivo da reprovação:</strong> ${dados.observacao_supervisor}</p>` : ''}
           <p>
-            <a href="https://autorizacoes.internacional.com.br/atleta/consultar.html?id=${dados.id}" class="button">Ver Detalhes</a>
+            <a href="https://fuzbtjsj.manus.space/atleta/consultar.html?id=${dados.id}" class="button">Ver Detalhes</a>
           </p>
         </div>
         <div class="footer">
