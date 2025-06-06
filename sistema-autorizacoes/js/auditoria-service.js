@@ -59,14 +59,28 @@ const AuditoriaService = (function() {
     return registrarEvento("envio_link_pais", solicitacaoId, { telefone: telefone, link: link });
   }
 
+  // Função para registrar o acesso dos pais à página de aprovação
+  async function registrarAcessoPais(solicitacaoId, token) {
+    return registrarEvento("acesso_pais", solicitacaoId, { token: token });
+  }
+
+  // Função para registrar a decisão dos pais (aprovação ou reprovação)
+  async function registrarDecisaoPais(solicitacaoId, decisao, observacao) {
+    return registrarEvento("decisao_pais", solicitacaoId, { 
+      decisao: decisao,
+      observacao: observacao
+    });
+  }
+
   return {
     registrarEvento: registrarEvento,
     obterHistoricoAuditoria: obterHistoricoAuditoria,
     registrarGeracaoPDF: registrarGeracaoPDF,
-    registrarEnvioLinkPais: registrarEnvioLinkPais // Expor a nova função
+    registrarEnvioLinkPais: registrarEnvioLinkPais,
+    registrarAcessoPais: registrarAcessoPais,
+    registrarDecisaoPais: registrarDecisaoPais
   };
 })();
 
 window.auditoriaService = AuditoriaService;
-
 
