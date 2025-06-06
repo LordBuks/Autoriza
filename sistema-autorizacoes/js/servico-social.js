@@ -322,20 +322,21 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
 
           if (resultado.sucesso) {
               alert(`Solicitação ${novoStatus.toLowerCase()} pelo Serviço Social com sucesso!`);
+              
               // Registrar auditoria
               if (window.auditoriaService) {
-                  window.auditoriaService.registrarAprovacaoServicoSocial(
+                  window.auditoriaService.registrarEvento(
+                      "definicao_status_final",
                       solicitacaoAtual.id,
-                      novoStatus,
-                      observacao || ""
+                      { status_final: statusFinal, decisao_servico_social: statusFinal }
                   ).catch(err => console.error("Erro ao registrar auditoria Serv. Social:", err));
               }
-              // Recarregar tudo para refletir as mudanças nas listas
-              await carregarTodasSolicitacoesDoFirestore(); 
-              // Recarregar detalhes da solicitação atual para mostrar status atualizado
-              await carregarDetalhesSolicitacao(solicitacaoAtual.id); 
+              
+              // Recarregar dados
+              await carregarTodasSolicitacoesDoFirestore();
+              await carregarDetalhesSolicitacao(solicitacaoAtual.id);
           } else {
-              throw new Error(resultado.erro || "Falha ao atualizar status.");
+              throw new Error(resultado.erro || "Falha ao definir status final.");
           }
       } catch (error) {
           console.error("Erro ao atualizar status do Serviço Social:", error);
