@@ -21,7 +21,7 @@ const AuditoriaService = (function() {
         usuarioId: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'anonimo',
         dados: dados
       };
-      await window.firebaseService.salvarDocumento(COLLECTION_NAME, null, evento);
+      await window.firebaseService.salvarDocumento(COLLECTION_NAME, evento);
       return { sucesso: true };
     } catch (error) {
       console.error('Erro ao registrar evento de auditoria:', error);
@@ -51,13 +51,19 @@ const AuditoriaService = (function() {
 
   // Funções específicas de registro de auditoria usadas no pdf-service.js
   async function registrarGeracaoPDF(solicitacaoId, tipoRelatorio) {
-    return registrarEvento('geracao_pdf', solicitacaoId, { tipoRelatorio: tipoRelatorio });
+    return registrarEvento("geracao_pdf", solicitacaoId, { tipoRelatorio: tipoRelatorio });
+  }
+
+  // Nova função para registrar o envio de link aos pais
+  async function registrarEnvioLinkPais(solicitacaoId, telefone, link) {
+    return registrarEvento("envio_link_pais", solicitacaoId, { telefone: telefone, link: link });
   }
 
   return {
     registrarEvento: registrarEvento,
     obterHistoricoAuditoria: obterHistoricoAuditoria,
-    registrarGeracaoPDF: registrarGeracaoPDF
+    registrarGeracaoPDF: registrarGeracaoPDF,
+    registrarEnvioLinkPais: registrarEnvioLinkPais // Expor a nova função
   };
 })();
 

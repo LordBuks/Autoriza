@@ -73,7 +73,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!solicitacaoAtual) return;
     
     // Formatar número de telefone (remover caracteres não numéricos)
-    const telefone = solicitacaoAtual.telefone_responsavel.replace(/\D/g, '');
+    const telefone = solicitacaoAtual.telefone_responsavel.replace(/\D/g, "");
+    console.log("detalhe-servico-social: Telefone antes de enviar para WhatsAppService:", telefone);
     
     // Codificar a mensagem para URL
     const mensagem = encodeURIComponent(textoWhatsapp.value);

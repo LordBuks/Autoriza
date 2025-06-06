@@ -31,7 +31,8 @@ class ConfirmacaoService {
     
     // Construir o link de confirmação (em um sistema real, seria um domínio válido)
     // Para fins de demonstração, usamos um link que simula a confirmação
-    return `${window.location.origin}/templates/confirmacao.html?token=${token}&id=${dados.id}&atleta=${encodeURIComponent(dados.nome)}&responsavel=${encodeURIComponent(dados.nome_responsavel)}`;
+    const baseUrl = "https://autorizabase.vercel.app"; // Substitua pela URL real do seu projeto no Vercel
+    return `${baseUrl}/pais/aprovacao.html?token=${token}&id=${dados.id}&atleta=${encodeURIComponent(dados.nome)}&responsavel=${encodeURIComponent(dados.nome_responsavel)}`;
   }
   
   // Gerar token único para o link

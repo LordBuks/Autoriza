@@ -77,7 +77,7 @@ class FirebaseService {
         docRef = await this.db.collection(colecao).add(documento);
       }
       
-      return { sucesso: true, id: id || docRef.id };
+      return { sucesso: true, id: String(id || docRef.id) };
     } catch (error) {
       console.error(`Erro ao salvar documento em ${colecao}:`, error);
       return { sucesso: false, erro: error.message };
