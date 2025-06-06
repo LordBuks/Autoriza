@@ -66,14 +66,20 @@
             <p><strong>Status Supervisor:</strong> <span id="status-supervisor" class="badge"></span></p>
             <p><strong>Status Serviço Social:</strong> <span id="status-servico-social" class="badge"></span></p>
             <p><strong>Status Final:</strong> <span id="status-final" class="badge"></span></p>
+            <p><strong>Status Pais:</strong> <span id="status-pais" class="badge"></span></p>
           </div>
         </div>
         
-        <!-- Novos botões para as funcionalidades de auditoria e PDF -->
+        <!-- Botões para as funcionalidades -->
         <div class="mt-3">
           <button id="btn-enviar-link" class="btn btn-primary">Enviar Link aos Pais</button>
           <button id="btn-status-final" class="btn btn-success">Definir Status Final</button>
           <button id="btn-gerar-pdf" class="btn btn-danger">Gerar Relatório PDF</button>
+        </div>
+        
+        <!-- Container para botões de ação específicos do Serviço Social -->
+        <div id="acoes-servico-social" class="mt-3">
+          <!-- Botões de aprovar/reprovar serão adicionados dinamicamente aqui -->
         </div>
       </div>
     </div>
@@ -95,7 +101,7 @@
     </div>
   </div>
 
-  <!-- Firebase Config (deve ser carregado antes dos outros scripts) -->
+  <!-- Firebase Config (deve ser carregado antes dos outros scripts ) -->
   <script src="../../js/firebase-config.js"></script>
 
   <!-- Bibliotecas para PDF e Hash -->
