@@ -286,22 +286,9 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
                 btnGerarPdf.addEventListener("click", gerarRelatorioPdf);
             }
 
-            // Adicionar botões específicos do Serviço Social (Aprovar/Reprovar)
+            // REMOVIDO: Adicionar botões específicos do Serviço Social (Aprovar/Reprovar)
             if (acoesServicoSocialContainer) {
-                // Adicionar botões apenas se o status do serviço social for pendente
-                if (solicitacaoAtual.status_servico_social === "Pendente") {
-                    const btnAprovar = document.createElement("button");
-                    btnAprovar.className = "btn btn-success me-2";
-                    btnAprovar.textContent = "Aprovar (Serviço Social)";
-                    btnAprovar.onclick = () => atualizarStatusServicoSocial("Aprovado");
-                    acoesServicoSocialContainer.appendChild(btnAprovar);
-
-                    const btnReprovar = document.createElement("button");
-                    btnReprovar.className = "btn btn-danger";
-                    btnReprovar.textContent = "Reprovar (Serviço Social)";
-                    btnReprovar.onclick = () => atualizarStatusServicoSocial("Reprovado");
-                    acoesServicoSocialContainer.appendChild(btnReprovar);
-                }
+                acoesServicoSocialContainer.innerHTML = ""; // Limpa o container para evitar duplicação
             }
 
         } catch (error) {
@@ -430,8 +417,23 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
           return;
       }
       
-      // Determinar o status final com base na decisão dos pais
-      const statusFinal = solicitacaoAtual.status_pais === "Aprovado" ? "Aprovado" : "Reprovado";
+      // PERGUNTAR AO SERVIÇO SOCIAL A DECISÃO FINAL
+      const decisaoServicoSocial = prompt(
+          `A decisão dos pais foi: ${solicitacaoAtual.status_pais}.\n\nQual a decisão final do Serviço Social para esta solicitação?\nDigite 'Aprovado' ou 'Reprovado'.`
+      );
+
+      if (decisaoServicoSocial === null) { // Usuário clicou em Cancelar
+          return;
+      }
+
+      const novoStatusServicoSocial = decisaoServicoSocial.trim().toLowerCase();
+
+      if (novoStatusServicoSocial !== 'aprovado' && novoStatusServicoSocial !== 'reprovado') {
+          alert("Decisão inválida. Por favor, digite 'Aprovado' ou 'Reprovado'.");
+          return;
+      }
+
+      const statusFinal = (novoStatusServicoSocial === 'aprovado') ? 'Aprovado' : 'Reprovado';
       
       try {
           // Atualizar o status do serviço social e o status final
@@ -451,7 +453,7 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
                   window.auditoriaService.registrarEvento(
                       "definicao_status_final",
                       solicitacaoAtual.id,
-                      { status_final: statusFinal }
+                      { status_final: statusFinal, decisao_servico_social: statusFinal }
                   ).catch(err => console.error("Erro ao registrar auditoria de status final:", err));
               }
               
