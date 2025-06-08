@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Supervisor - SC Internacional</title>
   <link rel="stylesheet" href="../../css/styles.css">
+  
+  <!-- Content Security Policy (CSP) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com; frame-src 'none';">
+
+  <!-- Firebase SDK (Padronizado para 9.22.0 compat ) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <header class="header">
@@ -46,12 +54,12 @@
     </div>
   </div>
 
-  <!-- Firebase SDK (Padronizado para 9.22.0 compat) -->
+  <!-- Firebase SDK (Padronizado para 9.22.0 compat ) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   
-  <!-- Serviços da aplicação (Carregar ANTES do script da página) -->
+  <!-- Serviços da aplicação (Carregar ANTES do script da página ) -->
   <script src="../../js/firebase-config.js"></script>
   <script src="../../js/autorizacao-service.js"></script> 
   <!-- Adicionar outros serviços se supervisor.js depender deles -->
@@ -61,4 +69,3 @@
     <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
 </body>
 </html>
-

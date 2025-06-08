@@ -1,28 +1,64 @@
-// Lógica para o painel do monitor
-document.addEventListener("DOMContentLoaded", async function() { // Adicionado async
+// Lógica para o painel do monitor - VERSÃO CORRIGIDA
+document.addEventListener("DOMContentLoaded", async function() {
   const solicitacoesPreAprovadasContainer = document.getElementById("solicitacoes-pre-aprovadas");
   const todasSolicitacoesContainer = document.getElementById("todas-solicitacoes");
-  const arquivosContainer = document.getElementById("arquivos"); // Renomeado para clareza
+  const arquivosContainer = document.getElementById("arquivos");
   const filtroStatusSelect = document.getElementById("filtro-status");
   const filtroCategoriaSelect = document.getElementById("filtro-categoria");
-  const filtroDataInput = document.getElementById("filtro-data"); // Renomeado para clareza
+  const filtroDataInput = document.getElementById("filtro-data");
   
   // Contadores
   const countPendentes = document.getElementById("count-pendentes");
   const countAprovadas = document.getElementById("count-aprovadas");
   const countReprovadas = document.getElementById("count-reprovadas");
 
-  let todasSolicitacoesCache = []; // Cache para evitar múltiplas buscas no Firestore
+  let todasSolicitacoesCache = [];
 
-  // Verificar dependências
+  // --- Verificação de Dependências e Autenticação ---
   if (!window.firebaseService) {
       console.error("Erro crítico: FirebaseService não está disponível.");
       mostrarErro(todasSolicitacoesContainer, "Erro ao carregar serviços. Tente recarregar a página.");
-      // Poderia adicionar mensagens de erro aos outros containers também
+      mostrarErro(solicitacoesPreAprovadasContainer, "Erro ao carregar serviços.");
+      mostrarErro(arquivosContainer, "Erro ao carregar serviços.");
       return;
   }
 
+  // Aguardar autenticação antes de prosseguir
+  await aguardarAutenticacao();
+
   // --- Funções Auxiliares ---
+  function aguardarAutenticacao() {
+    return new Promise((resolve) => {
+      const verificarAuth = () => {
+        const user = firebase.auth().currentUser;
+        if (user) {
+          console.log("Usuário autenticado:", user.email);
+          resolve();
+        } else {
+          console.log("Aguardando autenticação...");
+          setTimeout(verificarAuth, 500);
+        }
+      };
+      
+      // Verificar se já está autenticado
+      if (firebase.auth().currentUser) {
+        console.log("Usuário já autenticado:", firebase.auth().currentUser.email);
+        resolve();
+      } else {
+        // Aguardar mudança no estado de autenticação
+        firebase.auth().onAuthStateChanged((user) => {
+          if (user) {
+            console.log("Estado de autenticação mudou - usuário logado:", user.email);
+            resolve();
+          }
+        });
+        
+        // Fallback: verificar periodicamente
+        setTimeout(verificarAuth, 1000);
+      }
+    });
+  }
+
   function mostrarLoading(container, mensagem = "Carregando...") {
       if (container) container.innerHTML = `<p class="text-center">${mensagem}</p>`;
   }
@@ -46,33 +82,41 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
 
   function getStatusBadge(solicitacao) {
       let statusText = solicitacao.status_final || "Em Análise";
-      let badgeClass = "bg-warning text-dark"; // Padrão para Pendente/Em Análise
+      let badgeClass = "bg-warning text-dark";
 
       if (statusText === "Aprovado" || statusText === "Autorizado") {
           badgeClass = "bg-success";
-          statusText = "Aprovado"; // Padronizar texto
+          statusText = "Aprovado";
       } else if (statusText === "Reprovado" || statusText === "Não Autorizado") {
           badgeClass = "bg-danger";
-          statusText = "Reprovado"; // Padronizar texto
+          statusText = "Reprovado";
       } else if (solicitacao.status_supervisor === "Aprovado" && solicitacao.status_servico_social === "Pendente") {
           statusText = "Pré-Aprovado";
-          // Mantém bg-warning
       }
       return `<span class="badge ${badgeClass}">${statusText}</span>`;
   }
 
   // --- Funções Principais ---
-
   async function carregarTodasSolicitacoesDoFirestore() {
       mostrarLoading(todasSolicitacoesContainer, "Carregando todas as solicitações...");
+      mostrarLoading(solicitacoesPreAprovadasContainer, "Carregando solicitações pré-aprovadas...");
+      mostrarLoading(arquivosContainer, "Carregando arquivos...");
+      
       try {
+          // Verificar autenticação antes da chamada
+          const user = firebase.auth().currentUser;
+          if (!user) {
+              throw new Error("Usuário não autenticado. Faça login novamente.");
+          }
+          
+          console.log("Fazendo chamada ao Firestore para usuário:", user.email);
           const resultado = await window.firebaseService.obterDocumentos("solicitacoes");
+          
           if (resultado.sucesso) {
               todasSolicitacoesCache = resultado.dados;
-              console.log("Solicitações carregadas do Firestore:", todasSolicitacoesCache);
+              console.log("Solicitações carregadas do Firestore:", todasSolicitacoesCache.length, "documentos");
               aplicarFiltrosERenderizar();
-              atualizarContadores(); // Atualiza contadores após carregar
-              // Carregar pré-aprovadas e arquivos que dependem destes dados
+              atualizarContadores();
               renderizarSolicitacoesPreAprovadas(); 
               renderizarArquivos();
           } else {
@@ -80,10 +124,18 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
           }
       } catch (error) {
           console.error("Erro ao carregar todas as solicitações do Firestore:", error);
-          mostrarErro(todasSolicitacoesContainer, `Erro ao carregar solicitações: ${error.message}`);
-          // Mostrar erro nos outros containers também seria bom
-          mostrarErro(solicitacoesPreAprovadasContainer, `Erro ao carregar solicitações.`);
-          mostrarErro(arquivosContainer, `Erro ao carregar solicitações.`);
+          const mensagemErro = `Erro ao carregar solicitações: ${error.message}`;
+          mostrarErro(todasSolicitacoesContainer, mensagemErro);
+          mostrarErro(solicitacoesPreAprovadasContainer, "Erro ao carregar solicitações.");
+          mostrarErro(arquivosContainer, "Erro ao carregar solicitações.");
+          
+          // Se for erro de autenticação, redirecionar para login
+          if (error.message.includes("autenticado") || error.message.includes("permission")) {
+              setTimeout(() => {
+                  alert("Sessão expirada. Redirecionando para o login.");
+                  window.location.href = "../../index.html";
+              }, 2000);
+          }
       }
   }
 
@@ -105,7 +157,7 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
               if (statusFiltro === "pre-aprovado") return supervisorStatus === "aprovado" && servicoSocialStatus === "pendente";
               if (statusFiltro === "aprovado") return finalStatus === "aprovado" || finalStatus === "autorizado";
               if (statusFiltro === "reprovado") return finalStatus === "reprovado" || finalStatus === "não autorizado";
-              return false; // Caso padrão, não deve acontecer com 'todos' tratado
+              return false;
           });
       }
 
@@ -182,76 +234,62 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
   }
 
   function renderizarArquivos() {
-      // A lógica de arquivos parece depender de um 'localStorage.getItem("arquivos")'
-      // que não está sendo populado neste fluxo. 
-      // Se a intenção é mostrar solicitações finalizadas (Aprovadas/Reprovadas) como "arquivos",
-      // a lógica precisa ser ajustada para usar 'todasSolicitacoesCache'.
-      // Por enquanto, manteremos a lógica original baseada no localStorage, 
-      // mas ela provavelmente não funcionará como esperado.
       if (!arquivosContainer) return;
       
-      console.warn("A seção 'Arquivos' ainda depende do localStorage e pode não funcionar corretamente.");
+      let filtrados = todasSolicitacoesCache.filter(s => 
+          s.status_final === "Aprovado" || 
+          s.status_final === "Autorizado" ||
+          s.status_final === "Reprovado" || 
+          s.status_final === "Não Autorizado"
+      );
 
-      try {
-          const arquivosData = JSON.parse(localStorage.getItem("arquivos")) || {};
-          const todosArquivos = [
-              ...(arquivosData.aprovadas || []),
-              ...(arquivosData.reprovadas || [])
-          ];
+      const dataFiltro = filtroDataInput ? filtroDataInput.value : null;
 
-          let filtrados = [...todosArquivos];
-          const dataFiltro = filtroDataInput ? filtroDataInput.value : null;
-
-          if (dataFiltro) {
-              // Lógica de filtro de data (mantida como estava)
-              const dataFiltroObj = new Date(dataFiltro);
-              dataFiltroObj.setHours(0, 0, 0, 0);
-              filtrados = filtrados.filter(a => {
-                  const dataArquivamento = new Date(a.data_arquivamento);
-                  dataArquivamento.setHours(0, 0, 0, 0);
-                  return dataArquivamento.getTime() === dataFiltroObj.getTime();
-              });
-          }
-
-          filtrados.sort((a, b) => new Date(b.data_arquivamento) - new Date(a.data_arquivamento));
-
-          if (filtrados.length === 0) {
-              arquivosContainer.innerHTML = 
-                  `<p class="text-center">Nenhum arquivo encontrado com os filtros aplicados (verificar lógica localStorage).</p>`;
-              return;
-          }
-
-          const html = `
-            <table class="table table-striped table-hover">
-              <thead>
-                <tr>
-                  <th>ID Arquivo</th>
-                  <th>Atleta</th>
-                  <th>Categoria</th>
-                  <th>Data Arquivamento</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${filtrados.map(a => `
-                  <tr>
-                    <td>${a.id_arquivo || "N/A"}</td>
-                    <td>${a.nome || "N/A"}</td>
-                    <td>${a.categoria || "N/A"}</td>
-                    <td>${formatarData(a.data_arquivamento)}</td>
-                    <td>${getStatusBadge(a)}</td> 
-                    <td><a href="detalhe.html?id=${a.id}" class="btn btn-primary btn-sm">Ver</a></td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          `;
-          arquivosContainer.innerHTML = html;
-      } catch (error) {
-          console.error("Erro ao renderizar arquivos (localStorage):", error);
-          mostrarErro(arquivosContainer, "Erro ao carregar arquivos.");
+      if (dataFiltro) {
+          const dataFiltroObj = new Date(dataFiltro);
+          dataFiltroObj.setHours(0, 0, 0, 0);
+          filtrados = filtrados.filter(a => {
+              const dataFinalizacao = new Date(a.data_solicitacao);
+              dataFinalizacao.setHours(0, 0, 0, 0);
+              return dataFinalizacao.getTime() === dataFiltroObj.getTime();
+          });
       }
+
+      filtrados.sort((a, b) => new Date(b.data_solicitacao) - new Date(a.data_solicitacao));
+
+      if (filtrados.length === 0) {
+          arquivosContainer.innerHTML = 
+              `<p class="text-center">Nenhum arquivo encontrado com os filtros aplicados.</p>`;
+          return;
+      }
+
+      const html = `
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Atleta</th>
+              <th>Categoria</th>
+              <th>Data Solicitação</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtrados.map(a => `
+              <tr>
+                <td>${a.id || "N/A"}</td>
+                <td>${a.nome || "N/A"}</td>
+                <td>${a.categoria || "N/A"}</td>
+                <td>${formatarData(a.data_solicitacao)}</td>
+                <td>${getStatusBadge(a)}</td> 
+                <td><a href="detalhe.html?id=${a.id}" class="btn btn-primary btn-sm">Ver</a></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+      arquivosContainer.innerHTML = html;
   }
 
   function atualizarContadores() {
@@ -277,8 +315,6 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
   }
 
   // --- Inicialização e Eventos ---
-
-  // Adicionar listeners para os filtros
   if (filtroStatusSelect) {
       filtroStatusSelect.addEventListener("change", aplicarFiltrosERenderizar);
   }
@@ -286,12 +322,10 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
       filtroCategoriaSelect.addEventListener("change", aplicarFiltrosERenderizar);
   }
   if (filtroDataInput) {
-      // O filtro de data afeta apenas a seção 'Arquivos' que ainda usa localStorage
       filtroDataInput.addEventListener("change", renderizarArquivos);
   }
 
   // Carregar os dados iniciais do Firestore
   await carregarTodasSolicitacoesDoFirestore();
-
 });
 

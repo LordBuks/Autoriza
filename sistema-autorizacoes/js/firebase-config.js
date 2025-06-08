@@ -17,7 +17,13 @@ const firebaseConfig = {
 // const analytics = getAnalytics(app);
 
 
-// Inicializar Firebase
+// Initialize Firebase app directly at the top level
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+  console.log('Firebase app initialized directly.');
+}
+
+// Now define and expose the FirebaseService
 class FirebaseService {
   constructor() {
     // Verificar se o Firebase já foi inicializado
@@ -27,6 +33,7 @@ class FirebaseService {
     
     this.db = firebase.firestore();
     this.auth = firebase.auth();
+    console.log("FirebaseService instance created. Firestore:", !!this.db, "Auth:", !!this.auth);
     
     // Comentando a persistência offline para evitar o erro de compatibilidade
     // this.db.enablePersistence()
@@ -70,7 +77,7 @@ class FirebaseService {
         docRef = await this.db.collection(colecao).add(documento);
       }
       
-      return { sucesso: true, id: id || docRef.id };
+      return { sucesso: true, id: String(id || docRef.id) };
     } catch (error) {
       console.error(`Erro ao salvar documento em ${colecao}:`, error);
       return { sucesso: false, erro: error.message };
@@ -166,3 +173,7 @@ class FirebaseService {
 
 // Exportar a instância do serviço
 window.firebaseService = new FirebaseService();
+
+
+console.log('FirebaseService exposto globalmente.');
+

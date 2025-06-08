@@ -15,6 +15,11 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
   let todasSolicitacoesCache = []; // Cache para dados do Firestore
 
   // Verificar dependências
+  console.log("Verificando serviços:", {
+    firebase: !!window.firebaseService,
+    auditoria: !!window.auditoriaService,
+    pdf: !!window.pdfService
+  });
   if (!window.firebaseService || !window.auditoriaService || !window.pdfService) {
       console.error("Erro crítico: Serviços essenciais (Firebase, Auditoria, PDF) não estão disponíveis.");
       mostrarErro(solicitacoesPreAprovadasContainer, "Erro ao carregar serviços. Tente recarregar a página.");
@@ -88,6 +93,7 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
   function renderizarSolicitacoesPreAprovadas() {
       if (!solicitacoesPreAprovadasContainer) return;
 
+      // Modificado para incluir solicitações que foram aprovadas pelos pais mas ainda estão pendentes no serviço social
       const preAprovadas = todasSolicitacoesCache.filter(s => 
           s.status_supervisor === "Aprovado" && 
           s.status_servico_social === "Pendente"
@@ -99,17 +105,22 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
           return;
       }
 
-      const html = preAprovadas.map(s => `
+      const html = preAprovadas.map(s => {
+          // Verificar se os pais já tomaram uma decisão
+          const decisaoPais = s.status_pais ? `<span class="badge ${s.status_pais === 'Aprovado' ? 'bg-success' : 'bg-danger'}">${s.status_pais}</span>` : '<span class="badge bg-warning text-dark">Pendente</span>';
+          
+          return `
           <div class="card mb-3">
             <div class="card-body">
               <h5 class="card-title">${s.nome || "N/A"} • ${s.categoria || "N/A"}</h5>
               <p class="card-text mb-1"><strong>Destino:</strong> ${s.motivo_destino || "N/A"}</p>
               <p class="card-text mb-1"><strong>Período:</strong> ${formatarData(s.data_saida)} ${s.horario_saida || ""} até ${formatarData(s.data_retorno)} ${s.horario_retorno || ""}</p>
               <p class="card-text"><strong>Responsável:</strong> ${s.nome_responsavel || "N/A"} - ${s.telefone_responsavel || "N/A"}</p>
+              <p class="card-text"><strong>Decisão dos Pais:</strong> ${decisaoPais}</p>
               <button class="btn btn-primary mt-2 btn-visualizar" data-id="${s.id}">Ver Detalhes</button>
             </div>
           </div>
-      `).join("");
+      `}).join("");
       solicitacoesPreAprovadasContainer.innerHTML = html;
 
       // Adicionar eventos aos botões de visualização DESTA seção
@@ -202,6 +213,7 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
         document.getElementById("status-supervisor").innerHTML = "Carregando...";
         document.getElementById("status-servico-social").innerHTML = "Carregando...";
         document.getElementById("status-final").innerHTML = "Carregando...";
+        document.getElementById("status-pais").innerHTML = "Carregando..."; // Adicionado
         // Limpar botões de ação anteriores
         const acoesServicoSocialContainer = document.getElementById("acoes-servico-social");
         if (acoesServicoSocialContainer) acoesServicoSocialContainer.innerHTML = "";
@@ -233,42 +245,50 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
             document.getElementById("status-supervisor").innerHTML = getStatusBadge(solicitacaoAtual.status_supervisor, "supervisor");
             document.getElementById("status-servico-social").innerHTML = getStatusBadge(solicitacaoAtual.status_servico_social, "servico_social");
             document.getElementById("status-final").innerHTML = getStatusBadge(solicitacaoAtual.status_final, "final");
+            document.getElementById("status-pais").innerHTML = getStatusBadge(solicitacaoAtual.status_pais, "pais"); // Adicionado
             
             // Configurar botões de ação (buscar elementos aqui para garantir que existam)
             btnEnviarLink = document.getElementById("btn-enviar-link");
-            btnStatusFinal = document.getElementById("btn-status-final"); // Este botão pode não ser responsabilidade do Serviço Social
+            btnStatusFinal = document.getElementById("btn-status-final");
             btnGerarPdf = document.getElementById("btn-gerar-pdf");
             
             // Remover listeners antigos e adicionar novos
             if(btnEnviarLink) {
                 btnEnviarLink.removeEventListener("click", enviarLinkPais);
                 btnEnviarLink.addEventListener("click", enviarLinkPais);
+                
+                // Desabilitar o botão se o link já foi enviado
+                if (solicitacaoAtual.data_envio_link_pais) {
+                    btnEnviarLink.disabled = true;
+                    btnEnviarLink.textContent = "Link Enviado";
+                } else {
+                    btnEnviarLink.disabled = false;
+                    btnEnviarLink.textContent = "Enviar Link aos Pais";
+                }
             }
-            // if(btnStatusFinal) { // Comentado - Provavelmente não é do Serviço Social
-            //     btnStatusFinal.removeEventListener("click", definirStatusFinal);
-            //     btnStatusFinal.addEventListener("click", definirStatusFinal);
-            // }
+            
+            if(btnStatusFinal) {
+                btnStatusFinal.removeEventListener("click", definirStatusFinal);
+                btnStatusFinal.addEventListener("click", definirStatusFinal);
+                
+                // Habilitar o botão apenas se os pais já tomaram uma decisão
+                if (solicitacaoAtual.status_pais && solicitacaoAtual.status_servico_social === "Pendente") {
+                    btnStatusFinal.disabled = false;
+                    btnStatusFinal.textContent = "Definir Status Final";
+                } else {
+                    btnStatusFinal.disabled = true;
+                    btnStatusFinal.textContent = "Aguardando Decisão dos Pais";
+                }
+            }
+            
             if(btnGerarPdf) {
                 btnGerarPdf.removeEventListener("click", gerarRelatorioPdf);
                 btnGerarPdf.addEventListener("click", gerarRelatorioPdf);
             }
 
-            // Adicionar botões específicos do Serviço Social (Aprovar/Reprovar)
+            // REMOVIDO: Adicionar botões específicos do Serviço Social (Aprovar/Reprovar)
             if (acoesServicoSocialContainer) {
-                // Adicionar botões apenas se o status do serviço social for pendente
-                if (solicitacaoAtual.status_servico_social === "Pendente") {
-                    const btnAprovar = document.createElement("button");
-                    btnAprovar.className = "btn btn-success me-2";
-                    btnAprovar.textContent = "Aprovar (Serviço Social)";
-                    btnAprovar.onclick = () => atualizarStatusServicoSocial("Aprovado");
-                    acoesServicoSocialContainer.appendChild(btnAprovar);
-
-                    const btnReprovar = document.createElement("button");
-                    btnReprovar.className = "btn btn-danger";
-                    btnReprovar.textContent = "Reprovar (Serviço Social)";
-                    btnReprovar.onclick = () => atualizarStatusServicoSocial("Reprovado");
-                    acoesServicoSocialContainer.appendChild(btnReprovar);
-                }
+                acoesServicoSocialContainer.innerHTML = ""; // Limpa o container para evitar duplicação
             }
 
         } catch (error) {
@@ -289,8 +309,7 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
       const dadosAtualizacao = {
           status_servico_social: novoStatus,
           data_validacao_servico_social: new Date().toISOString(),
-          // Poderíamos adicionar a observação aqui também se necessário
-          // observacao_servico_social: observacao
+          observacao_servico_social: observacao || ""
       };
 
       // Determinar o status final baseado na aprovação do serviço social
@@ -303,20 +322,21 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
 
           if (resultado.sucesso) {
               alert(`Solicitação ${novoStatus.toLowerCase()} pelo Serviço Social com sucesso!`);
+              
               // Registrar auditoria
               if (window.auditoriaService) {
-                  window.auditoriaService.registrarAprovacaoServicoSocial(
+                  window.auditoriaService.registrarEvento(
+                      "definicao_status_final",
                       solicitacaoAtual.id,
-                      novoStatus,
-                      observacao || ""
+                      { status_final: statusFinal, decisao_servico_social: statusFinal }
                   ).catch(err => console.error("Erro ao registrar auditoria Serv. Social:", err));
               }
-              // Recarregar tudo para refletir as mudanças nas listas
-              await carregarTodasSolicitacoesDoFirestore(); 
-              // Recarregar detalhes da solicitação atual para mostrar status atualizado
-              await carregarDetalhesSolicitacao(solicitacaoAtual.id); 
+              
+              // Recarregar dados
+              await carregarTodasSolicitacoesDoFirestore();
+              await carregarDetalhesSolicitacao(solicitacaoAtual.id);
           } else {
-              throw new Error(resultado.erro || "Falha ao atualizar status.");
+              throw new Error(resultado.erro || "Falha ao definir status final.");
           }
       } catch (error) {
           console.error("Erro ao atualizar status do Serviço Social:", error);
@@ -326,7 +346,7 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
       }
   }
 
-  // --- Funções de Ação (mantidas, mas podem precisar de revisão/integração com Firestore) ---
+  // --- Funções de Ação ---
   async function enviarLinkPais() {
       if (!solicitacaoAtual || !solicitacaoAtual.id) return;
       
@@ -366,8 +386,17 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
           
           if (resultadoAuditoria.sucesso) {
               alert("Link de aprovação gerado e registrado. Abra o WhatsApp para enviar.");
-              const whatsappUrl = `https://wa.me/${numeroTelefone.replace(/\D/g, "")}?text=${encodeURIComponent(mensagem)}`;
+              const whatsappUrl = `https://wa.me/${numeroTelefone.replace(/\D/g, "" )}?text=${encodeURIComponent(mensagem)}`;
               window.open(whatsappUrl, "_blank");
+              
+              // Desabilitar o botão após o envio
+              if (btnEnviarLink) {
+                  btnEnviarLink.disabled = true;
+                  btnEnviarLink.textContent = "Link Enviado";
+              }
+              
+              // Recarregar detalhes para refletir as mudanças
+              await carregarDetalhesSolicitacao(solicitacaoAtual.id);
           } else {
               throw new Error(resultadoAuditoria.erro || "Falha ao registrar auditoria.");
           }
@@ -377,8 +406,69 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
       }
   }
 
-  // Esta função provavelmente não pertence ao Serviço Social
-  // async function definirStatusFinal() { ... }
+  async function definirStatusFinal() {
+      if (!solicitacaoAtual || !solicitacaoAtual.id) {
+          alert("Nenhuma solicitação selecionada.");
+          return;
+      }
+      
+      // Verificar se os pais já tomaram uma decisão
+      if (!solicitacaoAtual.status_pais) {
+          alert("Os pais ainda não tomaram uma decisão. O status final só pode ser definido após a decisão dos pais.");
+          return;
+      }
+      
+      // PERGUNTAR AO SERVIÇO SOCIAL A DECISÃO FINAL
+      const decisaoServicoSocial = prompt(
+          `A decisão dos pais foi: ${solicitacaoAtual.status_pais}.\n\nQual a decisão final do Serviço Social para esta solicitação?\nDigite 'Aprovado' ou 'Reprovado'.`
+      );
+
+      if (decisaoServicoSocial === null) { // Usuário clicou em Cancelar
+          return;
+      }
+
+      const novoStatusServicoSocial = decisaoServicoSocial.trim().toLowerCase();
+
+      if (novoStatusServicoSocial !== 'aprovado' && novoStatusServicoSocial !== 'reprovado') {
+          alert("Decisão inválida. Por favor, digite 'Aprovado' ou 'Reprovado'.");
+          return;
+      }
+
+      const statusFinal = (novoStatusServicoSocial === 'aprovado') ? 'Aprovado' : 'Reprovado';
+      
+      try {
+          // Atualizar o status do serviço social e o status final
+          const dadosAtualizacao = {
+              status_servico_social: statusFinal,
+              status_final: statusFinal,
+              data_status_final: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          
+          const resultado = await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoAtual.id, dadosAtualizacao);
+          
+          if (resultado.sucesso) {
+              alert(`Status final definido como ${statusFinal} com sucesso!`);
+              
+              // Registrar na auditoria
+              if (window.auditoriaService) {
+                  window.auditoriaService.registrarEvento(
+                      "definicao_status_final",
+                      solicitacaoAtual.id,
+                      { status_final: statusFinal, decisao_servico_social: statusFinal }
+                  ).catch(err => console.error("Erro ao registrar auditoria de status final:", err));
+              }
+              
+              // Recarregar dados
+              await carregarTodasSolicitacoesDoFirestore();
+              await carregarDetalhesSolicitacao(solicitacaoAtual.id);
+          } else {
+              throw new Error(resultado.erro || "Falha ao definir status final.");
+          }
+      } catch (error) {
+          console.error("Erro ao definir status final:", error);
+          alert(`Erro ao definir status final: ${error.message}`);
+      }
+  }
 
   async function gerarRelatorioPdf() {
       if (!solicitacaoAtual || !solicitacaoAtual.id) return;
@@ -408,4 +498,3 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
   await carregarTodasSolicitacoesDoFirestore();
 
 });
-

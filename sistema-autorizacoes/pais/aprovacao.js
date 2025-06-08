@@ -1,6 +1,6 @@
 /**
  * Script para a página de aprovação de saída pelos pais/responsáveis
- * Sistema de Autorizações Digitais - SC Internacional
+ * Sistema de Autorizações Digitais - SC Internacional.
  */
 
 document.addEventListener('DOMContentLoaded', function() {

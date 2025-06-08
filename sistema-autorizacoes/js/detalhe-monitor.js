@@ -1,4 +1,4 @@
-// Lógica para a tela de detalhe do monitor
+// Lógica para a tela de detalhe do monitor - VERSÃO CORRIGIDA
 document.addEventListener('DOMContentLoaded', function() {
   // Elementos da página
   const btnEnviarWhatsapp = document.getElementById('btn-enviar-whatsapp');
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Variáveis de controle
   let solicitacaoAtual = null;
-  const DPO_EMAIL = 'dpo@internacional.com.br'; // Email do DPO para a mensagem
+  const DPO_EMAIL = 'dpo@internacional.com.br';
   
   // Obter ID da solicitação da URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -24,48 +24,112 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
   
-  // Carregar dados da solicitação
-  carregarSolicitacao(idSolicitacao);
+  // Aguardar autenticação antes de carregar dados
+  aguardarAutenticacaoECarregar();
   
-  // Eventos dos botões
-  btnEnviarWhatsapp.addEventListener('click', function() {
-    prepararMensagemWhatsapp();
-    mensagemWhatsapp.style.display = 'block';
-  });
+  // Função para aguardar autenticação
+  async function aguardarAutenticacaoECarregar() {
+    try {
+      await aguardarAutenticacao();
+      await carregarSolicitacao(idSolicitacao);
+    } catch (error) {
+      console.error("Erro na inicialização:", error);
+      alert('Erro ao carregar dados. Redirecionando para o painel.');
+      window.location.href = 'dashboard.html';
+    }
+  }
   
-  btnValidar.addEventListener('click', function() {
-    alert('Como monitor, você não pode validar diretamente. Esta ação é exclusiva do Serviço Social.');
-  });
+  function aguardarAutenticacao() {
+    return new Promise((resolve, reject) => {
+      const verificarAuth = () => {
+        const user = firebase.auth().currentUser;
+        if (user) {
+          console.log("Usuário autenticado:", user.email);
+          resolve();
+        } else {
+          console.log("Aguardando autenticação...");
+          setTimeout(verificarAuth, 500);
+        }
+      };
+      
+      if (firebase.auth().currentUser) {
+        console.log("Usuário já autenticado:", firebase.auth().currentUser.email);
+        resolve();
+      } else {
+        firebase.auth().onAuthStateChanged((user) => {
+          if (user) {
+            console.log("Estado de autenticação mudou - usuário logado:", user.email);
+            resolve();
+          }
+        });
+        
+        setTimeout(verificarAuth, 1000);
+        
+        // Timeout de segurança
+        setTimeout(() => {
+          reject(new Error("Timeout na autenticação"));
+        }, 10000);
+      }
+    });
+  }
   
-  btnReprovar.addEventListener('click', function() {
-    alert('Como monitor, você não pode reprovar diretamente. Esta ação é exclusiva do Serviço Social.');
-  });
+  // Eventos dos botões (verificar se existem antes de adicionar listeners)
+  if (btnEnviarWhatsapp) {
+    btnEnviarWhatsapp.addEventListener('click', function() {
+      if (!solicitacaoAtual) {
+        alert('Dados da solicitação não carregados.');
+        return;
+      }
+      prepararMensagemWhatsapp();
+      if (mensagemWhatsapp) {
+        mensagemWhatsapp.style.display = 'block';
+      }
+    });
+  }
   
-  btnCopiar.addEventListener('click', function() {
-    textoWhatsapp.select();
-    document.execCommand('copy');
-    alert('Mensagem copiada para a área de transferência!');
-  });
+  if (btnValidar) {
+    btnValidar.addEventListener('click', function() {
+      alert('Como monitor, você não pode validar diretamente. Esta ação é exclusiva do Serviço Social.');
+    });
+  }
   
-  btnAbrirWhatsapp.addEventListener('click', function() {
-    if (!solicitacaoAtual) return;
-    
-    // Formatar número de telefone (remover caracteres não numéricos)
-    const telefone = solicitacaoAtual.telefone_responsavel.replace(/\D/g, '');
-    
-    // Codificar a mensagem para URL
-    const mensagem = encodeURIComponent(textoWhatsapp.value);
-    
-    // Abrir WhatsApp Web com o número e mensagem
-    window.open(`https://wa.me/${telefone}?text=${mensagem}`, '_blank');
-  });
+  if (btnReprovar) {
+    btnReprovar.addEventListener('click', function() {
+      alert('Como monitor, você não pode reprovar diretamente. Esta ação é exclusiva do Serviço Social.');
+    });
+  }
   
-  btnFecharMensagem.addEventListener('click', function() {
-    mensagemWhatsapp.style.display = 'none';
-  });
+  if (btnCopiar) {
+    btnCopiar.addEventListener('click', function() {
+      if (textoWhatsapp) {
+        textoWhatsapp.select();
+        document.execCommand('copy');
+        alert('Mensagem copiada para a área de transferência!');
+      }
+    });
+  }
+  
+  if (btnAbrirWhatsapp) {
+    btnAbrirWhatsapp.addEventListener('click', function() {
+      if (!solicitacaoAtual) return;
+      
+      const telefone = solicitacaoAtual.telefone_responsavel.replace(/\D/g, '');
+      const mensagem = encodeURIComponent(textoWhatsapp.value);
+      
+      window.open(`https://wa.me/${telefone}?text=${mensagem}`, '_blank');
+    });
+  }
+  
+  if (btnFecharMensagem) {
+    btnFecharMensagem.addEventListener('click', function() {
+      if (mensagemWhatsapp) {
+        mensagemWhatsapp.style.display = 'none';
+      }
+    });
+  }
   
   // Função para carregar os dados da solicitação
-  async function carregarSolicitacao(id) { // Adicionado async
+  async function carregarSolicitacao(id) {
     if (!window.firebaseService) {
         console.error("FirebaseService não está disponível.");
         alert("Erro ao conectar com o banco de dados. Tente recarregar a página.");
@@ -74,14 +138,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     try {
-        // Tentar buscar do Firestore primeiro
+        // Verificar autenticação antes da chamada
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            throw new Error("Usuário não autenticado. Faça login novamente.");
+        }
+        
+        console.log("Buscando solicitação:", id, "para usuário:", user.email);
         const resultado = await window.firebaseService.obterDocumento('solicitacoes', id);
 
         if (resultado.sucesso && resultado.dados) {
             solicitacaoAtual = resultado.dados;
             preencherDadosPagina(solicitacaoAtual);
         } else {
-            // Fallback: Tentar buscar do localStorage (opcional, pode ser removido)
             console.warn("Solicitação não encontrada no Firestore, tentando localStorage (fallback).");
             const solicitacoesStorage = JSON.parse(localStorage.getItem('solicitacoes')) || [];
             const solicitacaoStorage = solicitacoesStorage.find(s => s.id === id);
@@ -97,69 +166,87 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     } catch (error) {
         console.error("Erro crítico ao carregar solicitação:", error);
-        alert('Ocorreu um erro ao carregar os detalhes da solicitação. Redirecionando.');
-        window.location.href = 'dashboard.html';
+        
+        if (error.message.includes("autenticado") || error.message.includes("permission")) {
+            alert('Sessão expirada. Redirecionando para o login.');
+            window.location.href = '../../index.html';
+        } else {
+            alert('Ocorreu um erro ao carregar os detalhes da solicitação. Redirecionando.');
+            window.location.href = 'dashboard.html';
+        }
     }
   }
 
   // Função separada para preencher os dados na página
   function preencherDadosPagina(solicitacao) {
-    // Armazenar a solicitação atual
     solicitacaoAtual = solicitacao;
     
+    // Função auxiliar para definir texto de elemento
+    function setElementText(id, value) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = value || 'N/A';
+      }
+    }
+    
     // Preencher os dados na página
-    document.getElementById('nome-atleta').textContent = solicitacao.nome || 'N/A';
-    document.getElementById('categoria-atleta').textContent = solicitacao.categoria || 'N/A';
-    document.getElementById('data-nascimento').textContent = solicitacao.data_nascimento ? formatarData(solicitacao.data_nascimento) : 'N/A'; // Usar formatarData
-    document.getElementById('telefone-atleta').textContent = solicitacao.telefone || 'N/A';
+    setElementText('nome-atleta', solicitacao.nome);
+    setElementText('categoria-atleta', solicitacao.categoria);
+    setElementText('data-nascimento', solicitacao.data_nascimento ? formatarData(solicitacao.data_nascimento) : null);
+    setElementText('telefone-atleta', solicitacao.telefone);
     
-    document.getElementById('data-saida').textContent = solicitacao.data_saida ? formatarData(solicitacao.data_saida) : 'N/A';
-    document.getElementById('horario-saida').textContent = solicitacao.horario_saida || 'N/A';
-    document.getElementById('data-retorno').textContent = solicitacao.data_retorno ? formatarData(solicitacao.data_retorno) : 'N/A';
-    document.getElementById('horario-retorno').textContent = solicitacao.horario_retorno || 'N/A';
-    document.getElementById('motivo-destino').textContent = solicitacao.motivo_destino || 'N/A';
+    setElementText('data-saida', solicitacao.data_saida ? formatarData(solicitacao.data_saida) : null);
+    setElementText('horario-saida', solicitacao.horario_saida);
+    setElementText('data-retorno', solicitacao.data_retorno ? formatarData(solicitacao.data_retorno) : null);
+    setElementText('horario-retorno', solicitacao.horario_retorno);
+    setElementText('motivo-destino', solicitacao.motivo_destino);
     
-    document.getElementById('nome-responsavel').textContent = solicitacao.nome_responsavel || 'N/A';
-    document.getElementById('telefone-responsavel').textContent = solicitacao.telefone_responsavel || 'N/A';
+    setElementText('nome-responsavel', solicitacao.nome_responsavel);
+    setElementText('telefone-responsavel', solicitacao.telefone_responsavel);
     
+    // Status com badges
     const statusSupervisor = document.getElementById('status-supervisor');
-    statusSupervisor.textContent = solicitacao.status_supervisor || 'Pendente';
-    statusSupervisor.className = getStatusBadgeClass(solicitacao.status_supervisor);
+    if (statusSupervisor) {
+      statusSupervisor.textContent = solicitacao.status_supervisor || 'Pendente';
+      statusSupervisor.className = getStatusBadgeClass(solicitacao.status_supervisor);
+    }
     
-    document.getElementById('data-aprovacao-supervisor').textContent = 
+    setElementText('data-aprovacao-supervisor', 
       solicitacao.data_aprovacao_supervisor ? 
-      formatarData(solicitacao.data_aprovacao_supervisor) : 
-      'N/A';
+      formatarData(solicitacao.data_aprovacao_supervisor) : null);
     
     const statusServicoSocial = document.getElementById('status-servico-social');
-    statusServicoSocial.textContent = solicitacao.status_servico_social || 'Pendente';
-    statusServicoSocial.className = getStatusBadgeClass(solicitacao.status_servico_social);
+    if (statusServicoSocial) {
+      statusServicoSocial.textContent = solicitacao.status_servico_social || 'Pendente';
+      statusServicoSocial.className = getStatusBadgeClass(solicitacao.status_servico_social);
+    }
 
-    document.getElementById('data-aprovacao-servico-social').textContent = 
+    setElementText('data-aprovacao-servico-social', 
       solicitacao.data_aprovacao_servico_social ? 
-      formatarData(solicitacao.data_aprovacao_servico_social) : 
-      'N/A';
+      formatarData(solicitacao.data_aprovacao_servico_social) : null);
     
     const statusFinal = document.getElementById('status-final');
-    statusFinal.textContent = solicitacao.status_final || 'Em Análise';
-    statusFinal.className = getStatusBadgeClass(solicitacao.status_final);
+    if (statusFinal) {
+      statusFinal.textContent = solicitacao.status_final || 'Em Análise';
+      statusFinal.className = getStatusBadgeClass(solicitacao.status_final);
+    }
     
     // Desabilitar botões de validação para o monitor (apenas visualização)
-    // Verificar se os botões existem antes de tentar desabilitar
     if(btnValidar) btnValidar.disabled = true;
     if(btnReprovar) btnReprovar.disabled = true;
+    
     // Habilitar botão de WhatsApp se existir
-    if(btnEnviarWhatsapp) btnEnviarWhatsapp.style.display = 'inline-block'; // Ou 'block'
+    if(btnEnviarWhatsapp) btnEnviarWhatsapp.style.display = 'inline-block';
   }
 
-  // Função auxiliar para classes de badge (pode ser movida para um utilitário)
+  // Função auxiliar para classes de badge
   function getStatusBadgeClass(status) {
       status = status ? status.toLowerCase() : 'pendente';
       if (status === 'aprovado' || status === 'autorizado') {
           return 'badge bg-success';
       } else if (status === 'reprovado' || status === 'não autorizado') {
           return 'badge bg-danger';
-      } else { // Pendente, Em Análise, Pré-Aprovado
+      } else {
           return 'badge bg-warning text-dark';
       }
   }
@@ -199,15 +286,23 @@ Seus dados serão protegidos conforme nossa política de privacidade.
 Atenciosamente,
 Serviço Social - Categoria de Base`;
     
-    textoWhatsapp.value = mensagem;
+    if (textoWhatsapp) {
+      textoWhatsapp.value = mensagem;
+    }
   }
   
   // Função para formatar data
   function formatarData(data) {
-    return data.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    try {
+      const dataObj = typeof data === 'string' ? new Date(data) : data;
+      return dataObj.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (e) {
+      return 'Data inválida';
+    }
   }
 });
+

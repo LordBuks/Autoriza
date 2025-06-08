@@ -5,33 +5,44 @@ class WhatsAppService {
     console.log('Serviço de WhatsApp inicializado');
   }
   
-  // Gerar link para WhatsApp usando a API wa.me
-  gerarLinkWhatsApp(telefone, mensagem) {
-    // 1. Remover todos os caracteres não numéricos
-    let numeroLimpo = telefone.replace(/\D/g, '');
+  // Gerar link para WhatsApp usando a API wa.me  gerarLinkWhatsApp(telefone, mensagem) {
+    let numeroLimpo = telefone.replace(/\D/g, ""); // Remove non-digits
+    console.log("WhatsAppService: Número limpo inicial:", numeroLimpo);
 
-    // 2. Verificar e formatar para o padrão brasileiro (55 + DDD + número)
-    if (numeroLimpo.startsWith('+55') && (numeroLimpo.length === 12 || numeroLimpo.length === 13)) {
-      // Número já está no formato correto (55 + DDD + número)
-      // Ex: 55119XXXXXXXX ou 5511XXXXXXXX
-    } else if (!numeroLimpo.startsWith('+55') && (numeroLimpo.length === 10 || numeroLimpo.length === 11)) {
-      // Número não tem 55, mas tem tamanho de DDD + número (10 ou 11 dígitos)
-      // Adicionar o 55
+    // Case 1: Number is already in Brazilian format (55 + DDD + Number)
+    if (numeroLimpo.startsWith("55") && (numeroLimpo.length === 12 || numeroLimpo.length === 13)) {
+      console.log("WhatsAppService: Número já formatado corretamente.");
+      // Already correctly formatted
+    } 
+    // Case 2: Number is DDD + Number (10 or 11 digits), needs '55' prefix
+    else if (numeroLimpo.length === 10 || numeroLimpo.length === 11) {
       numeroLimpo = `55${numeroLimpo}`;
-    } else {
-      // Número está em formato inválido ou não é brasileiro
-      console.error(`Número de telefone inválido ou não brasileiro fornecido: ${telefone}. Esperado formato brasileiro com DDD (ex: 55119... ou 119...).`);
-      // Retornar null para indicar que não foi possível gerar um link válido.
-      // A validação no formulário deve ser aprimorada para evitar isso.
-      return null;
+      console.log("WhatsAppService: Adicionado prefixo 55. Número:", numeroLimpo);
+    }
+    // Case 3: Number is longer than 11 digits and doesn't start with '55'.
+    // This implies an incorrect country code prefix that needs to be replaced.
+    else if (numeroLimpo.length > 11 && !numeroLimpo.startsWith("55")) {
+        // Assume the first 2 digits are an incorrect country code and remove them.
+        // Then prepend '55'.
+        const numeroSemPrefixoIncorreto = numeroLimpo.substring(2);
+        numeroLimpo = `55${numeroSemPrefixoIncorreto}`;
+        console.log("WhatsAppService: Removido prefixo incorreto e adicionado 55. Número:", numeroLimpo);
+    }
+    // Case 4: Any other unexpected format
+    else {
+        console.error(`WhatsAppService: Número de telefone com formato inesperado: ${telefone}. Não foi possível formatar para WhatsApp.`);
+        return null;
     }
 
-    // 3. Codificar a mensagem para URL
-    const mensagemCodificada = encodeURIComponent(mensagem);
+    // Final validation of length after formatting
+    if (numeroLimpo.length !== 12 && numeroLimpo.length !== 13) {
+        console.error(`WhatsAppService: Número de telefone com formato inválido após processamento: ${numeroLimpo}. Esperado 12 ou 13 dígitos com prefixo 55.`);
+        return null;
+    }
 
-    // 4. Retornar o link formatado para a API wa.me (sem o '+')
+    const mensagemCodificada = encodeURIComponent(mensagem);
     return `https://wa.me/${numeroLimpo}?text=${mensagemCodificada}`;
-  }
+  } }
   
   // Gerar mensagem para confirmação de autorização
   gerarMensagemConfirmacao(dados, linkConfirmacao) {
@@ -59,3 +70,6 @@ class WhatsAppService {
 
 // Exportar o serviço como um módulo
 const whatsAppService = new WhatsAppService();
+
+window.whatsAppService = whatsAppService;
+
