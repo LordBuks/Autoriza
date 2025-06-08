@@ -188,14 +188,14 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             // Se aprovado pelos pais e já aprovado pelo supervisor, atualizar status final
-            if (decisao === 'Aprovado' && solicitacaoData.status_supervisor === 'Aprovado') {
-                dadosAtualizacao.status_final = 'Aprovado';
-            }
+            // if (decisao === 'Aprovado' && solicitacaoData.status_supervisor === 'Aprovado') {
+            //     dadosAtualizacao.status_final = 'Aprovado';
+            // }
             
             // Se reprovado pelos pais, atualizar status final
-            if (decisao === 'Reprovado') {
-                dadosAtualizacao.status_final = 'Reprovado';
-            }
+            // if (decisao === 'Reprovado') {
+            //     dadosAtualizacao.status_final = 'Reprovado';
+            // }
             
             // Atualizar documento no Firestore
             const resultado = await window.firebaseService.atualizarDocumento('solicitacoes', solicitacaoId, dadosAtualizacao);
