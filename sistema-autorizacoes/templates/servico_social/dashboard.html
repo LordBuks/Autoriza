@@ -6,7 +6,10 @@
   <title>Dashboard Serviço Social - SC Internacional</title>
   <link rel="stylesheet" href="../../css/styles.css">
   
-  <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade) -->
+  <!-- Content Security Policy (CSP) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com; frame-src 'none';">
+
+  <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade ) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -101,8 +104,10 @@
     </div>
   </div>
 
-  <!-- Firebase Config (deve ser carregado antes dos outros scripts  ) -->
-  <script src="../../js/firebase-config.js"></script>
+  <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade ) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <!-- Bibliotecas para PDF e Hash -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
