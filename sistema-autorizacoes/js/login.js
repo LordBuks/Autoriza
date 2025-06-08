@@ -1,10 +1,9 @@
 // Lógica de login e autenticação com Firebase Authentication (VFx33)
 document.addEventListener("DOMContentLoaded", function () {
   const loginForm = document.getElementById("login-form");
-  const alertMessage = document.getElementById("alert-message");
-  const usernameInput = document.getElementById("username");
-  const passwordInput = document.getElementById("password");
-  const profileSelect = document.getElementById("profile");
+  const alertMessage = document.getElementById("login-error-message");
+  const emailInput = document.getElementById("email");
+  const senhaInput = document.getElementById("senha");
 
   // Verificar se o Firebase Service está disponível
   if (!window.firebaseService) {
@@ -29,12 +28,11 @@ document.addEventListener("DOMContentLoaded", function () {
       e.preventDefault();
       hideAlert();
 
-      const email = usernameInput.value;
-      const password = passwordInput.value;
-      const perfilSelecionado = profileSelect.value;
+      const email = emailInput.value;
+      const password = senhaInput.value;
 
-      if (!email || !password || !perfilSelecionado) {
-        showAlert("Por favor, preencha todos os campos: Usuário (Email), Senha e Perfil.");
+      if (!email || !password) {
+        showAlert("Por favor, preencha todos os campos: Email e Senha.");
         return;
       }
 
@@ -46,25 +44,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (resultadoLogin.sucesso && resultadoLogin.usuario) {
           const user = resultadoLogin.usuario;
 
-          // ***** TRATAMENTO ESPECIAL PARA ATLETA *****
-          if (perfilSelecionado === 'atleta') {
-            // Se o perfil selecionado for 'atleta', e a autenticação funcionou,
-            // não precisamos verificar no Firestore. Apenas redirecionamos.
-            hideAlert();
-            console.log(`Login bem-sucedido para ${email} com perfil genérico ${perfilSelecionado}`);
-            saveSession(perfilSelecionado, email, user.uid); // Salva a sessão com perfil 'atleta'
-            redirectToProfile(profileRedirects[perfilSelecionado]); // Redireciona para o dashboard do atleta
-            return; // Importante: Sai da função aqui para não continuar a verificação abaixo
-          }
-          // ***** FIM DO TRATAMENTO ESPECIAL *****
-
-          // **Verificação no Firestore (APENAS para outros perfis: supervisor, servico_social, monitor)**
+          // Verificação no Firestore para determinar o perfil do usuário
           const perfilFirestore = await verificarPerfilUsuario(user.uid);
 
-          if (perfilFirestore === perfilSelecionado) {
-            // Perfil corresponde! Login autorizado para Supervisor, Serv. Social ou Monitor.
+          if (perfilFirestore) {
+            // Perfil encontrado! Login autorizado.
             hideAlert();
-            console.log(`Login bem-sucedido para ${email} com perfil ${perfilSelecionado}`);
+            console.log(`Login bem-sucedido para ${email} com perfil ${perfilFirestore}`);
 
             // Salvar informações da sessão
             saveSession(perfilFirestore, email, user.uid);
@@ -77,20 +63,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     console.log(`Categoria do supervisor (${dadosUsuario.dados.categoria}) salva no localStorage.`);
                 } else {
                     console.warn(`Não foi possível obter a categoria para o supervisor ${email}`);
-                    // Considerar mostrar um alerta aqui se a categoria for essencial?
                 }
             }
 
             // Redirecionar para o dashboard correspondente
             redirectToProfile(profileRedirects[perfilFirestore]);
 
-          } else if (perfilFirestore) {
-            // Usuário autenticado, mas perfil selecionado não corresponde ao do banco
-            console.warn(`Usuário ${email} autenticado, mas selecionou perfil incorreto (${perfilSelecionado}). Perfil real: ${perfilFirestore}`);
-            showAlert(`Autenticação bem-sucedida, mas o perfil selecionado (${perfilSelecionado}) não corresponde ao seu perfil registrado (${perfilFirestore}). Faça login com o perfil correto.`);
-            await window.firebaseService.logout();
           } else {
-            // Usuário autenticado, mas não foi possível verificar o perfil no Firestore (e não é atleta)
+            // Usuário autenticado, mas não foi possível verificar o perfil no Firestore
             console.error(`Usuário ${email} autenticado, mas não foi encontrado registro na coleção 'usuarios' ou houve erro ao buscar.`);
             showAlert("Usuário autenticado, mas houve um problema ao verificar seu perfil. Verifique se seu cadastro está completo no sistema ou contate o suporte.");
             await window.firebaseService.logout();
@@ -116,7 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Função para verificar o perfil do usuário no Firestore (usada apenas para não-atletas)
+  // Função para verificar o perfil do usuário no Firestore
   async function verificarPerfilUsuario(uid) {
     try {
       const resultadoDoc = await window.firebaseService.obterDocumento("usuarios", uid);
@@ -172,3 +152,4 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 });
+
