@@ -3,197 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <title>Sistema de Autorizações Digitais - SC Internacional</title>
   <link rel="stylesheet" href="css/styles.css">
   
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <style>
-    body {
-      position: relative;
-      min-height: 100vh;
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9));
-    }
+  <!-- Content Security Policy (CSP) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com; frame-src 'none';">
 
-    .background-container {
-      position: fixed;
-      width: 80%;
-      max-width: 800px;
-      height: 100vh;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: -1;
-      background: url('https://i.imgur.com/D9VzCqB.png') center/cover;
-      filter: blur(2px);
-    }
-
-    .header {
-      width: 80%;
-      max-width: 800px;
-      margin: 2rem auto;
-      text-align: center;
-      padding: 1rem;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    .main-container {
-      width: 80%;
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 1rem;
-    }
-
-    .card {
-      background: whrite;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      padding: 2rem;
-      margin: 1rem 0;
-    }
-
-    .legal-footer {
-      width: 80%;
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 1rem;
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 0.8rem;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      margin-top: 0.5rem;
-    }
-
-    .btn-primary {
-      background: #e63946;
-      color: white;
-      padding: 1rem;
-      border: none;
-      border-radius: 6px;
-      width: 100%;
-      cursor: pointer;
-      font-weight: bold;
-      transition: opacity 0.3s;
-    }
-
-    .btn-primary:hover {
-      opacity: 0.9;
-    }
-
-    .header-logo {
-      max-width: 150px;
-      margin-bottom: 1rem;
-    }
-
-    .centered-text {
-      text-align: center;
-      margin-top: 1.5rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid #eee;
-    }
-
-    .alert-danger {
-      color: #721c24;
-      background-color: #f8d7da;
-      border-color: #f5c6cb;
-      padding: 1rem;
-      border-radius: 6px;
-      margin-bottom: 1rem;
-      display: none;
-    }
-
-    @media (max-width: 768px) {
-      .header, .main-container, .legal-footer {
-        width: 95%;
-      }
-      
-      .card {
-        padding: 1.5rem;
-      }
-    }
-  </style>
+  <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade ) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="background-container"></div>
-
   <header class="header">
     <img src="https://i.imgur.com/odzcc03.png" alt="Logo SC Internacional" class="header-logo">
     <h1 class="header-title">Sistema de Autorizações Digitais</h1>
   </header>
 
-  <div class="main-container">
+  <div class="container">
     <div class="card">
-      <h2 class="card-title">Acesso ao Sistema</h2>
-      
-      <div id="alert-message" class="alert-danger">
-        Credenciais inválidas. Por favor, tente novamente.
-      </div>
-      
+      <h2 class="card-title">Login</h2>
       <form id="login-form">
         <div class="form-group">
-          <label for="username" class="form-label">Usuário</label>
-          <input type="text" id="username" name="username" class="form-control" placeholder="Digite seu usuário" required>
+          <label for="email" class="form-label">Email:</label>
+          <input type="email" id="email" class="form-control" required>
         </div>
-        
         <div class="form-group">
-          <label for="password" class="form-label">Senha</label>
-          <input type="password" id="password" name="password" class="form-control" placeholder="Digite sua senha" required>
+          <label for="senha" class="form-label">Senha:</label>
+          <input type="password" id="senha" class="form-control" required>
         </div>
-        
-        <div class="form-group">
-          <label for="profile" class="form-label">Perfil de Acesso</label>
-          <select id="profile" name="profile" class="form-control" required>
-            <option value="">Selecione seu perfil</option>
-            <option value="atleta">Atleta</option>
-            <option value="supervisor">Supervisor</option>
-            <option value="servico_social">Serviço Social</option>
-            <option value="monitor">Monitor</option>
-          </select>
-        </div>
-        
-        <button type="submit" class="btn-primary">Entrar</button>
+        <button type="submit" class="btn btn-primary">Entrar</button>
       </form>
+      <div id="login-error-message" class="alert alert-danger mt-3" style="display: none;"></div>
     </div>
-</div>
+  </div>
 
+  <footer class="footer">
+    <p>&copy; 2025 VampTech Ltda. Todos os direitos reservados.</p>
+  </footer>
 
-  <div class="legal-footer">
-    <div class="card">
-      <h3 class="card-title">Informações Legais</h3>
-      <p>Este sistema foi desenvolvido em conformidade com:</p>
-      <ul>
-        <li>Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018)</li>
-        <li>Lei do passe livre (Lei Pelé - Lei nº 9.615/1998)</li>
-        <li>Estatuto da Criança e do Adolescente (ECA - Lei nº 8.069/90)</li>
-      </ul>
-      <p>Todas as autorizações são registradas digitalmente, com carimbo temporal, hash de integridade e armazenamento seguro.</p>
-    </div>
-
- 
-  <!-- Serviços de segurança e armazenamento -->
+  <!-- Firebase Config -->
   <script src="js/firebase-config.js"></script>
-  <script src="js/storage-service.js"></script>
+  <!-- Firebase Service -->
+  <script src="js/firebase-service.js"></script>
+  <!-- Security Service -->
   <script src="js/security-service.js"></script>
-  
-  <!-- Serviços do sistema -->
-  <script src="js/whatsapp-service.js"></script>
-  <script src="js/confirmacao-service.js"></script>
-  <script src="js/notificacao-service.js"></script>
-  <script src="js/autorizacao-service.js"></script>
+  <!-- Login Script -->
   <script src="js/login.js"></script>
-    <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
 </body>
 </html>
