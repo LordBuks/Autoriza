@@ -9,7 +9,7 @@
   <!-- Content Security Policy (CSP) -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com; frame-src 'none';">
 
-  <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade ) -->
+  <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade  ) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -59,7 +59,7 @@
       </div>
       
       <!-- Modal para mensagem WhatsApp -->
-      <div id="mensagem-whatsapp" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+      <div id="mensagem-whatsapp" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5 ); z-index: 1000;">
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; max-width: 600px; width: 90%;">
           <h3>Mensagem para WhatsApp</h3>
           <textarea id="texto-whatsapp" rows="10" style="width: 100%; margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
@@ -82,12 +82,11 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-  <!-- Firebase Config (Adicionado - inicializa firebaseService ) -->
+  <!-- Firebase Config (Adicionado - inicializa firebaseService  ) -->
   <script src="../../js/firebase-config.js"></script>
 
   <!-- Script de lógica da página de detalhes -->
-  <script src="../../js/detalhe-monitor-corrigido.js"></script>
+  <script src="../../js/detalhe-monitor.js"></script>
     <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
 </body>
 </html>
-
