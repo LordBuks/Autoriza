@@ -353,8 +353,8 @@
       </div>
       
       <div class="btn-group">
-        <button id="btn-aprovar" class="btn btn-approve" onclick="alert('MOCKUP: Botão de aprovação clicado. Em produção, esta ação registraria a aprovação.')">APROVAR SAÍDA</button>
-        <button id="btn-reprovar" class="btn btn-reject" onclick="alert('MOCKUP: Botão de reprovação clicado. Em produção, esta ação registraria a reprovação.')">REPROVAR SAÍDA</button>
+        <button id="btn-aprovar" class="btn btn-approve" onclick="aprovar()">APROVAR SAÍDA</button>
+        <button id="btn-reprovar" class="btn btn-reject" onclick="reprovar()">REPROVAR SAÍDA</button>
       </div>
     </div>
     
@@ -364,6 +364,103 @@
   </div>
 
   <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
+
+  <script src="../js/firebase-config.js"></script>
+  <script>
+    let solicitacaoId = null;
+    let dadosSolicitacao = null;
+
+    // Dados de exemplo para demonstração (fallback)
+    const dadosExemplo = {
+      nome: "João Silva Santos",
+      categoria: "Sub-17",
+      responsavel: "Maria Silva Santos",
+      telefone: "(51) 99999-8888",
+      destino: "Visita familiar - Casa dos avós em Canoas/RS",
+      data_saida: "10/06/2025 às 18:00",
+      data_retorno: "11/06/2025 às 08:00",
+      data_solicitacao: "08/06/2025",
+      motivo: "Visita familiar - Casa dos avós em Canoas/RS"
+    };
+
+    async function carregarDados() {
+      // Tentar obter ID da URL
+      const urlParams = new URLSearchParams(window.location.search);
+      solicitacaoId = urlParams.get('id');
+      
+      if (solicitacaoId && window.firebaseService) {
+        try {
+          // Carregar dados reais do Firebase
+          dadosSolicitacao = await window.firebaseService.obterDocumento('solicitacoes', solicitacaoId);
+          
+          if (dadosSolicitacao) {
+            document.getElementById('nome-atleta').textContent = dadosSolicitacao.nome || 'N/A';
+            document.getElementById('categoria-atleta').textContent = dadosSolicitacao.categoria || 'N/A';
+            document.getElementById('nome-responsavel').textContent = dadosSolicitacao.nome_responsavel || 'N/A';
+            document.getElementById('telefone-atleta').textContent = dadosSolicitacao.telefone || 'N/A';
+            document.getElementById('data-hora-saida').textContent = dadosSolicitacao.data_saida || 'N/A';
+            document.getElementById('data-hora-retorno').textContent = dadosSolicitacao.data_retorno || 'N/A';
+            document.getElementById('motivo-destino').textContent = dadosSolicitacao.motivo || 'N/A';
+            
+            // Verificar se já foi decidido
+            if (dadosSolicitacao.status_pais) {
+              mostrarResultado(dadosSolicitacao.status_pais);
+            }
+            
+            return;
+          }
+        } catch (error) {
+          console.error('Erro ao carregar dados:', error);
+        }
+      }
+      
+      // Usar dados de exemplo se não conseguir carregar do Firebase
+      document.getElementById('nome-atleta').textContent = dadosExemplo.nome;
+      document.getElementById('categoria-atleta').textContent = dadosExemplo.categoria;
+      document.getElementById('telefone-atleta').textContent = dadosExemplo.telefone;
+      document.getElementById('data-hora-saida').textContent = dadosExemplo.data_saida;
+      document.getElementById('data-hora-retorno').textContent = dadosExemplo.data_retorno;
+      document.getElementById('motivo-destino').textContent = dadosExemplo.motivo;
+    }
+
+    function mostrarResultado(status) {
+      const isAprovado = status === 'Aprovado';
+      const classe = isAprovado ? 'success-message' : 'error-message';
+      const icone = isAprovado ? '✅' : '❌';
+      
+      const resultDiv = document.createElement('div');
+      resultDiv.className = classe;
+      resultDiv.innerHTML = `${icone} Autorização ${status.toUpperCase()}`;
+      
+      const btnGroup = document.querySelector('.btn-group');
+      btnGroup.parentNode.insertBefore(resultDiv, btnGroup);
+      btnGroup.style.display = 'none';
+    }
+
+    function aprovar() {
+      alert('DEMONSTRAÇÃO: Aprovação registrada! Em um sistema real, isso seria salvo no banco de dados.');
+      mostrarResultado('Aprovado');
+    }
+
+    function reprovar() {
+      alert('DEMONSTRAÇÃO: Reprovação registrada! Em um sistema real, isso seria salvo no banco de dados.');
+      mostrarResultado('Reprovado');
+    }
+
+    // Atualizar timestamp atual
+    function atualizarTimestamp() {
+      const agora = new Date();
+      const timestamp = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR');
+      document.getElementById('current-timestamp').textContent = timestamp;
+    }
+
+    // Carregar dados quando a página carregar
+    window.addEventListener('load', function() {
+      carregarDados();
+      atualizarTimestamp();
+      setInterval(atualizarTimestamp, 1000); // Atualizar a cada segundo
+    });
+  </script>
 </body>
 </html>
 

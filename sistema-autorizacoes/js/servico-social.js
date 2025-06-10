@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
         // Modificado para incluir solicitações que foram aprovadas pelos pais mas ainda estão pendentes no serviço social
         const preAprovadas = todasSolicitacoesCache.filter(s => 
             s.status_supervisor === "Aprovado" && 
-            s.status_servico_social === "Pendente"
+            (s.status_servico_social === "Pendente" || !s.status_servico_social)
         );
   
         if (preAprovadas.length === 0) {
@@ -285,6 +285,18 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
               if(btnGerarPdf) {
                   btnGerarPdf.removeEventListener("click", gerarRelatorioPdf);
                   btnGerarPdf.addEventListener("click", gerarRelatorioPdf);
+                  
+                  // Desabilitar se PDF já foi gerado
+                  if (solicitacaoAtual.pdf_gerado) {
+                      btnGerarPdf.disabled = true;
+                      btnGerarPdf.textContent = "PDF Gerado";
+                  } else if (!solicitacaoAtual.status_pais) {
+                      btnGerarPdf.disabled = true;
+                      btnGerarPdf.textContent = "Aguardando Pais";
+                  } else {
+                      btnGerarPdf.disabled = false;
+                      btnGerarPdf.textContent = "Gerar PDF Final";
+                  }
               }
   
               // REMOVIDO: Adicionar botões específicos do Serviço Social (Aprovar/Reprovar)
@@ -356,38 +368,41 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
             alert("Número de telefone do responsável não encontrado.");
             return;
         }
-  
+
         // Gerar link único para aprovação dos pais (esta lógica pode precisar ir para o backend/Cloud Functions)
         const token = gerarToken(); 
         const linkAprovacao = `${window.location.origin}/pais/aprovacao.html?id=${solicitacaoAtual.id}&token=${token}`;
         
         // Gerar link para o mockup (para demonstração e conformidade legal)
-        const linkMockup = `${window.location.origin}/pais/mockup-aprovacao.html`;
+        const linkMockup = `${window.location.origin}/pais/mockup-aprovacao.html?id=${solicitacaoAtual.id}`;
         
-        // Salvar o token no Firestore junto com a solicitação para validação posterior
-        try {
-            await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoAtual.id, { token_aprovacao_pais: token });
-        } catch (error) {
-            alert("Erro ao salvar token de aprovação. Não foi possível gerar o link.");
-            return;
-        }
-  
         // Perguntar ao usuário qual link enviar
         const escolha = confirm(
             "Escolha o tipo de link para enviar:\n\n" +
             "OK = Link funcional (para aprovação real)\n" +
             "Cancelar = Link de demonstração (mockup para validação)"
         );
-  
+
         let linkParaEnviar, tipoLink;
         if (escolha) {
             linkParaEnviar = linkAprovacao;
             tipoLink = "funcional";
+            
+            // Salvar o token no Firestore junto com a solicitação para validação posterior
+            try {
+                await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoAtual.id, { 
+                    token_aprovacao_pais: token,
+                    data_geracao_token: new Date().toISOString()
+                });
+            } catch (error) {
+                alert("Erro ao salvar token de aprovação. Não foi possível gerar o link.");
+                return;
+            }
         } else {
             linkParaEnviar = linkMockup;
             tipoLink = "mockup";
         }
-  
+
         const mensagem = `Olá ${solicitacaoAtual.nome_responsavel || "Responsável"}, o atleta ${solicitacaoAtual.nome || ""} solicitou autorização para sair. Por favor, acesse o link para ${tipoLink === 'mockup' ? 'visualizar o modelo de' : ''} aprovar ou reprovar: ${linkParaEnviar}`;
         console.log("Mensagem para WhatsApp:", mensagem);
         
@@ -494,11 +509,52 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
     async function gerarRelatorioPdf() {
         if (!solicitacaoAtual || !solicitacaoAtual.id) return;
         
+        // Verificar se os pais já decidiram
+        if (!solicitacaoAtual.status_pais) {
+            alert("Aguarde a decisão dos pais antes de gerar o relatório final.");
+            return;
+        }
+        
         try {
+            const statusFinal = prompt(
+                `A decisão dos pais foi: ${solicitacaoAtual.status_pais}.\n\nQual a decisão final do Serviço Social para esta solicitação?\nDigite 'Aprovado' ou 'Reprovado'.`
+            );
+            
+            if (!statusFinal || (statusFinal !== "Aprovado" && statusFinal !== "Reprovado")) {
+                alert("Status inválido. Digite 'Aprovado' ou 'Reprovado'.");
+                return;
+            }
+            
+            // Atualizar status no Firebase
+            const updateData = {
+                status_servico_social: statusFinal,
+                data_decisao_servico_social: new Date().toISOString(),
+                status_final: statusFinal, // Status final da solicitação
+                pdf_gerado: true,
+                data_geracao_pdf: new Date().toISOString()
+            };
+            
+            await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoAtual.id, updateData);
+            
+            // Registrar na auditoria
+            await window.auditoriaService.registrarEvento("decisao_servico_social", solicitacaoAtual.id, {
+                decisao: statusFinal,
+                decisao_pais: solicitacaoAtual.status_pais
+            });
+            
+            // Gerar PDF
             const resultado = await window.pdfService.gerarRelatorioPdf(solicitacaoAtual.id);
             if (resultado.sucesso) {
-                alert("PDF gerado com sucesso! O arquivo será baixado automaticamente.");
-                // O download deve ser tratado pela função do pdfService
+                alert("Relatório PDF gerado com sucesso! O documento contém todas as etapas para validação legal.");
+                
+                // Atualizar interface
+                if (btnGerarPdf) {
+                    btnGerarPdf.disabled = true;
+                    btnGerarPdf.textContent = "PDF Gerado";
+                }
+                
+                // Recarregar dados
+                await carregarTodasSolicitacoesDoFirestore();
             } else {
                 throw new Error(resultado.erro || "Falha ao gerar PDF.");
             }

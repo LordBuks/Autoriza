@@ -385,7 +385,153 @@
   <script src="../js/firebase-config.js"></script>
   <script src="../js/auditoria-service.js"></script>
   <script src="../js/utils.js"></script>
-  <script src="aprovacao.js"></script>
-    <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
+  <script>
+    let solicitacaoId = null;
+    let token = null;
+    let dadosSolicitacao = null;
+
+    async function carregarDados() {
+      // Obter parâmetros da URL
+      const urlParams = new URLSearchParams(window.location.search);
+      solicitacaoId = urlParams.get('id');
+      token = urlParams.get('token');
+
+      if (!solicitacaoId || !token) {
+        showError('Link inválido ou expirado.');
+        return;
+      }
+
+      try {
+        // Carregar dados da solicitação
+        dadosSolicitacao = await window.firebaseService.obterDocumento('solicitacoes', solicitacaoId);
+        
+        if (!dadosSolicitacao) {
+          throw new Error('Solicitação não encontrada');
+        }
+
+        // Verificar token
+        if (dadosSolicitacao.token_aprovacao_pais !== token) {
+          throw new Error('Token inválido ou expirado');
+        }
+
+        // Verificar se já foi decidido
+        if (dadosSolicitacao.status_pais) {
+          showSuccess(`Decisão já registrada: ${dadosSolicitacao.status_pais}`);
+          return;
+        }
+
+        // Registrar acesso na auditoria
+        await window.auditoriaService.registrarAcessoPais(solicitacaoId, token);
+
+        // Preencher dados na página
+        preencherDados();
+        showMainContent();
+
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        showError('Erro ao carregar dados: ' + error.message);
+      }
+    }
+
+    function preencherDados() {
+      document.getElementById('solicitacao-id').textContent = solicitacaoId || 'N/A';
+      document.getElementById('data-geracao').textContent = dadosSolicitacao.data_solicitacao ? 
+        new Date(dadosSolicitacao.data_solicitacao).toLocaleString('pt-BR') : 'N/A';
+      document.getElementById('nome-responsavel').textContent = dadosSolicitacao.nome_responsavel || 'N/A';
+      document.getElementById('saudacao-responsavel').textContent = dadosSolicitacao.nome_responsavel || 'Responsável';
+      document.getElementById('nome-atleta').textContent = dadosSolicitacao.nome || 'N/A';
+      document.getElementById('nome-atleta-mensagem').textContent = dadosSolicitacao.nome || 'N/A';
+      document.getElementById('categoria-atleta').textContent = dadosSolicitacao.categoria || 'N/A';
+      document.getElementById('telefone-atleta').textContent = dadosSolicitacao.telefone || 'N/A';
+      document.getElementById('data-hora-saida').textContent = dadosSolicitacao.data_saida || 'N/A';
+      document.getElementById('data-hora-retorno').textContent = dadosSolicitacao.data_retorno || 'N/A';
+      document.getElementById('motivo-destino').textContent = dadosSolicitacao.motivo || 'N/A';
+      
+      // Atualizar timestamp atual
+      updateCurrentTimestamp();
+      setInterval(updateCurrentTimestamp, 1000);
+    }
+
+    function updateCurrentTimestamp() {
+      document.getElementById('current-timestamp').textContent = new Date().toLocaleString('pt-BR');
+    }
+
+    function showError(message) {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('main-content').classList.add('hidden');
+      document.getElementById('success-container').classList.add('hidden');
+      document.getElementById('error-message').textContent = message;
+      document.getElementById('error-container').classList.remove('hidden');
+    }
+
+    function showSuccess(message) {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('main-content').classList.add('hidden');
+      document.getElementById('error-container').classList.add('hidden');
+      document.getElementById('success-message').textContent = message;
+      document.getElementById('success-container').classList.remove('hidden');
+    }
+
+    function showMainContent() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('error-container').classList.add('hidden');
+      document.getElementById('success-container').classList.add('hidden');
+      document.getElementById('main-content').classList.remove('hidden');
+    }
+
+    async function aprovar() {
+      if (confirm('Tem certeza que deseja APROVAR esta solicitação de saída?')) {
+        await processarDecisao('Aprovado');
+      }
+    }
+
+    async function reprovar() {
+      if (confirm('Tem certeza que deseja REPROVAR esta solicitação de saída?')) {
+        await processarDecisao('Reprovado');
+      }
+    }
+
+    async function processarDecisao(decisao) {
+      try {
+        // Desabilitar botões para evitar duplo clique
+        document.getElementById('btn-aprovar').disabled = true;
+        document.getElementById('btn-reprovar').disabled = true;
+        
+        const observacao = document.getElementById('observacao').value;
+        const timestampDecisao = new Date().toISOString();
+        
+        // Atualizar no Firebase
+        await window.firebaseService.atualizarDocumento('solicitacoes', solicitacaoId, {
+          status_pais: decisao,
+          data_decisao_pais: timestampDecisao,
+          observacao_pais: observacao,
+          ip_decisao_pais: '127.0.0.1', // Em produção, obter IP real
+          user_agent_pais: navigator.userAgent
+        });
+
+        // Registrar na auditoria
+        await window.auditoriaService.registrarDecisaoPais(solicitacaoId, decisao, '127.0.0.1');
+
+        // Mostrar resultado
+        showSuccess(`Sua decisão foi registrada com sucesso: ${decisao.toUpperCase()}\n\nSua decisão foi registrada digitalmente e possui validade legal.`);
+
+      } catch (error) {
+        console.error('Erro ao processar decisão:', error);
+        alert('Erro ao registrar decisão. Tente novamente.');
+        
+        // Reabilitar botões em caso de erro
+        document.getElementById('btn-aprovar').disabled = false;
+        document.getElementById('btn-reprovar').disabled = false;
+      }
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('btn-aprovar').addEventListener('click', aprovar);
+      document.getElementById('btn-reprovar').addEventListener('click', reprovar);
+      carregarDados();
+    });
+  </script>
+  <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
 </body>
 </html>

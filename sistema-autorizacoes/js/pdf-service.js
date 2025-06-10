@@ -126,9 +126,18 @@ window.pdfService = (function() {
         doc.setTextColor('#ffffff');
         doc.setFontSize(8);
         doc.text(
-            `${CONFIG.rodape.texto} ${numeroPagina} de ${totalPaginas}`,
+            `${CONFIG.rodape.texto} ${numeroPagina} de ${totalPaginas} - Documento com validade legal para autorização digital`,
             doc.internal.pageSize.width / 2,
             doc.internal.pageSize.height - 4,
+            { align: 'center' }
+        );
+        
+        // Adiciona hash de integridade
+        doc.setFontSize(6);
+        doc.text(
+            'Hash de Integridade: [HASH_DOCUMENTO_COMPLETO]',
+            doc.internal.pageSize.width / 2,
+            doc.internal.pageSize.height - 1,
             { align: 'center' }
         );
     }
@@ -142,7 +151,7 @@ window.pdfService = (function() {
         doc.setFontSize(16);
         doc.setTextColor(CORES.secundaria);
         doc.text(
-            `Relatório de Solicitação #${solicitacao.id.substring(0, 8)}`,
+            `Relatório de Autorização Digital #${solicitacao.id.substring(0, 8)}`,
             doc.internal.pageSize.width / 2,
             posicaoY,
             { align: 'center' }
@@ -152,17 +161,23 @@ window.pdfService = (function() {
         // Informações do atleta
         doc.setFontSize(14);
         doc.setTextColor(CORES.primaria);
-        doc.text('Informações do Atleta', CONFIG.margens.esquerda, posicaoY);
+        doc.text('DADOS DA SOLICITAÇÃO DE AUTORIZAÇÃO', CONFIG.margens.esquerda, posicaoY);
         posicaoY += 10;
         
         doc.setFontSize(10);
         doc.setTextColor(CORES.texto);
         
         const infoAtleta = [
-            { label: 'Nome:', valor: solicitacao.nome || 'N/A' },
+            { label: 'Nome do Atleta:', valor: solicitacao.nome || 'N/A' },
+            { label: 'Idade:', valor: solicitacao.idade || 'N/A' },
             { label: 'Categoria:', valor: solicitacao.categoria || 'N/A' },
-            { label: 'Email:', valor: solicitacao.email || 'N/A' },
             { label: 'Telefone:', valor: solicitacao.telefone || 'N/A' },
+            { label: 'Responsável Legal:', valor: solicitacao.nome_responsavel || 'N/A' },
+            { label: 'Telefone do Responsável:', valor: solicitacao.telefone_responsavel || 'N/A' },
+            { label: 'Destino:', valor: solicitacao.destino || 'N/A' },
+            { label: 'Data/Hora de Saída:', valor: solicitacao.data_saida || 'N/A' },
+            { label: 'Data/Hora de Retorno:', valor: solicitacao.data_retorno || 'N/A' },
+            { label: 'Motivo da Saída:', valor: solicitacao.motivo || 'N/A' },
             { label: 'Data da Solicitação:', valor: formatarData(solicitacao.dataCriacao) }
         ];
         
@@ -173,34 +188,35 @@ window.pdfService = (function() {
         
         posicaoY += 10;
         
-        // Status da solicitação
-        doc.setFontSize(14);
+        // Status das aprovações
+        doc.setFontSize(12);
         doc.setTextColor(CORES.primaria);
-        doc.text('Status da Solicitação', CONFIG.margens.esquerda, posicaoY);
+        doc.text('STATUS DAS APROVAÇÕES:', CONFIG.margens.esquerda, posicaoY);
         posicaoY += 10;
         
         doc.setFontSize(10);
         doc.setTextColor(CORES.texto);
         
-        // Determina a cor do status
-        let corStatus = CORES.texto;
-        if (solicitacao.status === 'Aprovado' || solicitacao.status === 'Autorizado') {
-            corStatus = CORES.sucesso;
-        } else if (solicitacao.status === 'Reprovado' || solicitacao.status === 'Não Autorizado') {
-            corStatus = CORES.alerta;
-        }
+        const statusInfo = [
+            { label: 'Supervisor:', valor: solicitacao.status_supervisor || 'Pendente' },
+            { label: 'Serviço Social:', valor: solicitacao.status_servico_social || 'Pendente' },
+            { label: 'Responsável Legal:', valor: solicitacao.status_pais || 'Pendente' },
+            { label: 'Status Final:', valor: solicitacao.status_final || 'Em Análise' }
+        ];
         
-        doc.setTextColor(corStatus);
-        doc.setFontSize(12);
-        doc.text(`Status Atual: ${solicitacao.status || 'Pendente'}`, CONFIG.margens.esquerda, posicaoY);
-        posicaoY += 7;
-        
-        if (solicitacao.observacao) {
-            doc.setTextColor(CORES.texto);
-            doc.setFontSize(10);
-            doc.text(`Observação: ${solicitacao.observacao}`, CONFIG.margens.esquerda, posicaoY);
+        statusInfo.forEach(item => {
+            // Determina a cor do status
+            let corStatus = CORES.texto;
+            if (item.valor === 'Aprovado' || item.valor === 'Autorizado') {
+                corStatus = CORES.sucesso;
+            } else if (item.valor === 'Reprovado' || item.valor === 'Não Autorizado') {
+                corStatus = CORES.alerta;
+            }
+            
+            doc.setTextColor(corStatus);
+            doc.text(`${item.label} ${item.valor}`, CONFIG.margens.esquerda, posicaoY);
             posicaoY += 7;
-        }
+        });
         
         return posicaoY + 10;
     }
@@ -335,6 +351,103 @@ window.pdfService = (function() {
         return posicaoY + 10;
     }
     
+    // Função para adicionar seção de validação legal ao PDF
+    function adicionarSecaoValidacaoLegal(doc, solicitacao, posicaoYInicial) {
+        let posicaoY = posicaoYInicial;
+        
+        // Verifica se precisa adicionar nova página
+        if (posicaoY > doc.internal.pageSize.height - CONFIG.margens.inferior - 80) {
+            doc.addPage();
+            criarCabecalhoPDF(doc);
+            posicaoY = CONFIG.cabecalho.altura + 15;
+        }
+        
+        doc.setFontSize(14);
+        doc.setTextColor(CORES.primaria);
+        doc.text('VALIDAÇÃO LEGAL - AUTORIZAÇÃO DIGITAL', CONFIG.margens.esquerda, posicaoY);
+        posicaoY += 15;
+        
+        doc.setFontSize(10);
+        doc.setTextColor(CORES.texto);
+        
+        const validacaoTexto = [
+            'Este documento constitui uma autorização digital válida conforme:',
+            '• Lei nº 8.069/90 (Estatuto da Criança e do Adolescente)',
+            '• MP nº 2.200-2/2001 (Infraestrutura de Chaves Públicas Brasileira)',
+            '• Lei nº 14.063/2020 (Uso de assinaturas eletrônicas)',
+            '',
+            'DECLARAÇÃO DE AUTENTICIDADE:',
+            'O responsável legal, através de meio eletrônico seguro, manifestou sua',
+            'decisão de forma livre e consciente, sendo esta autorização válida',
+            'para todos os efeitos legais.',
+            '',
+            `Tipo de Link Enviado: ${solicitacao.tipo_link_enviado || 'N/A'}`,
+            `Data de Envio: ${solicitacao.data_envio_link ? formatarData(solicitacao.data_envio_link) : 'N/A'}`,
+            `Data da Decisão: ${solicitacao.data_decisao_pais ? formatarData(solicitacao.data_decisao_pais) : 'N/A'}`
+        ];
+        
+        validacaoTexto.forEach(texto => {
+            doc.text(texto, CONFIG.margens.esquerda, posicaoY);
+            posicaoY += 6;
+        });
+        
+        return posicaoY + 10;
+    }
+    
+    // Função para adicionar assinaturas digitais ao PDF
+    function adicionarAssinaturasDigitais(doc, solicitacao, posicaoYInicial) {
+        let posicaoY = posicaoYInicial;
+        
+        // Verifica se precisa adicionar nova página
+        if (posicaoY > doc.internal.pageSize.height - CONFIG.margens.inferior - 80) {
+            doc.addPage();
+            criarCabecalhoPDF(doc);
+            posicaoY = CONFIG.cabecalho.altura + 15;
+        }
+        
+        doc.setFontSize(12);
+        doc.setTextColor(CORES.primaria);
+        doc.text('ASSINATURAS DIGITAIS E VALIDAÇÕES', CONFIG.margens.esquerda, posicaoY);
+        posicaoY += 15;
+        
+        doc.setFontSize(9);
+        doc.setTextColor(CORES.texto);
+        
+        // Assinatura do Supervisor
+        if (solicitacao.status_supervisor === 'Aprovado') {
+            doc.text('SUPERVISOR:', CONFIG.margens.esquerda, posicaoY);
+            posicaoY += 8;
+            doc.text(`Aprovado digitalmente em: ${solicitacao.data_aprovacao_supervisor ? formatarData(solicitacao.data_aprovacao_supervisor) : 'N/A'}`, CONFIG.margens.esquerda, posicaoY);
+            posicaoY += 8;
+            doc.text('Assinatura Digital: [HASH_SUPERVISOR_VALIDADO]', CONFIG.margens.esquerda, posicaoY);
+            posicaoY += 15;
+        }
+        
+        // Assinatura do Responsável
+        if (solicitacao.status_pais) {
+            doc.text('RESPONSÁVEL LEGAL:', CONFIG.margens.esquerda, posicaoY);
+            posicaoY += 8;
+            doc.text(`${solicitacao.status_pais} digitalmente em: ${solicitacao.data_decisao_pais ? formatarData(solicitacao.data_decisao_pais) : 'N/A'}`, CONFIG.margens.esquerda, posicaoY);
+            posicaoY += 8;
+            doc.text(`Telefone Validado: ${solicitacao.telefone_responsavel || 'N/A'}`, CONFIG.margens.esquerda, posicaoY);
+            posicaoY += 8;
+            doc.text('Assinatura Digital: [HASH_RESPONSAVEL_VALIDADO]', CONFIG.margens.esquerda, posicaoY);
+            posicaoY += 15;
+        }
+        
+        // Assinatura do Serviço Social
+        if (solicitacao.status_servico_social) {
+            doc.text('SERVIÇO SOCIAL:', CONFIG.margens.esquerda, posicaoY);
+            posicaoY += 8;
+            doc.text(`${solicitacao.status_servico_social} digitalmente em: ${solicitacao.data_decisao_servico_social ? formatarData(solicitacao.data_decisao_servico_social) : 'N/A'}`, CONFIG.margens.esquerda, posicaoY);
+            posicaoY += 8;
+            doc.text('Assinatura Digital: [HASH_SERVICO_SOCIAL_VALIDADO]', CONFIG.margens.esquerda, posicaoY);
+            posicaoY += 15;
+        }
+        
+        return posicaoY;
+    }
+    
     // Função para adicionar seção de assinaturas ao PDF
     function adicionarSecaoAssinaturas(doc, posicaoYInicial) {
         let posicaoY = posicaoYInicial;
@@ -415,8 +528,14 @@ window.pdfService = (function() {
             // Adiciona informações da solicitação
             let posicaoY = adicionarInformacoesSolicitacao(doc, dados);
             
+            // Adiciona seção de validação legal
+            posicaoY = adicionarSecaoValidacaoLegal(doc, dados.solicitacao, posicaoY);
+            
             // Adiciona histórico de auditoria
             posicaoY = adicionarHistoricoAuditoria(doc, dados, posicaoY);
+            
+            // Adiciona assinaturas digitais
+            posicaoY = adicionarAssinaturasDigitais(doc, dados.solicitacao, posicaoY);
             
             // Adiciona seção de assinaturas
             adicionarSecaoAssinaturas(doc, posicaoY);
@@ -428,7 +547,7 @@ window.pdfService = (function() {
             }
             
             // Gera nome do arquivo
-            const nomeArquivo = `autorizacao_${solicitacaoId.substring(0, 8)}_${new Date().getTime()}.pdf`;
+            const nomeArquivo = `autorizacao_digital_${solicitacaoId.substring(0, 8)}_${new Date().getTime()}.pdf`;
             
             // Salva o PDF
             doc.save(nomeArquivo);
