@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Validar parâmetros
             if (!solicitacaoId || !tokenValidacao) {
-                throw new Error('Link inválido. Parâmetros de identificação ausentes.');
+                throw new Error("Link inválido. Parâmetros de identificação ausentes.");
             }
             
             // Atualizar timestamp atual
@@ -55,8 +55,8 @@ document.addEventListener('DOMContentLoaded', function() {
             configurarEventListeners();
             
         } catch (error) {
-            console.error('Erro ao inicializar página:', error);
-            mostrarErro(error.message || 'Ocorreu um erro ao carregar a página. Por favor, tente novamente.');
+            console.error("Erro ao inicializar página:", error);
+            mostrarErro(error.message || "Ocorreu um erro ao carregar a página. Por favor, tente novamente.");
         }
     }
     
@@ -64,20 +64,20 @@ document.addEventListener('DOMContentLoaded', function() {
      * Atualiza o timestamp exibido na página
      */
     function atualizarTimestamp() {
-        const timestampElement = document.getElementById('current-timestamp');
+        const timestampElement = document.getElementById("current-timestamp");
         const agora = new Date();
         
         const options = { 
-            day: '2-digit', 
-            month: '2-digit', 
-            year: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            second: '2-digit',
+            day: "2-digit", 
+            month: "2-digit", 
+            year: "numeric", 
+            hour: "2-digit", 
+            minute: "2-digit", 
+            second: "2-digit",
             hour12: false
         };
         
-        timestampElement.textContent = agora.toLocaleDateString('pt-BR', options).replace(',', ' às');
+        timestampElement.textContent = agora.toLocaleDateString("pt-BR", options).replace(",", " às");
         
         // Atualizar a cada minuto
         setTimeout(atualizarTimestamp, 60000);
@@ -91,10 +91,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (window.auditoriaService) {
                 await window.auditoriaService.registrarAcessoPais(solicitacaoId, tokenValidacao);
             } else {
-                console.warn('Serviço de auditoria não disponível');
+                console.warn("Serviço de auditoria não disponível");
             }
         } catch (error) {
-            console.error('Erro ao registrar acesso na auditoria:', error);
+            console.error("Erro ao registrar acesso na auditoria:", error);
             // Não interromper o fluxo se houver erro na auditoria
         }
     }
@@ -105,21 +105,25 @@ document.addEventListener('DOMContentLoaded', function() {
     async function carregarDadosSolicitacao() {
         try {
             // Buscar documento no Firestore
-            const resultado = await window.firebaseService.obterDocumento('solicitacoes', solicitacaoId);
+            const resultado = await window.firebaseService.obterDocumento("solicitacoes", solicitacaoId);
             
             if (!resultado.sucesso || !resultado.dados) {
-                throw new Error('Solicitação não encontrada ou já expirada.');
+                throw new Error("Solicitação não encontrada ou já expirada.");
             }
             
             solicitacaoData = resultado.dados;
             
+            console.log("Solicitação ID:", solicitacaoId);
+            console.log("Token da URL:", tokenValidacao);
+            console.log("Token do Firestore:", solicitacaoData.token_aprovacao_pais);
+
             // Validar token
             if (solicitacaoData.token_aprovacao_pais !== tokenValidacao) {
-                throw new Error('Link inválido ou expirado. Por favor, solicite um novo link.');
+                throw new Error("Link inválido ou expirado. Por favor, solicite um novo link.");
             }
             
             // Verificar se já foi aprovado/reprovado pelos pais
-            if (solicitacaoData.status_pais === 'Aprovado' || solicitacaoData.status_pais === 'Reprovado') {
+            if (solicitacaoData.status_pais === "Aprovado" || solicitacaoData.status_pais === "Reprovado") {
                 throw new Error(`Esta solicitação já foi ${solicitacaoData.status_pais.toLowerCase()} por você anteriormente.`);
             }
             
@@ -127,12 +131,12 @@ document.addEventListener('DOMContentLoaded', function() {
             preencherDadosSolicitacao(solicitacaoData);
             
             // Esconder loading e mostrar conteúdo
-            loadingContainer.classList.add('hidden');
-            mainContent.classList.remove('hidden');
+            loadingContainer.classList.add("hidden");
+            mainContent.classList.remove("hidden");
             
         } catch (error) {
-            console.error('Erro ao carregar dados da solicitação:', error);
-            mostrarErro(error.message || 'Não foi possível carregar os dados da solicitação.');
+            console.error("Erro ao carregar dados da solicitação:", error);
+            mostrarErro(error.message || "Não foi possível carregar os dados da solicitação.");
         }
     }
     
@@ -141,31 +145,31 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function preencherDadosSolicitacao(dados) {
         // Informações de auditoria
-        document.getElementById('solicitacao-id').textContent = dados.id || 'N/A';
-        document.getElementById('data-geracao').textContent = formatarDataHora(dados.data_envio_link_pais) || 'N/A';
-        document.getElementById('nome-responsavel').textContent = dados.nome_responsavel || 'Responsável';
+        document.getElementById("solicitacao-id").textContent = dados.id || "N/A";
+        document.getElementById("data-geracao").textContent = formatarDataHora(dados.data_envio_link_pais) || "N/A";
+        document.getElementById("nome-responsavel").textContent = dados.nome_responsavel || "Responsável";
         
         // Saudação personalizada
-        document.getElementById('saudacao-responsavel').textContent = dados.nome_responsavel || 'Responsável';
-        document.getElementById('nome-atleta-mensagem').textContent = dados.nome || 'o atleta';
+        document.getElementById("saudacao-responsavel").textContent = dados.nome_responsavel || "Responsável";
+        document.getElementById("nome-atleta-mensagem").textContent = dados.nome || "o atleta";
         
         // Dados do atleta
-        document.getElementById('nome-atleta').textContent = dados.nome || 'N/A';
-        document.getElementById('categoria-atleta').textContent = dados.categoria || 'N/A';
-        document.getElementById('telefone-atleta').textContent = dados.telefone || 'N/A';
+        document.getElementById("nome-atleta").textContent = dados.nome || "N/A";
+        document.getElementById("categoria-atleta").textContent = dados.categoria || "N/A";
+        document.getElementById("telefone-atleta").textContent = dados.telefone || "N/A";
         
         // Detalhes da saída
-        document.getElementById('data-hora-saida').textContent = formatarDataHora(dados.data_saida, dados.horario_saida);
-        document.getElementById('data-hora-retorno').textContent = formatarDataHora(dados.data_retorno, dados.horario_retorno);
-        document.getElementById('motivo-destino').textContent = dados.motivo_destino || 'N/A';
+        document.getElementById("data-hora-saida").textContent = formatarDataHora(dados.data_saida, dados.horario_saida);
+        document.getElementById("data-hora-retorno").textContent = formatarDataHora(dados.data_retorno, dados.horario_retorno);
+        document.getElementById("motivo-destino").textContent = dados.motivo_destino || "N/A";
     }
     
     /**
      * Configura os listeners de eventos para os botões
      */
     function configurarEventListeners() {
-        btnAprovar.addEventListener('click', () => registrarDecisao('Aprovado'));
-        btnReprovar.addEventListener('click', () => registrarDecisao('Reprovado'));
+        btnAprovar.addEventListener("click", () => registrarDecisao("Aprovado"));
+        btnReprovar.addEventListener("click", () => registrarDecisao("Reprovado"));
     }
     
     /**
@@ -188,33 +192,33 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             // Se aprovado pelos pais e já aprovado pelo supervisor, atualizar status final
-            // if (decisao === 'Aprovado' && solicitacaoData.status_supervisor === 'Aprovado') {
-            //     dadosAtualizacao.status_final = 'Aprovado';
+            // if (decisao === "Aprovado" && solicitacaoData.status_supervisor === "Aprovado") {
+            //     dadosAtualizacao.status_final = "Aprovado";
             // }
             
             // Se reprovado pelos pais, atualizar status final
-            // if (decisao === 'Reprovado') {
-            //     dadosAtualizacao.status_final = 'Reprovado';
+            // if (decisao === "Reprovado") {
+            //     dadosAtualizacao.status_final = "Reprovado";
             // }
             
             // Atualizar documento no Firestore
-            const resultado = await window.firebaseService.atualizarDocumento('solicitacoes', solicitacaoId, dadosAtualizacao);
+            const resultado = await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoId, dadosAtualizacao);
             
             if (!resultado.sucesso) {
-                throw new Error('Erro ao registrar sua decisão. Por favor, tente novamente.');
+                throw new Error("Erro ao registrar sua decisão. Por favor, tente novamente.");
             }
             
             // Registrar na auditoria
             await window.auditoriaService.registrarDecisaoPais(solicitacaoId, decisao, observacao);
             
             // Mostrar mensagem de sucesso
-            mainContent.classList.add('hidden');
-            successContainer.classList.remove('hidden');
+            mainContent.classList.add("hidden");
+            successContainer.classList.remove("hidden");
             successMessage.textContent = `Sua decisão (${decisao}) foi registrada com sucesso. Obrigado por utilizar o Sistema de Autorizações Digitais.`;
             
         } catch (error) {
-            console.error('Erro ao registrar decisão:', error);
-            mostrarErro(error.message || 'Ocorreu um erro ao registrar sua decisão. Por favor, tente novamente.');
+            console.error("Erro ao registrar decisão:", error);
+            mostrarErro(error.message || "Ocorreu um erro ao registrar sua decisão. Por favor, tente novamente.");
             
             // Reabilitar botões em caso de erro
             btnAprovar.disabled = false;
@@ -226,11 +230,11 @@ document.addEventListener('DOMContentLoaded', function() {
      * Exibe mensagem de erro e esconde outros containers
      */
     function mostrarErro(mensagem) {
-        loadingContainer.classList.add('hidden');
-        mainContent.classList.add('hidden');
-        successContainer.classList.add('hidden');
+        loadingContainer.classList.add("hidden");
+        mainContent.classList.add("hidden");
+        successContainer.classList.add("hidden");
         
-        errorContainer.classList.remove('hidden');
+        errorContainer.classList.remove("hidden");
         errorMessage.textContent = mensagem;
     }
     
@@ -238,19 +242,19 @@ document.addEventListener('DOMContentLoaded', function() {
      * Formata data e hora para exibição
      */
     function formatarDataHora(data, hora) {
-        if (!data) return 'N/A';
+        if (!data) return "N/A";
         
-        let resultado = '';
+        let resultado = "";
         
         // Formatar data
         if (data instanceof Date) {
-            resultado = data.toLocaleDateString('pt-BR');
-        } else if (data.toDate && typeof data.toDate === 'function') {
-            resultado = data.toDate().toLocaleDateString('pt-BR');
-        } else if (typeof data === 'string') {
+            resultado = data.toLocaleDateString("pt-BR");
+        } else if (data.toDate && typeof data.toDate === "function") {
+            resultado = data.toDate().toLocaleDateString("pt-BR");
+        } else if (typeof data === "string") {
             // Tentar converter string para data
             try {
-                const partes = data.split('-');
+                const partes = data.split("-");
                 if (partes.length === 3) {
                     resultado = `${partes[2]}/${partes[1]}/${partes[0]}`;
                 } else {
@@ -260,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultado = data;
             }
         } else {
-            resultado = 'N/A';
+            resultado = "N/A";
         }
         
         // Adicionar hora se disponível

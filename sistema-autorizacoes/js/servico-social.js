@@ -390,10 +390,12 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
             
             // Salvar o token no Firestore junto com a solicitação para validação posterior
             try {
+                console.log("Gerando token para solicitação:", solicitacaoAtual.id, "Token:", token);
                 await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoAtual.id, { 
                     token_aprovacao_pais: token,
                     data_geracao_token: new Date().toISOString()
                 });
+                console.log("Token salvo no Firestore para solicitação:", solicitacaoAtual.id);
             } catch (error) {
                 alert("Erro ao salvar token de aprovação. Não foi possível gerar o link.");
                 return;
