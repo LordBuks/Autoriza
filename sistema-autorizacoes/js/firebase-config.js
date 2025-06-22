@@ -2,7 +2,7 @@
 
 // Inicialização do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyBWP6QblKqmOKFWqDJZEmWR7hhJ-2GEPr4",
+  apiKey: "AIzaSyCnKpJrJrm_ZvpvHgdjuATHJur-HBKY-kQ",
   authDomain: "sistema-de-autorizacoes.firebaseapp.com",
   projectId: "sistema-de-autorizacoes",
   storageBucket: "sistema-de-autorizacoes.firebasestorage.app",
