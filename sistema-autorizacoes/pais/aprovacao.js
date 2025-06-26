@@ -37,18 +37,28 @@ document.addEventListener('DOMContentLoaded', function() {
             solicitacaoId = urlParams.get('id');
             tokenValidacao = urlParams.get('token');
             
-            // Validar parâmetros
-            if (!solicitacaoId || !tokenValidacao) {
-                throw new Error("Link inválido. Parâmetros de identificação ausentes.");
-            }
+            console.log("Parâmetros da URL:", { solicitacaoId, tokenValidacao });
             
             // Atualizar timestamp atual
             atualizarTimestamp();
             
+            // Verificar se temos parâmetros válidos ou usar dados mockup
+            if (!solicitacaoId || !tokenValidacao) {
+                console.log("Parâmetros ausentes, usando dados mockup para demonstração");
+                // Usar dados mockup para demonstração
+                if (window.carregarDadosMockup) {
+                    window.carregarDadosMockup();
+                    configurarEventListeners();
+                    return;
+                } else {
+                    throw new Error("Link inválido. Parâmetros de identificação ausentes.");
+                }
+            }
+            
             // Registrar acesso na auditoria
             await registrarAcessoPagina();
             
-            // Carregar dados da solicitação
+            // Tentar carregar dados do Firebase
             await carregarDadosSolicitacao();
             
             // Configurar listeners de eventos
@@ -56,7 +66,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error("Erro ao inicializar página:", error);
-            mostrarErro(error.message || "Ocorreu um erro ao carregar a página. Por favor, tente novamente.");
+            
+            // Se houver erro e temos dados mockup, usar eles
+            if (window.carregarDadosMockup && (!solicitacaoId || !tokenValidacao)) {
+                console.log("Usando dados mockup devido a erro na inicialização");
+                window.carregarDadosMockup();
+                configurarEventListeners();
+            } else {
+                mostrarErro(error.message || "Ocorreu um erro ao carregar a página. Por favor, tente novamente.");
+            }
         }
     }
     
