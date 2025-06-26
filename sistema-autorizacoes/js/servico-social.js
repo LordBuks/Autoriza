@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
   
         const html = preAprovadas.map(s => {
             // Verificar se os pais já tomaram uma decisão
-            const decisaoPais = s.status_pais ? `<span class="badge ${s.status_pais === 'Aprovado' ? 'bg-success' : 'bg-danger'}">${s.status_pais}</span>` : '<span class="badge bg-warning text-dark">Pendente</span>';
+            const decisaoPais = s.status_pais ? `<span class="badge ${s.status_pais === "Aprovado" ? "bg-success" : "bg-danger"}">${s.status_pais}</span>` : 	erase<span class="badge bg-warning text-dark">Pendente</span>
             
             return `
             <div class="card mb-3">
@@ -341,12 +341,14 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
             // Registrar na auditoria
             await window.auditoriaService.registrarEventoSistema("ENVIO_LINK_PAIS", solicitacaoAtual.id, { link: link });
             
-            // Enviar via WhatsApp (simulação)
+            // Mensagem para WhatsApp
             const mensagem = `O Sport Club Internacional, através do Serviço Social, informa que o(a) atleta ${solicitacaoAtual.nome} solicitou uma autorização para casa. Para sua segurança e para garantir a integridade do processo, solicitamos que acesse o link abaixo para avaliar e, se for o caso, aprovar ou reprovar a solicitação: ${link}. Atenciosamente, Serviço Social do Sport Club Internacional.`;
             
-            // Simulação de envio
-            console.log("Mensagem para WhatsApp:", mensagem);
-            alert("Link de aprovação gerado e pronto para ser enviado!\n\n" + mensagem);
+            // Abrir WhatsApp
+            const whatsappUrl = `https://api.whatsapp.com/send?phone=${solicitacaoAtual.telefone_responsavel}&text=${encodeURIComponent(mensagem)}`;
+            window.open(whatsappUrl, '_blank');
+
+            alert("Link de aprovação gerado e pronto para ser enviado! Verifique o WhatsApp.");
             
             // Atualizar UI
             carregarDetalhesSolicitacao(solicitacaoAtual.id);
