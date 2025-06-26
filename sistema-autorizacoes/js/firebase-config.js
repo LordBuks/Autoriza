@@ -1,6 +1,6 @@
 // Configuração do Firebase para o Sistema de Autorizações
 
-// Inicialização do Firebase
+// Configuração do Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCnKpJrJrm_ZvpvHgdjuATHJur-HBKY-kQ",
   authDomain: "sistema-de-autorizacoes.firebaseapp.com",
@@ -11,37 +11,43 @@ const firebaseConfig = {
   measurementId: "G-0HK2KFESG9"
 };
 
-// Initialize Firebase
-// Comentando as linhas abaixo que estavam causando erro
-// const app = initializeApp(firebaseConfig);
-// const analytics = getAnalytics(app);
-
-
-// Initialize Firebase app directly at the top level
+// Verificar se o Firebase já foi inicializado
 if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-  console.log('Firebase app initialized directly.');
+  try {
+    firebase.initializeApp(firebaseConfig);
+    console.log('Firebase inicializado com sucesso');
+  } catch (error) {
+    console.error('Erro ao inicializar Firebase:', error);
+  }
+} else {
+  console.log('Firebase já estava inicializado');
 }
 
-// Now define and expose the FirebaseService
+// Classe para gerenciar operações do Firebase
 class FirebaseService {
   constructor() {
-    // Verificar se o Firebase já foi inicializado
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+    try {
+      this.db = firebase.firestore();
+      this.auth = firebase.auth();
+      console.log("FirebaseService inicializado com sucesso");
+      
+      // Configurar persistência offline (opcional)
+      this.db.enablePersistence({ synchronizeTabs: true })
+        .then(() => {
+          console.log('Persistência offline habilitada');
+        })
+        .catch((err) => {
+          if (err.code === 'failed-precondition') {
+            console.warn('Persistência falhou: múltiplas abas abertas');
+          } else if (err.code === 'unimplemented') {
+            console.warn('Persistência não suportada neste navegador');
+          }
+        });
+        
+    } catch (error) {
+      console.error('Erro ao criar FirebaseService:', error);
+      throw error;
     }
-    
-    this.db = firebase.firestore();
-    this.auth = firebase.auth();
-    console.log("FirebaseService instance created. Firestore:", !!this.db, "Auth:", !!this.auth);
-    
-    // Comentando a persistência offline para evitar o erro de compatibilidade
-    // this.db.enablePersistence()
-    //   .catch((err) => {
-    //     console.error('Erro ao habilitar persistência:', err);
-    //   });
-    
-    console.log('Firebase inicializado com sucesso sem persistência offline');
   }
   
   // Métodos para autenticação
@@ -171,9 +177,58 @@ class FirebaseService {
   }
 }
 
-// Exportar a instância do serviço
-window.firebaseService = new FirebaseService();
+// Criar e expor a instância do serviço globalmente
+try {
+  window.firebaseService = new FirebaseService();
+  console.log('FirebaseService exposto globalmente com sucesso');
+} catch (error) {
+  console.error('Erro ao criar instância global do FirebaseService:', error);
+}
 
+// Função auxiliar para formatar data e hora
+function formatarDataHora(data, hora = null) {
+  if (!data) return "N/A";
+  
+  try {
+    let dataObj;
+    
+    // Se for um timestamp do Firebase
+    if (data && typeof data.toDate === 'function') {
+      dataObj = data.toDate();
+    } else if (data instanceof Date) {
+      dataObj = data;
+    } else if (typeof data === 'string') {
+      dataObj = new Date(data);
+    } else {
+      return "N/A";
+    }
+    
+    const opcoes = { 
+      day: "2-digit", 
+      month: "2-digit", 
+      year: "numeric"
+    };
+    
+    let resultado = dataObj.toLocaleDateString("pt-BR", opcoes);
+    
+    if (hora) {
+      resultado += ` às ${hora}`;
+    } else {
+      const opcoesHora = { 
+        hour: "2-digit", 
+        minute: "2-digit",
+        hour12: false
+      };
+      resultado += ` às ${dataObj.toLocaleTimeString("pt-BR", opcoesHora)}`;
+    }
+    
+    return resultado;
+  } catch (error) {
+    console.error('Erro ao formatar data/hora:', error);
+    return "N/A";
+  }
+}
 
-console.log('FirebaseService exposto globalmente.');
+// Expor função auxiliar globalmente
+window.formatarDataHora = formatarDataHora;
 

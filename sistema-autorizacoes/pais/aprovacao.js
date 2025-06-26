@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     async function inicializarPagina() {
         try {
+            console.log('Inicializando página de aprovação...');
+            
             // Extrair parâmetros da URL
             const urlParams = new URLSearchParams(window.location.search);
             solicitacaoId = urlParams.get('id');
@@ -42,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Atualizar timestamp atual
             atualizarTimestamp();
             
-            // Verificar se temos parâmetros válidos ou usar dados mockup
+            // Verificar se temos parâmetros válidos
             if (!solicitacaoId || !tokenValidacao) {
                 console.log("Parâmetros ausentes, usando dados mockup para demonstração");
                 // Usar dados mockup para demonstração
@@ -54,6 +56,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error("Link inválido. Parâmetros de identificação ausentes.");
                 }
             }
+            
+            // Aguardar Firebase estar disponível
+            await aguardarFirebase();
             
             // Registrar acesso na auditoria
             await registrarAcessoPagina();
@@ -79,10 +84,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
+     * Aguarda o Firebase estar disponível
+     */
+    async function aguardarFirebase() {
+        return new Promise((resolve, reject) => {
+            let tentativas = 0;
+            const maxTentativas = 10;
+            
+            const verificarFirebase = () => {
+                tentativas++;
+                
+                if (window.firebaseService && typeof firebase !== 'undefined') {
+                    console.log('Firebase disponível');
+                    resolve();
+                } else if (tentativas >= maxTentativas) {
+                    console.warn('Firebase não disponível após múltiplas tentativas');
+                    reject(new Error('Firebase não disponível'));
+                } else {
+                    console.log(`Aguardando Firebase... tentativa ${tentativas}`);
+                    setTimeout(verificarFirebase, 500);
+                }
+            };
+            
+            verificarFirebase();
+        });
+    }
+    
+    /**
      * Atualiza o timestamp exibido na página
      */
     function atualizarTimestamp() {
         const timestampElement = document.getElementById("current-timestamp");
+        if (!timestampElement) return;
+        
         const agora = new Date();
         
         const options = { 
@@ -108,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             if (window.auditoriaService) {
                 await window.auditoriaService.registrarAcessoPais(solicitacaoId, tokenValidacao);
+                console.log('Acesso registrado na auditoria');
             } else {
                 console.warn("Serviço de auditoria não disponível");
             }
@@ -122,6 +157,12 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     async function carregarDadosSolicitacao() {
         try {
+            console.log('Carregando dados da solicitação...');
+            
+            if (!window.firebaseService) {
+                throw new Error('Serviço Firebase não disponível');
+            }
+            
             // Buscar documento no Firestore
             const resultado = await window.firebaseService.obterDocumento("solicitacoes", solicitacaoId);
             
@@ -152,6 +193,8 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingContainer.classList.add("hidden");
             mainContent.classList.remove("hidden");
             
+            console.log('Dados carregados com sucesso');
+            
         } catch (error) {
             console.error("Erro ao carregar dados da solicitação:", error);
             mostrarErro(error.message || "Não foi possível carregar os dados da solicitação.");
@@ -162,32 +205,43 @@ document.addEventListener('DOMContentLoaded', function() {
      * Preenche os dados da solicitação nos elementos da página
      */
     function preencherDadosSolicitacao(dados) {
-        // Informações de auditoria
-        document.getElementById("solicitacao-id").textContent = dados.id || "N/A";
-        document.getElementById("data-geracao").textContent = formatarDataHora(dados.data_envio_link_pais) || "N/A";
-        document.getElementById("nome-responsavel").textContent = dados.nome_responsavel || "Responsável";
-        
-        // Saudação personalizada
-        document.getElementById("saudacao-responsavel").textContent = dados.nome_responsavel || "Responsável";
-        document.getElementById("nome-atleta-mensagem").textContent = dados.nome || "o atleta";
-        
-        // Dados do atleta
-        document.getElementById("nome-atleta").textContent = dados.nome || "N/A";
-        document.getElementById("categoria-atleta").textContent = dados.categoria || "N/A";
-        document.getElementById("telefone-atleta").textContent = dados.telefone || "N/A";
-        
-        // Detalhes da saída
-        document.getElementById("data-hora-saida").textContent = formatarDataHora(dados.data_saida, dados.horario_saida);
-        document.getElementById("data-hora-retorno").textContent = formatarDataHora(dados.data_retorno, dados.horario_retorno);
-        document.getElementById("motivo-destino").textContent = dados.motivo_destino || "N/A";
+        try {
+            // Informações de auditoria
+            document.getElementById("solicitacao-id").textContent = dados.id || "N/A";
+            document.getElementById("data-geracao").textContent = formatarDataHora(dados.data_envio_link_pais) || "N/A";
+            document.getElementById("nome-responsavel").textContent = dados.nome_responsavel || "Responsável";
+            
+            // Saudação personalizada
+            document.getElementById("saudacao-responsavel").textContent = dados.nome_responsavel || "Responsável";
+            document.getElementById("nome-atleta-mensagem").textContent = dados.nome || "o atleta";
+            
+            // Dados do atleta
+            document.getElementById("nome-atleta").textContent = dados.nome || "N/A";
+            document.getElementById("categoria-atleta").textContent = dados.categoria || "N/A";
+            document.getElementById("telefone-atleta").textContent = dados.telefone || "N/A";
+            
+            // Detalhes da saída
+            document.getElementById("data-hora-saida").textContent = formatarDataHora(dados.data_saida, dados.horario_saida);
+            document.getElementById("data-hora-retorno").textContent = formatarDataHora(dados.data_retorno, dados.horario_retorno);
+            document.getElementById("motivo-destino").textContent = dados.motivo_destino || "N/A";
+            
+            console.log('Dados preenchidos na página');
+        } catch (error) {
+            console.error('Erro ao preencher dados na página:', error);
+        }
     }
     
     /**
      * Configura os listeners de eventos para os botões
      */
     function configurarEventListeners() {
-        btnAprovar.addEventListener("click", () => registrarDecisao("Aprovado"));
-        btnReprovar.addEventListener("click", () => registrarDecisao("Reprovado"));
+        if (btnAprovar) {
+            btnAprovar.addEventListener("click", () => registrarDecisao("Aprovado"));
+        }
+        if (btnReprovar) {
+            btnReprovar.addEventListener("click", () => registrarDecisao("Reprovado"));
+        }
+        console.log('Event listeners configurados');
     }
     
     /**
@@ -195,101 +249,143 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     async function registrarDecisao(decisao) {
         try {
+            console.log('Registrando decisão:', decisao);
+            
             // Desabilitar botões para evitar duplo clique
             btnAprovar.disabled = true;
             btnReprovar.disabled = true;
             
-            // Obter observação
             const observacao = observacaoInput.value.trim();
             
-            // Preparar dados para atualização
+            if (!window.firebaseService) {
+                throw new Error('Serviço Firebase não disponível');
+            }
+            
+            // Dados para atualização
             const dadosAtualizacao = {
                 status_pais: decisao,
                 observacao_pais: observacao,
-                data_decisao_pais: firebase.firestore.FieldValue.serverTimestamp()
+                data_decisao_pais: firebase.firestore.FieldValue.serverTimestamp(),
+                ip_decisao_pais: await obterIP(),
+                user_agent_pais: navigator.userAgent
             };
-            
-            // Se aprovado pelos pais e já aprovado pelo supervisor, atualizar status final
-            // if (decisao === "Aprovado" && solicitacaoData.status_supervisor === "Aprovado") {
-            //     dadosAtualizacao.status_final = "Aprovado";
-            // }
-            
-            // Se reprovado pelos pais, atualizar status final
-            // if (decisao === "Reprovado") {
-            //     dadosAtualizacao.status_final = "Reprovado";
-            // }
             
             // Atualizar documento no Firestore
             const resultado = await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoId, dadosAtualizacao);
             
             if (!resultado.sucesso) {
-                throw new Error("Erro ao registrar sua decisão. Por favor, tente novamente.");
+                throw new Error(resultado.erro || 'Erro ao salvar decisão');
             }
             
             // Registrar na auditoria
-            await window.auditoriaService.registrarDecisaoPais(solicitacaoId, decisao, observacao);
+            if (window.auditoriaService) {
+                await window.auditoriaService.registrarDecisaoPais(solicitacaoId, decisao, observacao);
+            }
             
             // Mostrar mensagem de sucesso
-            mainContent.classList.add("hidden");
-            successContainer.classList.remove("hidden");
-            successMessage.textContent = `Sua decisão (${decisao}) foi registrada com sucesso. Obrigado por utilizar o Sistema de Autorizações Digitais.`;
+            mostrarSucesso(`Solicitação ${decisao.toLowerCase()} com sucesso! Obrigado por utilizar o Sistema de Autorizações Digitais.`);
+            
+            console.log('Decisão registrada com sucesso');
             
         } catch (error) {
             console.error("Erro ao registrar decisão:", error);
-            mostrarErro(error.message || "Ocorreu um erro ao registrar sua decisão. Por favor, tente novamente.");
             
             // Reabilitar botões em caso de erro
             btnAprovar.disabled = false;
             btnReprovar.disabled = false;
+            
+            mostrarErro(error.message || "Ocorreu um erro ao registrar sua decisão. Por favor, tente novamente.");
         }
     }
     
     /**
-     * Exibe mensagem de erro e esconde outros containers
+     * Obtém o IP do usuário
+     */
+    async function obterIP() {
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            return data.ip;
+        } catch (error) {
+            console.warn('Não foi possível obter IP:', error);
+            return 'unknown';
+        }
+    }
+    
+    /**
+     * Mostra mensagem de erro
      */
     function mostrarErro(mensagem) {
         loadingContainer.classList.add("hidden");
         mainContent.classList.add("hidden");
         successContainer.classList.add("hidden");
         
-        errorContainer.classList.remove("hidden");
         errorMessage.textContent = mensagem;
+        errorContainer.classList.remove("hidden");
+    }
+    
+    /**
+     * Mostra mensagem de sucesso
+     */
+    function mostrarSucesso(mensagem) {
+        loadingContainer.classList.add("hidden");
+        mainContent.classList.add("hidden");
+        errorContainer.classList.add("hidden");
+        
+        successMessage.textContent = mensagem;
+        successContainer.classList.remove("hidden");
     }
     
     /**
      * Formata data e hora para exibição
      */
-    function formatarDataHora(data, hora) {
+    function formatarDataHora(data, hora = null) {
+        if (window.formatarDataHora) {
+            return window.formatarDataHora(data, hora);
+        }
+        
+        // Fallback se a função global não estiver disponível
         if (!data) return "N/A";
         
-        let resultado = "";
-        
-        // Formatar data
-        if (data instanceof Date) {
-            resultado = data.toLocaleDateString("pt-BR");
-        } else if (data.toDate && typeof data.toDate === "function") {
-            resultado = data.toDate().toLocaleDateString("pt-BR");
-        } else if (typeof data === "string") {
-            // Tentar converter string para data
-            try {
-                const partes = data.split("-");
-                if (partes.length === 3) {
-                    resultado = `${partes[2]}/${partes[1]}/${partes[0]}`;
-                } else {
-                    resultado = data;
-                }
-            } catch (e) {
-                resultado = data;
+        try {
+            let dataObj;
+            
+            if (data && typeof data.toDate === 'function') {
+                dataObj = data.toDate();
+            } else if (data instanceof Date) {
+                dataObj = data;
+            } else if (typeof data === 'string') {
+                dataObj = new Date(data);
+            } else {
+                return "N/A";
             }
-        } else {
-            resultado = "N/A";
+            
+            const opcoes = { 
+                day: "2-digit", 
+                month: "2-digit", 
+                year: "numeric"
+            };
+            
+            let resultado = dataObj.toLocaleDateString("pt-BR", opcoes);
+            
+            if (hora) {
+                resultado += ` às ${hora}`;
+            } else {
+                const opcoesHora = { 
+                    hour: "2-digit", 
+                    minute: "2-digit",
+                    hour12: false
+                };
+                resultado += ` às ${dataObj.toLocaleTimeString("pt-BR", opcoesHora)}`;
+            }
+            
+            return resultado;
+        } catch (error) {
+            console.error('Erro ao formatar data/hora:', error);
+            return "N/A";
         }
-        
-        // Adicionar hora se disponível
-        if (hora) {
-            resultado += ` às ${hora}`;
-        }
-        
-        return resultado;
     }
+    
+    console.log('Script de aprovação carregado');
 });
+
