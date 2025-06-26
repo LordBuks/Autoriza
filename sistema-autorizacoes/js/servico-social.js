@@ -302,292 +302,133 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
                   btnGerarPdf.removeEventListener("click", gerarRelatorioPdf);
                   btnGerarPdf.addEventListener("click", gerarRelatorioPdf);
                   
-                  // Desabilitar se PDF já foi gerado
-                  if (solicitacaoAtual.pdf_gerado) {
-                      btnGerarPdf.disabled = true;
-                      btnGerarPdf.textContent = "PDF Gerado";
-                  } else if (!solicitacaoAtual.status_pais) {
-                      btnGerarPdf.disabled = true;
-                      btnGerarPdf.textContent = "Aguardando Pais";
-                  } else {
+                  // Habilitar o botão apenas se a solicitação estiver finalizada
+                  if (solicitacaoAtual.status_final === "Autorizado" || solicitacaoAtual.status_final === "Não Autorizado") {
                       btnGerarPdf.disabled = false;
-                      btnGerarPdf.textContent = "Gerar PDF Final";
+                  } else {
+                      btnGerarPdf.disabled = true;
                   }
               }
-  
-              // REMOVIDO: Adicionar botões específicos do Serviço Social (Aprovar/Reprovar)
-              if (acoesServicoSocialContainer) {
-                  acoesServicoSocialContainer.innerHTML = ""; // Limpa o container para evitar duplicação
-              }
-  
+              
           } catch (error) {
               console.error("Erro ao carregar detalhes da solicitação:", error);
-              mostrarErro(detalhesContainer, `Erro ao carregar detalhes: ${error.message}`);
-              solicitacaoAtual = null; // Limpa a solicitação atual em caso de erro
+              detalhesContainer.innerHTML = `<p class="text-danger">Erro ao carregar detalhes: ${error.message}</p>`;
           }
       }
   
-    async function atualizarStatusServicoSocial(novoStatus) {
-        if (!solicitacaoAtual || !solicitacaoAtual.id) {
-            alert("Nenhuma solicitação selecionada para atualizar.");
-            return;
-        }
-  
-        const observacao = prompt(`Digite uma observação para ${novoStatus} (opcional):`);
-        
-        const dadosAtualizacao = {
-            status_servico_social: novoStatus,
-            data_validacao_servico_social: new Date().toISOString(),
-            observacao_servico_social: observacao || ""
-        };
-  
-        // Determinar o status final baseado na aprovação do serviço social
-        // Assumindo que a aprovação do supervisor já ocorreu (pois está na lista pré-aprovada)
-        dadosAtualizacao.status_final = (novoStatus === "Aprovado") ? "Autorizado" : "Não Autorizado";
-  
-        try {
-            mostrarLoading(detalhesContainer, "Atualizando status...");
-            const resultado = await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoAtual.id, dadosAtualizacao);
-  
-            if (resultado.sucesso) {
-                alert(`Solicitação ${novoStatus.toLowerCase()} pelo Serviço Social com sucesso!`);
-                
-                // Registrar auditoria
-                if (window.auditoriaService) {
-                    window.auditoriaService.registrarEvento(
-                        "definicao_status_final",
-                        solicitacaoAtual.id,
-                        { status_final: statusFinal, decisao_servico_social: statusFinal }
-                    ).catch(err => console.error("Erro ao registrar auditoria Serv. Social:", err));
-                }
-                
-                // Recarregar dados
-                await carregarTodasSolicitacoesDoFirestore();
-                await carregarDetalhesSolicitacao(solicitacaoAtual.id);
-            } else {
-                throw new Error(resultado.erro || "Falha ao definir status final.");
-            }
-        } catch (error) {
-            console.error("Erro ao atualizar status do Serviço Social:", error);
-            alert(`Erro ao atualizar status: ${error.message}`);
-            // Recarregar detalhes para mostrar o estado anterior em caso de falha
-            await carregarDetalhesSolicitacao(solicitacaoAtual.id); 
-        }
-    }
-  
-    // --- Funções de Ação ---
     async function enviarLinkPais() {
-        if (!solicitacaoAtual || !solicitacaoAtual.id) return;
+        if (!solicitacaoAtual) return;
         
-        const numeroTelefone = solicitacaoAtual.telefone_responsavel;
-        if (!numeroTelefone) {
-            alert("Número de telefone do responsável não encontrado.");
-            return;
-        }
-
-        // Gerar link único para aprovação dos pais (esta lógica pode precisar ir para o backend/Cloud Functions)
-        const token = gerarToken(); 
-        const linkAprovacao = `${window.location.origin}/pais/aprovacao.html?id=${solicitacaoAtual.id}&token=${token}`;
+        this.disabled = true;
+        this.textContent = "Enviando...";
         
-        // Gerar link para o mockup (para demonstração e conformidade legal)
-        const linkMockup = `${window.location.origin}/pais/mockup-aprovacao.html?id=${solicitacaoAtual.id}`;
-        
-        // Perguntar ao usuário qual link enviar
-        let linkParaEnviar = linkAprovacao;
-        let tipoLink = "funcional";
-
-        const mensagem = `Prezado(a) Sr(a). ${solicitacaoAtual.nome_responsavel || "Responsável"},
-
-O Sport Club Internacional, através do Serviço Social, informa que o(a) atleta ${solicitacaoAtual.nome || ""} solicitou uma autorização para ${solicitacaoAtual.motivo_destino || "sair"}. 
-
-Para sua segurança e para garantir a integridade do processo, solicitamos que acesse o link abaixo para analisar e, se for o caso, aprovar ou reprovar a solicitação:
-
-${linkParaEnviar}
-
-Contamos com sua colaboração para a segurança e bem-estar de nossos atletas.
-
-Atenciosamente,
-Serviço Social do Sport Club Internacional`;
-        console.log("Mensagem para WhatsApp:", mensagem);
-        
-        // Registrar evento de auditoria e data de envio do link
         try {
-            // Atualizar a solicitação com a data de envio do link para referência futura
-            await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoAtual.id, { 
-                data_envio_link_pais: firebase.firestore.FieldValue.serverTimestamp(),
-                tipo_link_enviado: tipoLink
-            });
+            const token = gerarToken();
+            const link = `${window.location.origin}/sistema-autorizacoes/pais/aprovacao.html?id=${solicitacaoAtual.id}&token=${token}`;
             
-            const resultadoAuditoria = await window.auditoriaService.registrarEnvioLinkPais(
-                solicitacaoAtual.id,
-                numeroTelefone,
-                `WhatsApp (${tipoLink})`
-            );
+            const dadosAtualizacao = {
+                token_aprovacao_pais: token,
+                data_envio_link_pais: new Date().toISOString(),
+                status_pais: "Pendente" // Resetar status dos pais
+            };
             
-            if (resultadoAuditoria.sucesso) {
-                alert(`Link de ${tipoLink === 'mockup' ? 'demonstração' : 'aprovação'} gerado e registrado. Abra o WhatsApp para enviar.`);
-                const whatsappUrl = `https://wa.me/${numeroTelefone.replace(/\D/g, "" )}?text=${encodeURIComponent(mensagem)}`;
-                window.open(whatsappUrl, "_blank");
-                
-                // Desabilitar o botão após o envio
-                if (btnEnviarLink) {
-                    btnEnviarLink.disabled = true;
-                    btnEnviarLink.textContent = `Link Enviado`;
-                }
-                
-                // Recarregar detalhes para refletir as mudanças
-                await carregarDetalhesSolicitacao(solicitacaoAtual.id);
-            } else {
-                throw new Error(resultadoAuditoria.erro || "Falha ao registrar auditoria.");
+            const resultado = await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoAtual.id, dadosAtualizacao);
+            
+            if (!resultado.sucesso) {
+                throw new Error(resultado.erro || "Falha ao salvar token no Firestore.");
             }
+            
+            // Registrar na auditoria
+            await window.auditoriaService.registrarEventoSistema("ENVIO_LINK_PAIS", solicitacaoAtual.id, { link: link });
+            
+            // Enviar via WhatsApp (simulação)
+            const mensagem = `O Sport Club Internacional, através do Serviço Social, informa que o(a) atleta ${solicitacaoAtual.nome} solicitou uma autorização para casa. Para sua segurança e para garantir a integridade do processo, solicitamos que acesse o link abaixo para avaliar e, se for o caso, aprovar ou reprovar a solicitação: ${link}. Atenciosamente, Serviço Social do Sport Club Internacional.`;
+            
+            // Simulação de envio
+            console.log("Mensagem para WhatsApp:", mensagem);
+            alert("Link de aprovação gerado e pronto para ser enviado!\n\n" + mensagem);
+            
+            // Atualizar UI
+            carregarDetalhesSolicitacao(solicitacaoAtual.id);
+            
         } catch (error) {
             console.error("Erro no processo de envio do link:", error);
             alert(`Erro ao enviar link: ${error.message}`);
+            this.disabled = false;
+            this.textContent = "Reenviar Link aos Pais";
         }
     }
   
     async function definirStatusFinal() {
-        if (!solicitacaoAtual || !solicitacaoAtual.id) {
-            alert("Nenhuma solicitação selecionada.");
-            return;
-        }
+        if (!solicitacaoAtual) return;
         
-        // Verificar se os pais já tomaram uma decisão
-        if (!solicitacaoAtual.status_pais) {
-            alert("Os pais ainda não tomaram uma decisão. O status final só pode ser definido após a decisão dos pais.");
-            return;
-        }
+        const decisao = solicitacaoAtual.status_pais === "Aprovado" ? "Autorizado" : "Não Autorizado";
         
-        // PERGUNTAR AO SERVIÇO SOCIAL A DECISÃO FINAL
-        const decisaoServicoSocial = prompt(
-            `A decisão dos pais foi: ${solicitacaoAtual.status_pais}.\n\nQual a decisão final do Serviço Social para esta solicitação?\nDigite 'Aprovado' ou 'Reprovado'.`
-        );
-  
-        if (decisaoServicoSocial === null) { // Usuário clicou em Cancelar
-            return;
-        }
-  
-        const novoStatusServicoSocial = decisaoServicoSocial.trim().toLowerCase();
-  
-        if (novoStatusServicoSocial !== 'aprovado' && novoStatusServicoSocial !== 'reprovado') {
-            alert("Decisão inválida. Por favor, digite 'Aprovado' ou 'Reprovado'.");
-            return;
-        }
-  
-        const statusFinal = (novoStatusServicoSocial === 'aprovado') ? 'Aprovado' : 'Reprovado';
+        this.disabled = true;
+        this.textContent = "Atualizando...";
         
         try {
-            // Atualizar o status do serviço social e o status final
             const dadosAtualizacao = {
-                status_servico_social: statusFinal,
-                status_final: statusFinal,
-                data_status_final: firebase.firestore.FieldValue.serverTimestamp()
+                status_servico_social: solicitacaoAtual.status_pais, // Reflete a decisão dos pais
+                status_final: decisao,
+                data_decisao_servico_social: new Date().toISOString()
             };
             
             const resultado = await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoAtual.id, dadosAtualizacao);
             
-            if (resultado.sucesso) {
-                alert(`Status final definido como ${statusFinal} com sucesso!`);
-                
-                // Registrar na auditoria
-                if (window.auditoriaService) {
-                    window.auditoriaService.registrarEvento(
-                        "definicao_status_final",
-                        solicitacaoAtual.id,
-                        { status_final: statusFinal, decisao_servico_social: statusFinal }
-                    ).catch(err => console.error("Erro ao registrar auditoria de status final:", err));
-                }
-                
-                // Recarregar dados
-                await carregarTodasSolicitacoesDoFirestore();
-                await carregarDetalhesSolicitacao(solicitacaoAtual.id);
-            } else {
-                throw new Error(resultado.erro || "Falha ao definir status final.");
+            if (!resultado.sucesso) {
+                throw new Error(resultado.erro || "Falha ao atualizar status final.");
             }
+            
+            // Registrar na auditoria
+            await window.auditoriaService.registrarEventoSistema("DEFINICAO_STATUS_FINAL", solicitacaoAtual.id, { status: decisao });
+            
+            alert(`Status final definido como '${decisao}' com sucesso!`);
+            
+            // Recarregar tudo para refletir as mudanças
+            carregarTodasSolicitacoesDoFirestore();
+            detalhesContainer.style.display = "none"; // Esconder detalhes após ação
+            
         } catch (error) {
             console.error("Erro ao definir status final:", error);
-            alert(`Erro ao definir status final: ${error.message}`);
+            alert(`Erro ao definir status: ${error.message}`);
+            this.disabled = false;
+            this.textContent = "Definir Status Final";
         }
     }
   
     async function gerarRelatorioPdf() {
-        if (!solicitacaoAtual || !solicitacaoAtual.id) return;
+        if (!solicitacaoAtual) return;
         
-        // Verificar se os pais já decidiram
-        if (!solicitacaoAtual.status_pais) {
-            alert("Aguarde a decisão dos pais antes de gerar o relatório final.");
-            return;
-        }
+        this.disabled = true;
+        this.textContent = "Gerando PDF...";
         
         try {
-            const statusFinal = prompt(
-                `A decisão dos pais foi: ${solicitacaoAtual.status_pais}.\n\nQual a decisão final do Serviço Social para esta solicitação?\nDigite 'Aprovado' ou 'Reprovado'.`
-            );
-            
-            if (!statusFinal || (statusFinal !== "Aprovado" && statusFinal !== "Reprovado")) {
-                alert("Status inválido. Digite 'Aprovado' ou 'Reprovado'.");
-                return;
+            // Obter histórico de auditoria
+            const resultadoAuditoria = await window.auditoriaService.obterHistoricoAuditoria(solicitacaoAtual.id);
+            let historicoAuditoria = [];
+            if (resultadoAuditoria.sucesso) {
+                historicoAuditoria = resultadoAuditoria.dados;
             }
             
-            // Atualizar status no Firebase
-            const updateData = {
-                status_servico_social: statusFinal,
-                data_decisao_servico_social: new Date().toISOString(),
-                status_final: statusFinal, // Status final da solicitação
-                pdf_gerado: true,
-                data_geracao_pdf: new Date().toISOString()
-            };
+            // Gerar o PDF
+            window.pdfService.gerarRelatorio(solicitacaoAtual, historicoAuditoria);
             
-            await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoAtual.id, updateData);
-            
-            // Registrar na auditoria
-            await window.auditoriaService.registrarEvento("decisao_servico_social", solicitacaoAtual.id, {
-                decisao: statusFinal,
-                decisao_pais: solicitacaoAtual.status_pais
-            });
-            
-            // Gerar PDF
-            const resultado = await window.pdfService.gerarRelatorioPdf(solicitacaoAtual.id);
-            if (resultado.sucesso) {
-                alert("Relatório PDF gerado com sucesso! O documento contém todas as etapas para validação legal.");
-                
-                // Atualizar interface
-                if (btnGerarPdf) {
-                    btnGerarPdf.disabled = true;
-                    btnGerarPdf.textContent = "PDF Gerado";
-                }
-                
-                // Recarregar dados
-                await carregarTodasSolicitacoesDoFirestore();
-            } else {
-                throw new Error(resultado.erro || "Falha ao gerar PDF.");
-            }
         } catch (error) {
             console.error("Erro ao gerar PDF:", error);
-            alert(`Erro ao gerar PDF: ${error.message}`);
+            alert(`Erro ao gerar relatório: ${error.message}`);
+        } finally {
+            this.disabled = false;
+            this.textContent = "Gerar Relatório em PDF";
         }
     }
   
-    // --- Inicialização e Eventos ---
-  
-    // Adicionar listener para o filtro de status do histórico
+    // --- Inicialização ---
     if (filtroStatusSelect) {
         filtroStatusSelect.addEventListener("change", renderizarHistoricoValidacoes);
     }
   
-    // Carregar os dados iniciais do Firestore
-    await carregarTodasSolicitacoesDoFirestore();
-  
-  });
-  
-
-    function verLinkEnviado() {
-        if (!solicitacaoAtual || !solicitacaoAtual.id || !solicitacaoAtual.token_aprovacao_pais) {
-            alert("Não há link enviado ou token de aprovação para esta solicitação.");
-            return;
-        }
-        const linkAprovacao = `${window.location.origin}/pais/aprovacao.html?id=${solicitacaoAtual.id}&token=${solicitacaoAtual.token_aprovacao_pais}`;
-        prompt("Link de Aprovação Enviado:", linkAprovacao);
-    }
+    carregarTodasSolicitacoesDoFirestore();
+});
 
 

@@ -3,7 +3,8 @@
  * Responsável por registrar e obter eventos de auditoria no Firestore.
  */
 
-const AuditoriaService = (function() {
+// Expor o serviço globalmente imediatamente
+window.auditoriaService = (function() {
   const COLLECTION_NAME = 'auditoria';
 
   // Função para registrar um evento de auditoria
@@ -123,7 +124,5 @@ const AuditoriaService = (function() {
   };
 })();
 
-// Expor o serviço globalmente
-window.auditoriaService = AuditoriaService;
 console.log('AuditoriaService carregado e exposto globalmente');
 
