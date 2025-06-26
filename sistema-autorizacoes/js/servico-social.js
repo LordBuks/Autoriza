@@ -254,17 +254,33 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
               
               // Remover listeners antigos e adicionar novos
               if(btnEnviarLink) {
-                  btnEnviarLink.removeEventListener("click", enviarLinkPais);
+                   btnEnviarLink.removeEventListener("click", enviarLinkPais);
                   btnEnviarLink.addEventListener("click", enviarLinkPais);
                   
-                  // Desabilitar o botão se o link já foi enviado
+                  // Sempre habilitar o botão de enviar/reenviar
+                  btnEnviarLink.disabled = false;
+
+                  // Adicionar botão de 'Ver Link' se já foi enviado
+                  const acoesServicoSocialContainer = document.getElementById("acoes-servico-social");
                   if (solicitacaoAtual.data_envio_link_pais) {
-                      btnEnviarLink.disabled = true;
-                      const tipoEnviado = solicitacaoAtual.tipo_link_enviado || '';
-                      btnEnviarLink.textContent = `Link ${tipoEnviado === 'mockup' ? 'Mockup' : ''} Enviado`;
+                      btnEnviarLink.textContent = "Reenviar Link aos Pais";
+                      // Remover botão 'Ver Link' antigo para evitar duplicação
+                      let btnVerLinkExistente = document.getElementById("btn-ver-link");
+                      if (btnVerLinkExistente) {
+                          btnVerLinkExistente.remove();
+                      }
+                      const btnVerLink = document.createElement("button");
+                      btnVerLink.id = "btn-ver-link";
+                      btnVerLink.className = "btn btn-secondary mt-2";
+                      btnVerLink.textContent = "Ver Link Enviado";
+                      acoesServicoSocialContainer.appendChild(btnVerLink);
                   } else {
-                      btnEnviarLink.disabled = false;
                       btnEnviarLink.textContent = "Enviar Link aos Pais";
+                      // Remover botão 'Ver Link' se não houver link enviado
+                      let btnVerLinkExistente = document.getElementById("btn-ver-link");
+                      if (btnVerLinkExistente) {
+                          btnVerLinkExistente.remove();
+                      }
                   }
               }
               
@@ -377,35 +393,21 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
         const linkMockup = `${window.location.origin}/pais/mockup-aprovacao.html?id=${solicitacaoAtual.id}`;
         
         // Perguntar ao usuário qual link enviar
-        const escolha = confirm(
-            "Escolha o tipo de link para enviar:\n\n" +
-            "OK = Link funcional (para aprovação real)\n" +
-            "Cancelar = Link de demonstração (mockup para validação)"
-        );
+        let linkParaEnviar = linkAprovacao;
+        let tipoLink = "funcional";
 
-        let linkParaEnviar, tipoLink;
-        if (escolha) {
-            linkParaEnviar = linkAprovacao;
-            tipoLink = "funcional";
-            
-            // Salvar o token no Firestore junto com a solicitação para validação posterior
-            try {
-                console.log("Gerando token para solicitação:", solicitacaoAtual.id, "Token:", token);
-                await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoAtual.id, { 
-                    token_aprovacao_pais: token,
-                    data_geracao_token: new Date().toISOString()
-                });
-                console.log("Token salvo no Firestore para solicitação:", solicitacaoAtual.id);
-            } catch (error) {
-                alert("Erro ao salvar token de aprovação. Não foi possível gerar o link.");
-                return;
-            }
-        } else {
-            linkParaEnviar = linkMockup;
-            tipoLink = "mockup";
-        }
+        const mensagem = `Prezado(a) Sr(a). ${solicitacaoAtual.nome_responsavel || "Responsável"},
 
-        const mensagem = `Olá ${solicitacaoAtual.nome_responsavel || "Responsável"}, o atleta ${solicitacaoAtual.nome || ""} solicitou autorização para sair. Por favor, acesse o link para ${tipoLink === 'mockup' ? 'visualizar o modelo de' : ''} aprovar ou reprovar: ${linkParaEnviar}`;
+O Sport Club Internacional, através do Serviço Social, informa que o(a) atleta ${solicitacaoAtual.nome || ""} solicitou uma autorização para ${solicitacaoAtual.motivo_destino || "sair"}. 
+
+Para sua segurança e para garantir a integridade do processo, solicitamos que acesse o link abaixo para analisar e, se for o caso, aprovar ou reprovar a solicitação:
+
+${linkParaEnviar}
+
+Contamos com sua colaboração para a segurança e bem-estar de nossos atletas.
+
+Atenciosamente,
+Serviço Social do Sport Club Internacional`;
         console.log("Mensagem para WhatsApp:", mensagem);
         
         // Registrar evento de auditoria e data de envio do link
@@ -430,7 +432,7 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
                 // Desabilitar o botão após o envio
                 if (btnEnviarLink) {
                     btnEnviarLink.disabled = true;
-                    btnEnviarLink.textContent = `Link ${tipoLink === 'mockup' ? 'Mockup' : ''} Enviado`;
+                    btnEnviarLink.textContent = `Link Enviado`;
                 }
                 
                 // Recarregar detalhes para refletir as mudanças
@@ -578,3 +580,14 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
   
   });
   
+
+    function verLinkEnviado() {
+        if (!solicitacaoAtual || !solicitacaoAtual.id || !solicitacaoAtual.token_aprovacao_pais) {
+            alert("Não há link enviado ou token de aprovação para esta solicitação.");
+            return;
+        }
+        const linkAprovacao = `${window.location.origin}/pais/aprovacao.html?id=${solicitacaoAtual.id}&token=${solicitacaoAtual.token_aprovacao_pais}`;
+        prompt("Link de Aprovação Enviado:", linkAprovacao);
+    }
+
+
