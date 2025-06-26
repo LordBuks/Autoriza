@@ -18,22 +18,95 @@
       color: white !important;
     }
 
+    .btn-logout {
+      background-color: #5a5d5a;
+      border-color: #28a745;
+      color: white !important;
+    }
+
+    .btn-logout:hover {
+      background-color: #218838;
+      border-color: #1e7e34;
+    }
+
     .btn {
-      display: block;
-      width: 100%;
+      display: block; /* Mantém o botão como um bloco */
       padding: 12px;
-      text-align: center;
+      text-align: center; /* Centraliza o texto dentro do botão */
       text-decoration: none;
-      border-radius: 4px;
+      border-radius: 4px; /* Cantos arredondados dos botões */
       font-weight: bold;
       white-space: nowrap;
       box-sizing: border-box;
-      margin: 8px 0;
+      /* margin: 8px 0; REMOVIDO daqui, pois o margin será controlado pelo Flexbox no .form-group */
+      cursor: pointer;
+      border: none;
+      font-size: 1rem; /* Tamanho da fonte dos botões */
+    }
+
+    /* Nova classe para os botões do dashboard */
+    .btn-dashboard-narrow {
+      width: 600px; /* Define a largura FIXA dos botões */
+      /* margin: 8px auto; REMOVIDO daqui, pois o centralização será controlada pelo Flexbox no .form-group */
     }
 
     .form-group {
-      margin: 15px 0;
+      margin-bottom: 20px; /* Mantém o espaçamento entre os grupos de formulário */
+      display: flex; /* Torna o form-group um container flexível */
+      justify-content: center; /* Centraliza os itens (botões) horizontalmente */
+      align-items: center; /* Centraliza os itens verticalmente (se houver espaço) */
+      padding: 8px 0; /* Adiciona um padding vertical para espaçamento entre os botões */
     }
+
+    .header-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 20px; /* Ajustado o padding para diminuir a altura */
+      background-color: #dc3545;
+      color: white;
+      border-radius: 4px; /* Adicionado cantos arredondados */
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem; /* Tamanho da fonte para "Bem-vindo, Atleta" */
+    }
+
+    .logout-btn {
+      background-color: #5a5d5a;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .logout-btn:hover {
+      background-color: #218838;
+    }
+
+    /* Estilos para o card do rodapé */
+    .footer-info-card {
+      max-width: 800px; /* Largura menor para o card do rodapé */
+      margin: 20px auto; /* Centraliza o card */
+      text-align: center; /* Centraliza o conteúdo dentro do card */
+    }
+
+    .footer-info-card .footer-logo {
+      height: 60px; /* Altura menor para a imagem do rodapé */
+      margin-bottom: 10px;
+    }
+
+    .footer-info-card p {
+      font-size: 0.9rem; /* Tamanho da fonte para o texto do rodapé (exemplo de diminuição) */
+      margin-bottom: 5px; /* Espaçamento entre os parágrafos */
+    }
+
   </style>
   <link rel="stylesheet" href="../../css/styles.css">
 </head>
@@ -43,9 +116,21 @@
     <h1 class="header-title">Sistema de Autorizações Digitais</h1>
   </header>
 
+  <!-- Barra de navegação com informações do usuário e logout -->
+  <div class="container"> 
+    <div class="header-nav">
+      <div class="user-info">
+        <span><b>Bem-vindo, Atleta</b></span>
+      </div>
+      <div>
+        <button onclick="logout( )" class="logout-btn">Sair</button>
+      </div>
+    </div>
+  </div> 
+
   <div class="container">
     <div class="card">
-      <h2 class="card-title">Bem-vindo, Atleta</h2>
+      <h2 class="card-title">Dashboard do Atleta</h2>
       <p>Utilize este sistema para solicitar autorizações de saída do alojamento. Você receberá atualizações sobre o status por e-mail.</p>
       
       <div class="alert alert-info">
@@ -56,12 +141,17 @@
     <div class="card">
       <h2 class="card-title">O que deseja fazer?</h2>
       
+      <!-- Cada botão está dentro de um form-group -->
       <div class="form-group">
-        <a href="solicitar.html" class="btn btn-primary btn-block">Solicitar Nova Autorização</a>
+        <a href="solicitar.html" class="btn btn-primary btn-dashboard-narrow">Solicitar Nova Autorização</a>
       </div>
       
       <div class="form-group">
-        <a href="consultar.html" class="btn btn-primary btn-block">Consultar Solicitações</a>
+        <a href="consultar.html" class="btn btn-primary btn-dashboard-narrow">Consultar Solicitações</a>
+      </div>
+
+      <div class="form-group">
+        <button onclick="logout()" class="btn btn-logout btn-dashboard-narrow">Sair do Sistema</button>
       </div>
 
     </div>
@@ -80,18 +170,32 @@
       <p>Todas as autorizações são registradas digitalmente, com carimbo temporal, hash de integridade e armazenamento seguro.</p>
     </div>
 
-    <div class="card">
+    <!-- Card do rodapé com informações do serviço social -->
+    <div class="card footer-info-card">
       <div style="text-align: center;">
         <footer>
-          <img src="https://i.imgur.com/djubFsx.png" alt="Logo SC Internacional" class="header-logo">
+          <img src="https://i.imgur.com/djubFsx.png" alt="Logo SC Internacional" class="footer-logo">
           <p>Gerenciamento de Autorizações das Categorias de Base.</p>
-          <p>Departamento de Serviço Social</p>
+          <p>Departamento de Serviço Social.</p>
         </footer>
       </div>
     </div>
   </div>
 
   <script src="../../js/atleta.js"></script>
-    <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
+  <script>
+    // Função de logout
+    function logout( ) {
+      if (confirm('Tem certeza que deseja sair do sistema?')) {
+        // Limpar dados de sessão se houver
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Redirecionar para a página de login
+        window.location.href = '../../index.html';
+      }
+    }
+  </script>
+  <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
 </body>
 </html>

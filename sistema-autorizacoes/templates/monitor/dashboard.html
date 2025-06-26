@@ -13,12 +13,128 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    /* Estilos customizados para os botões */
+    .btn-primary {
+      background-color: #dc3545;
+      border-color: #dc3545;
+      color: white !important;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      border-color: #6c757d;
+      color: white !important;
+    }
+
+    .btn-logout {
+      background-color: #5a5d5a;
+      border-color: #28a745;
+      color: white !important;
+    }
+
+    .btn-logout:hover {
+      background-color: #218838;
+      border-color: #1e7e34;
+    }
+
+    .btn {
+      display: block; /* Mantém o botão como um bloco */
+      padding: 12px;
+      text-align: center; /* Centraliza o texto dentro do botão */
+      text-decoration: none;
+      border-radius: 4px; /* Cantos arredondados dos botões */
+      font-weight: bold;
+      white-space: nowrap;
+      box-sizing: border-box;
+      /* margin: 8px 0; REMOVIDO daqui, pois o margin será controlado pelo Flexbox no .form-group */
+      cursor: pointer;
+      border: none;
+      font-size: 1rem; /* Tamanho da fonte dos botões */
+    }
+
+    /* Nova classe para os botões do dashboard */
+    .btn-dashboard-narrow {
+      width: 600px; /* Define a largura FIXA dos botões */
+      /* margin: 8px auto; REMOVIDO daqui, pois o centralização será controlada pelo Flexbox no .form-group */
+    }
+
+    .form-group {
+      margin-bottom: 20px; /* Mantém o espaçamento entre os grupos de formulário */
+      display: flex; /* Torna o form-group um container flexível */
+      justify-content: center; /* Centraliza os itens (botões) horizontalmente */
+      align-items: center; /* Centraliza os itens verticalmente (se houver espaço) */
+      padding: 8px 0; /* Adiciona um padding vertical para espaçamento entre os botões */
+    }
+
+    .header-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 20px; /* Ajustado o padding para diminuir a altura */
+      background-color: #dc3545;
+      color: white;
+      border-radius: 4px; /* Adicionado cantos arredondados */
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem; /* Tamanho da fonte para "Bem-vindo, Atleta" */
+    }
+
+    .logout-btn {
+      background-color: #5a5d5a;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .logout-btn:hover {
+      background-color: #218838;
+    }
+
+    /* Estilos para o card do rodapé */
+    .footer-info-card {
+      max-width: 800px; /* Largura menor para o card do rodapé */
+      margin: 20px auto; /* Centraliza o card */
+      text-align: center; /* Centraliza o conteúdo dentro do card */
+    }
+
+    .footer-info-card .footer-logo {
+      height: 60px; /* Altura menor para a imagem do rodapé */
+      margin-bottom: 10px;
+    }
+
+    .footer-info-card p {
+      font-size: 0.9rem; /* Tamanho da fonte para o texto do rodapé (exemplo de diminuição) */
+      margin-bottom: 5px; /* Espaçamento entre os parágrafos */
+    }
+
+  </style>
 </head>
 <body>
   <header class="header">
     <img src="https://i.imgur.com/odzcc03.png" alt="Logo SC Internacional" class="header-logo">
     <h1 class="header-title">Sistema de Autorizações Digitais</h1>
   </header>
+
+  <!-- Barra de navegação com informações do usuário e logout -->
+  <div class="container"> 
+    <div class="header-nav">
+      <div class="user-info">
+        <span><b>Bem-vindo, Monitor</b></span>
+      </div>
+      <div>
+        <button onclick="logout()" class="logout-btn">Sair</button>
+      </div>
+    </div>
+  </div> 
 
   <div class="container">
     <div class="card">
@@ -96,6 +212,11 @@
         <p class="text-center">Carregando arquivos...</p>
       </div>
     </div>
+
+    <div class="form-group">
+      <button onclick="logout()" class="btn btn-logout btn-dashboard-narrow">Sair do Sistema</button>
+    </div>
+
   </div>
 
   <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade  ) -->
@@ -108,6 +229,21 @@
 
   <!-- Script de lógica do painel -->
   <script src="../../js/monitor.js"></script>
+  <script>
+    // Função de logout
+    function logout() {
+      if (confirm('Tem certeza que deseja sair do sistema?')) {
+        // Limpar dados de sessão se houver
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Redirecionar para a página de login
+        window.location.href = '../../index.html';
+      }
+    }
+  </script>
     <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
 </body>
 </html>
+
+

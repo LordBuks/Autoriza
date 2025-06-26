@@ -32,7 +32,7 @@ body::before {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -233,7 +233,7 @@ body::before {
 }
 
 .login-container {
-  max-width: 400px;
+  max-width: 450px; /* Alterado para 450px para deixar o card de login mais estreito */
   margin: 80px auto;
 }
 
@@ -275,3 +275,55 @@ body::before {
     margin-bottom: 10px;
   }
 }
+
+
+
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+
+
+/* Estilos para os botões */
+.button-group .btn {
+    background-color: var(--vermelho-inter);
+    border-color: var(--vermelho-inter);
+    color: var(--branco);
+    transition: all 0.3s ease;
+}
+
+.button-group .btn:hover {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: var(--branco);
+}
+
+.button-group .btn:disabled {
+    background-color: var(--vermelho-inter);
+    border-color: var(--vermelho-inter);
+    opacity: 0.7;
+}
+
+.button-group .btn:disabled:hover {
+    background-color: var(--vermelho-inter);
+    border-color: var(--vermelho-inter);
+}
+
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 768px) {
+    .button-group {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .button-group .btn {
+        width: 100%;
+        max-width: 300px;
+        margin-bottom: 10px;
+    }
+}
+

@@ -81,6 +81,21 @@
   <script src="../../js/confirmacao-service.js"></script>
   <script src="../../js/notificacao-service.js"></script>
   <script src="../../js/detalhe-servico-social-integrado.js"></script>
+  <script>
+    // Função de logout
+    function logout() {
+      if (confirm(\'Tem certeza que deseja sair do sistema?\')) {
+        // Limpar dados de sessão se houver
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Redirecionar para a página de login
+        window.location.href = \'../../index.html\';
+      }
+    }
+  </script>
     <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
 </body>
 </html>
+
+

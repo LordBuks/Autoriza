@@ -9,7 +9,7 @@
   <!-- Content Security Policy (CSP) -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com; frame-src 'none';">
 
-  <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade ) -->
+  <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade  ) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -20,27 +20,27 @@
     <h1 class="header-title">Sistema de Autorizações Digitais</h1>
   </header>
 
-  <div class="container">
-    <div class="card">
-      <h2 class="card-title">Login</h2>
-      <form id="login-form">
-        <div class="form-group">
-          <label for="email" class="form-label">Email:</label>
-          <input type="email" id="email" class="form-control" required>
-        </div>
-        <div class="form-group">
-          <label for="senha" class="form-label">Senha:</label>
-          <input type="password" id="senha" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Entrar</button>
-      </form>
-      <div id="login-error-message" class="alert alert-danger mt-3" style="display: none;"></div>
-    </div>
+  <!-- O card de login agora usa a classe login-container diretamente e o container externo foi removido -->
+  <div class="card login-container">
+    <h2 class="card-title">Login</h2>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="email" class="form-label">Email:</label>
+        <input type="email" id="email" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="senha" class="form-label">Senha:</label>
+        <input type="password" id="senha" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Entrar</button>
+    </form>
+    <div id="login-error-message" class="alert alert-danger mt-3" style="display: none;"></div>
   </div>
 
+
   <footer class="footer">
-    <p>&copy; 2025 VampTech Ltda. Todos os direitos reservados.</p>
-  </footer>
+    <p>
+    </footer>
 
   <!-- Firebase Config -->
   <script src="js/firebase-config.js"></script>
