@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../../css/styles.css">
   
   <!-- Content Security Policy (CSP) -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com; frame-src 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://api.ipify.org; frame-src 'none';">
 
   <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade ) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -86,13 +86,8 @@
 
     .logout-btn {
       background-color: #5a5d5a;
-      color: white;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-      text-decoration: none;
+      border-color: #28a745;
+      color: white !important;
     }
 
     .logout-btn:hover {
@@ -258,4 +253,6 @@
     <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
 </body>
 </html>
+
+
 
