@@ -11,8 +11,9 @@ const ServicoSocialController = (function() {
   const autorizacaoService = new AutorizacaoService();
   const notificacaoService = new NotificacaoService();
   const confirmacaoService = new ConfirmacaoService();
+  
   // Elementos da interface
-  let btnAprovar;
+  let btnValidar;
   let btnReprovar;
   let modalObservacao;
   let btnConfirmar;
@@ -25,14 +26,11 @@ const ServicoSocialController = (function() {
   // Inicialização do controlador
   function inicializar() {
     // Capturar elementos do DOM
-    btnAprovar = document.getElementById('btn-aprovar');
+    btnValidar = document.getElementById('btn-validar');
     btnReprovar = document.getElementById('btn-reprovar');
     modalObservacao = document.getElementById('modal-observacao');
     btnConfirmar = document.getElementById('btn-confirmar');
     btnCancelar = document.getElementById('btn-cancelar');
-    
-    // Verificar se estamos na página correta (detalhe do serviço social)
-    if (!btnAprovar && !btnReprovar) return;
     
     // Obter ID da solicitação da URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -48,20 +46,6 @@ const ServicoSocialController = (function() {
     carregarSolicitacao(idSolicitacao);
     
     // Configurar eventos
-    if (btnAprovar) {
-      btnAprovar.addEventListener('click', function() {
-        acaoAtual = 'aprovar';
-        modalObservacao.style.display = 'block';
-      });
-    }
-    
-    if (btnReprovar) {
-      btnReprovar.addEventListener('click', function() {
-        acaoAtual = 'reprovar';
-        modalObservacao.style.display = 'block';
-      });
-    }
-    
     if (btnConfirmar) {
       btnConfirmar.addEventListener('click', function() {
         const observacao = document.getElementById('observacao').value;
@@ -79,6 +63,39 @@ const ServicoSocialController = (function() {
     if (btnCancelar) {
       btnCancelar.addEventListener('click', function() {
         modalObservacao.style.display = 'none';
+      });
+    }
+
+    // Adicionar evento para o botão de enviar WhatsApp
+    const btnEnviarWhatsApp = document.getElementById("btn-enviar-whatsapp");
+    if (btnEnviarWhatsApp) {
+      btnEnviarWhatsApp.addEventListener("click", function() {
+        if (solicitacaoAtual) {
+          const resultado = notificacaoService.enviarNotificacaoWhatsApp(solicitacaoAtual);
+          if (resultado.sucesso) {
+            alert("Link para WhatsApp gerado com sucesso!");
+          } else {
+            alert(`Erro ao gerar link para WhatsApp: ${resultado.mensagem}`);
+          }
+        } else {
+          alert("Nenhuma solicitação selecionada.");
+        }
+      });
+    }
+
+    // Adicionar evento para o botão de validar (aprovar) autorização
+    if (btnValidar) {
+      btnValidar.addEventListener("click", function() {
+        acaoAtual = 'aprovar';
+        modalObservacao.style.display = 'block';
+      });
+    }
+
+    // Adicionar evento para o botão de reprovar autorização
+    if (btnReprovar) {
+      btnReprovar.addEventListener("click", function() {
+        acaoAtual = 'reprovar';
+        modalObservacao.style.display = 'block';
       });
     }
   }
@@ -144,7 +161,7 @@ const ServicoSocialController = (function() {
     
     // Desabilitar botões se já houver uma decisão ou se o supervisor já reprovou
     if (solicitacao.status_servico_social !== 'Pendente' || solicitacao.status_supervisor === 'Reprovado') {
-      if (btnAprovar) btnAprovar.disabled = true;
+      if (btnValidar) btnValidar.disabled = true;
       if (btnReprovar) btnReprovar.disabled = true;
       
       // Mostrar observação do serviço social se existir
@@ -168,12 +185,13 @@ const ServicoSocialController = (function() {
   }
   
   // Função para aprovar uma solicitação
-  function aprovarSolicitacao(id, observacoes) {
-    const resultado = autorizacaoService.aprovarSolicitacaoServicoSocial(id, observacoes);
+  function aprovarSolicitacao(observacoes) {
+    if (!solicitacaoAtual) return;
+    const resultado = autorizacaoService.aprovarSolicitacaoServicoSocial(solicitacaoAtual.id, observacoes);
     
     if (resultado.sucesso) {
-      notificacaoService.enviarNotificacaoAtleta(resultado.dados);
-      atualizarInterface();
+      notificacaoService.enviarNotificacaoAtleta(resultado.dados, 'Aprovado');
+      window.location.reload();
     }
     
     return resultado;
@@ -230,7 +248,7 @@ const ServicoSocialController = (function() {
     );
     
     if (resultado.sucesso) {
-      alert('Solicitação reprovada.');
+      notificacaoService.enviarNotificacaoAtleta(solicitacaoAtual, 'Reprovado');
       window.location.reload();
     } else {
       alert(`Erro ao reprovar solicitação: ${resultado.mensagem}`);
@@ -239,12 +257,12 @@ const ServicoSocialController = (function() {
   
   // Retornar as funções públicas
   return {
-    carregarSolicitacoes,
-    obterSolicitacao,
+    // carregarSolicitacoes, // Não é mais usada diretamente aqui
+    // obterSolicitacao, // Não é mais usada diretamente aqui
     aprovarSolicitacao,
     reprovarSolicitacao,
     enviarWhatsApp,
-    atualizarInterface
+    // atualizarInterface // Não é mais usada diretamente aqui
   };
 })();
 
@@ -252,3 +270,5 @@ const ServicoSocialController = (function() {
 document.addEventListener('DOMContentLoaded', function() {
   ServicoSocialController.inicializar();
 });
+
+

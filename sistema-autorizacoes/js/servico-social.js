@@ -344,9 +344,12 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
             // Enviar via WhatsApp (simulação)
             const mensagem = `O Sport Club Internacional, através do Serviço Social, informa que o(a) atleta ${solicitacaoAtual.nome} solicitou uma autorização para casa. Para sua segurança e para garantir a integridade do processo, solicitamos que acesse o link abaixo para avaliar e, se for o caso, aprovar ou reprovar a solicitação: ${link}. Atenciosamente, Serviço Social do Sport Club Internacional.`;
             
-            // Simulação de envio
+                        const linkWhatsApp = window.whatsAppService.gerarLinkWhatsApp(solicitacaoAtual.telefone_responsavel, mensagem);
+            if (!linkWhatsApp) {
+                throw new Error("Não foi possível gerar o link do WhatsApp.");
+            }
             console.log("Mensagem para WhatsApp:", mensagem);
-            alert("Link de aprovação gerado e pronto para ser enviado!\n\n" + mensagem);
+            window.open(linkWhatsApp, '_blank');
             
             // Atualizar UI
             carregarDetalhesSolicitacao(solicitacaoAtual.id);

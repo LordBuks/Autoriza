@@ -374,7 +374,7 @@ class NotificacaoService {
     console.log('Link para WhatsApp gerado:', linkWhatsApp);
     
     // Abrir o link do WhatsApp em uma nova janela (comentado para fins de demonstração)
-    // window.open(linkWhatsApp, '_blank');
+        window.open(linkWhatsApp, '_blank');
     
     return notificacao;
   }
