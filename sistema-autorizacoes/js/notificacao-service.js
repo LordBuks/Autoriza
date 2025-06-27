@@ -343,7 +343,7 @@ class NotificacaoService {
     console.log('Enviando notificação via WhatsApp para o responsável');
     
     // Gerar link de confirmação
-    const linkConfirmacao = this.confirmacaoService.gerarLinkConfirmacao(dados);
+    const linkConfirmacao = `../pais/mockup-aprovacao.html?id=${dados.id}&token=${this.confirmacaoService.gerarTokenConfirmacao(dados)}`;
     
     // Gerar mensagem para WhatsApp
     const mensagem = this.whatsAppService.gerarMensagemConfirmacao(dados, linkConfirmacao);
