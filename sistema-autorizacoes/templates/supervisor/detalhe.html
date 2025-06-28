@@ -24,6 +24,12 @@
     <div class="card">
       <h2 class="card-title">Detalhes da Solicitação</h2>
       
+      <!-- Mensagem de Aviso -->
+      <div id="alert-message" class="alert" style="display: none;">
+        <span id="alert-text"></span>
+        <button class="close-btn" onclick="document.getElementById('alert-message').style.display='none';">&times;</button>
+      </div>
+
       <div id="detalhe-solicitacao">
         <div class="auth-details">
           <h3>Dados do Atleta</h3>
@@ -91,13 +97,13 @@
   <script>
     // Função de logout
     function logout() {
-      if (confirm(\'Tem certeza que deseja sair do sistema?\')) {
+      if (confirm('Tem certeza que deseja sair do sistema?')) {
         // Limpar dados de sessão se houver
         localStorage.clear();
         sessionStorage.clear();
         
         // Redirecionar para a página de login
-        window.location.href = \'../../index.html\';
+        window.location.href = '../../index.html';
       }
     }
   </script>

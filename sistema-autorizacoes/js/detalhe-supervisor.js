@@ -14,10 +14,9 @@ document.addEventListener("DOMContentLoaded", async function() { // Tornar a fun
     loadingIndicator.style.display = "none"; // Começa oculto
     detalheContainer.parentNode.insertBefore(loadingIndicator, detalheContainer); // Inserir antes do container
   
-    const alertContainer = document.createElement("div"); // Criar container de alerta dinamicamente
-    alertContainer.id = "alert-container";
-    alertContainer.style.marginTop = "15px";
-    detalheContainer.parentNode.insertBefore(alertContainer, detalheContainer.nextSibling); // Inserir depois do container
+    // Elementos da nova mensagem de alerta
+    const alertMessageDiv = document.getElementById("alert-message");
+    const alertTextSpan = document.getElementById("alert-text");
   
     // Variáveis de controle
     let solicitacaoAtual = null;
@@ -49,26 +48,11 @@ document.addEventListener("DOMContentLoaded", async function() { // Tornar a fun
     }
   
     function mostrarAlerta(mensagem, tipo = "alert-info") {
-        if (!alertContainer) return;
-        alertContainer.innerHTML = `<div class="alert ${tipo} alert-dismissible fade show" role="alert">
-                                      ${mensagem}
-                                      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                    </div>`;
-        alertContainer.style.display = "block";
-        // Auto-hide info/success messages after a delay
-        if (tipo === "alert-info" || tipo === "alert-success") {
-            setTimeout(() => {
-                const alertDiv = alertContainer.querySelector(".alert");
-                if (alertDiv) {
-                    // Use bootstrap's dismiss method if available, otherwise just hide
-                    if (typeof bootstrap !== "undefined" && bootstrap.Alert) {
-                        bootstrap.Alert.getOrCreateInstance(alertDiv).close();
-                    } else {
-                        alertContainer.style.display = "none";
-                    }
-                }
-            }, 5000);
-        }
+        if (!alertMessageDiv || !alertTextSpan) return;
+
+        alertTextSpan.textContent = mensagem;
+        alertMessageDiv.className = `alert ${tipo}`;
+        alertMessageDiv.style.display = "block";
     }
   
     function getBadgeClass(status) {
@@ -187,7 +171,11 @@ document.addEventListener("DOMContentLoaded", async function() { // Tornar a fun
         );
   
         if (resultado.sucesso) {
-          mostrarAlerta(`Solicitação ${novoStatus.toLowerCase()} com sucesso!`, "alert-success");
+          if (novoStatus === "Aprovado") {
+            mostrarAlerta("Autorização validada com sucesso, atleta liberado!", "alert-success");
+          } else if (novoStatus === "Reprovado") {
+            mostrarAlerta("Solicitação reprovada com sucesso.", "alert-danger");
+          }
           // Recarregar os dados da página para refletir a mudança
           solicitacaoAtual = resultado.solicitacao; // Atualiza a variável local com os dados retornados
           preencherDadosPagina(solicitacaoAtual);
@@ -257,4 +245,6 @@ document.addEventListener("DOMContentLoaded", async function() { // Tornar a fun
   
   });
   
+
+
 
