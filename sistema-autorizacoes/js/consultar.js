@@ -47,17 +47,20 @@ document.addEventListener("DOMContentLoaded", function() {
         classe = "status-aprovado";
         break;
       case "Reprovado":
+      case "Não Aprovado":
         classe = "status-reprovado";
         break;
       case "Pendente":
-      case "Em Análise":
         classe = "status-pendente";
         break;
+      case "Em Análise":
+        classe = "status-em-analise";
+        break;
       default:
-        classe = "";
+        classe = "status-pendente"; // Default para pendente
     }
 
-    return `<span class="status ${classe}">${status || "N/A"}</span>`; // Adiciona fallback para status indefinido
+    return `<span class="status ${classe}">${status || "Pendente"}</span>`; // Adiciona fallback para status indefinido
   }
 
   // Verificar se há um ID na URL (redirecionamento após envio)

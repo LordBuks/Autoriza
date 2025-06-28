@@ -406,6 +406,205 @@ body::before {
 
 
 
+/* Estilos para padronização das solicitações do supervisor */
+.solicitacao-card {
+  background-color: var(--branco);
+  border: 1px solid var(--cinza-medio);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.solicitacao-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.solicitacao-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 2px solid var(--cinza-medio);
+  padding-bottom: 10px;
+}
+
+.solicitacao-nome {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--vermelho-inter);
+  margin: 0;
+}
+
+.solicitacao-data {
+  font-size: 0.9rem;
+  color: var(--cinza-escuro);
+  font-weight: 500;
+}
+
+.solicitacao-info {
+  margin-bottom: 15px;
+}
+
+.solicitacao-info p {
+  margin: 8px 0;
+  font-size: 1rem;
+  color: var(--preto);
+}
+
+.solicitacao-info strong {
+  color: var(--vermelho-inter);
+  font-weight: 600;
+}
+
+.solicitacao-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.solicitacao-actions {
+  margin-top: 15px;
+  text-align: center;
+  border-top: 1px solid var(--cinza-medio);
+  padding-top: 15px;
+}
+
+.btn-detalhes {
+  background-color: var(--vermelho-inter);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-block;
+  transition: background-color 0.3s ease;
+}
+
+.btn-detalhes:hover {
+  background-color: #a50c23;
+  color: white;
+  text-decoration: none;
+}
+
+/* Remover estilos de link das solicitações */
+.list-group-item {
+  border: none !important;
+  padding: 0 !important;
+  background: none !important;
+}
+
+.list-group-item:hover {
+  background: none !important;
+}
+
+.list-group-item-action {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+.list-group-item-action:hover {
+  color: inherit !important;
+  text-decoration: none !important;
+  background: none !important;
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 768px) {
+  .solicitacao-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .solicitacao-status {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .solicitacao-card {
+    padding: 15px;
+  }
+}
+
+/* Estilos para os status como botões 3D coloridos */
+.status {
+  display: inline-block;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  font-size: 0.9rem;
+  min-width: 120px;
+  border: none;
+  position: relative;
+  cursor: default;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+  
+  /* Efeito 3D com múltiplas sombras */
+  box-shadow: 
+    0 4px 0 rgba(0, 0, 0, 0.2),
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  
+  /* Gradiente sutil para profundidade */
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 100%);
+}
+
+.status-pendente {
+  background-color: #ffc107; /* Amarelo elegante */
+  border-bottom: 4px solid #e0a800;
+}
+
+.status-aprovado {
+  background-color: #28a745; /* Verde */
+  border-bottom: 4px solid #1e7e34;
+}
+
+.status-reprovado {
+  background-color: #dc3545; /* Vermelho */
+  border-bottom: 4px solid #c82333;
+}
+
+.status-em-analise {
+  background-color: #fd7e14; /* Laranja */
+  border-bottom: 4px solid #e8650e;
+}
+
+/* Efeito hover para os status */
+.status:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 0 rgba(0, 0, 0, 0.2),
+    0 8px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Efeito de pressionar (active) */
+.status:active {
+  transform: translateY(2px);
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.2),
+    0 3px 6px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 768px) {
+  .status {
+    min-width: 100px;
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+}
+
 .button-group {
     display: flex;
     justify-content: center;

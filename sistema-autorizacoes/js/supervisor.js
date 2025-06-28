@@ -40,12 +40,28 @@ document.addEventListener("DOMContentLoaded", async function() {
         if (container) container.innerHTML = `<p class="text-danger text-center">${mensagem}</p>`;
     }
 
-    function getBadgeClass(status) {
+    function getStatusHTML(status) {
+        let classe = "";
+
         switch (status) {
-            case "Aprovado": return "bg-success";
-            case "Reprovado": return "bg-danger";
-            default: return "bg-warning text-dark";
+            case "Aprovado":
+                classe = "status-aprovado";
+                break;
+            case "Reprovado":
+            case "Não Aprovado":
+                classe = "status-reprovado";
+                break;
+            case "Pendente":
+                classe = "status-pendente";
+                break;
+            case "Em Análise":
+                classe = "status-em-analise";
+                break;
+            default:
+                classe = "status-pendente"; // Default para pendente
         }
+
+        return `<span class="status ${classe}">${status || "Pendente"}</span>`;
     }
 
     function renderizarSolicitacoes(container, solicitacoes, tipo) {
@@ -60,32 +76,40 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
 
         container.innerHTML = ""; // Limpar container
-        const listGroup = document.createElement("div");
-        listGroup.className = "list-group";
 
         solicitacoes.forEach(sol => {
-            const item = document.createElement("a");
-            item.href = `detalhe.html?id=${sol.id}`;
-            item.className = "list-group-item list-group-item-action flex-column align-items-start";
+            const card = document.createElement("div");
+            card.className = "solicitacao-card";
 
             const statusSupervisor = sol.status_supervisor || "Pendente";
             const statusServicoSocial = sol.status_servico_social || "Pendente";
+            const statusMonitor = sol.status_monitor || "Pendente";
             const statusFinal = sol.status_final || "Em Análise";
 
-            item.innerHTML = `
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1">${sol.nome || "Nome não informado"} (${sol.categoria || "Cat. N/A"})</h5>
-                    <small>${window.AutorizacaoService.formatarData(sol.data_solicitacao) || "Data N/A"}</small>
+            card.innerHTML = `
+                <div class="solicitacao-header">
+                    <h3 class="solicitacao-nome">${sol.nome || "Nome não informado"} (${sol.categoria || "Cat. N/A"})</h3>
+                    <span class="solicitacao-data">${window.AutorizacaoService.formatarData(sol.data_solicitacao) || "Data N/A"}</span>
                 </div>
-                <p class="mb-1">Motivo: ${sol.motivo_destino || "Não informado"}</p>
-                <small>
-                    Status Supervisor: <span class="badge ${getBadgeClass(statusSupervisor)}">${statusSupervisor}</span>
-                    ${tipo === "historico" ? ` | Status S. Social: <span class="badge ${getBadgeClass(statusServicoSocial)}">${statusServicoSocial}</span> | Status Final: <span class="badge ${getBadgeClass(statusFinal)}">${statusFinal}</span>` : ""}
-                </small>
+                <div class="solicitacao-info">
+                    <p><strong>Motivo/Destino:</strong> ${sol.motivo_destino || "Não informado"}</p>
+                    <p><strong>Data de Saída:</strong> ${window.AutorizacaoService.formatarData(sol.data_saida) || "N/A"} às ${sol.horario_saida || "N/A"}</p>
+                    <p><strong>Data de Retorno:</strong> ${window.AutorizacaoService.formatarData(sol.data_retorno) || "N/A"} às ${sol.horario_retorno || "N/A"}</p>
+                </div>
+                <div class="solicitacao-status">
+                    <span><strong>Status Supervisor:</strong> ${getStatusHTML(statusSupervisor)}</span>
+                    ${tipo === "historico" ? `
+                        <span><strong>Status S. Social:</strong> ${getStatusHTML(statusServicoSocial)}</span>
+                        <span><strong>Status Monitor:</strong> ${getStatusHTML(statusMonitor)}</span>
+                        <span><strong>Status Final:</strong> ${getStatusHTML(statusFinal)}</span>
+                    ` : ""}
+                </div>
+                <div class="solicitacao-actions">
+                    <a href="detalhe.html?id=${sol.id}" class="btn-detalhes">Ver Detalhes</a>
+                </div>
             `;
-            listGroup.appendChild(item);
+            container.appendChild(card);
         });
-        container.appendChild(listGroup);
     }
 
     async function carregarDadosDashboard() {
