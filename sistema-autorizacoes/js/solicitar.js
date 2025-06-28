@@ -44,6 +44,73 @@ document.addEventListener('DOMContentLoaded', function() {
       alertMessage.style.display = 'none';
     }, 5000);
   }
+
+  // Função para mostrar mensagem de confirmação do Departamento de Serviço Social
+  function mostrarMensagemConfirmacao(numeroAutorizacao) {
+    // Criar o modal de confirmação
+    const modalHtml = `
+      <div id="modal-confirmacao" class="modal-overlay">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Departamento de Serviço Social</h3>
+          </div>
+          <div class="modal-body">
+            <div class="confirmacao-icon">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" fill="#28a745"/>
+                <path d="m9 12 2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <p class="confirmacao-texto">
+              Seu pedido de autorização foi enviado com sucesso, anote o número do código para consultar o status de aprovações.
+            </p>
+            <div class="codigo-autorizacao">
+              <strong>${numeroAutorizacao}</strong>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="btn-copiar-codigo" class="btn btn-secondary">Copiar Código</button>
+            <button id="btn-fechar-modal" class="btn btn-primary">Entendi</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Adicionar o modal ao body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    // Adicionar event listeners
+    document.getElementById('btn-fechar-modal').addEventListener('click', function() {
+      document.getElementById('modal-confirmacao').remove();
+      // Redirecionar após fechar o modal
+      setTimeout(function() {
+        window.location.href = 'consultar.html?id=' + numeroAutorizacao;
+      }, 500);
+    });
+
+    document.getElementById('btn-copiar-codigo').addEventListener('click', function() {
+      navigator.clipboard.writeText(numeroAutorizacao).then(function() {
+        const btnCopiar = document.getElementById('btn-copiar-codigo');
+        const textoOriginal = btnCopiar.textContent;
+        btnCopiar.textContent = 'Copiado!';
+        btnCopiar.style.backgroundColor = '#28a745';
+        setTimeout(function() {
+          btnCopiar.textContent = textoOriginal;
+          btnCopiar.style.backgroundColor = '';
+        }, 2000);
+      });
+    });
+
+    // Fechar modal ao clicar fora dele
+    document.getElementById('modal-confirmacao').addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.remove();
+        setTimeout(function() {
+          window.location.href = 'consultar.html?id=' + numeroAutorizacao;
+        }, 500);
+      }
+    });
+  }
   
   // Função para gerar um ID único
   function gerarId() {
@@ -145,16 +212,11 @@ document.addEventListener('DOMContentLoaded', function() {
         enviarNotificacaoSupervisor({...formData, id: solicitacaoId}); // Passar o ID gerado
         // ----------------------------------------------------------------------------------------
 
-        // Mostrar mensagem de sucesso
-        mostrarAlerta('Solicitação enviada com sucesso! Seu código de acompanhamento é: ' + solicitacaoId, 'alert-success');
-        
         // Limpar o formulário
         autorizacaoForm.reset();
         
-        // Redirecionar após 3 segundos para a tela de consulta com o ID
-        setTimeout(function() {
-          window.location.href = 'consultar.html?id=' + solicitacaoId;
-        }, 3000);
+        // Mostrar a nova mensagem de confirmação do Departamento de Serviço Social
+        mostrarMensagemConfirmacao(solicitacaoId);
 
     } catch (error) {
         console.error('Erro inesperado ao processar a solicitação:', error);
