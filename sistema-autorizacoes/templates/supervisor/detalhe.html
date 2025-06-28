@@ -53,9 +53,11 @@
           <p><strong>Data da Solicitação:</strong> <span id="data-solicitacao">Carregando...</span></p>
         </div>
         
-        <div class="auth-actions">
-          <button id="btn-aprovar" class="btn btn-primary">Aprovar Solicitação</button>
-          <button id="btn-reprovar" class="btn btn-secondary">Reprovar Solicitação</button>
+        <div class="auth-actions text-center">
+          <div class="button-and-text-container">
+            <button id="btn-acao" class="btn btn-primary">Ação</button>
+            <p id="texto-explicativo" class="elegant-text">Você pode alterar sua decisão a qualquer momento clicando no botão acima.</p>
+          </div>
         </div>
       </div>
       
@@ -89,13 +91,13 @@
   <script>
     // Função de logout
     function logout() {
-      if (confirm('Tem certeza que deseja sair do sistema?')) {
+      if (confirm(\'Tem certeza que deseja sair do sistema?\')) {
         // Limpar dados de sessão se houver
         localStorage.clear();
         sessionStorage.clear();
         
         // Redirecionar para a página de login
-        window.location.href = '../../index.html';
+        window.location.href = \'../../index.html\';
       }
     }
   </script>

@@ -6,6 +6,8 @@
   --cinza-medio: #e9ecef;
   --cinza-escuro: #6c757d;
   --preto: #212529;
+  --verde-aprovado: #28a745;
+  --vermelho-reprovado: #dc3545;
 }
 
 body {
@@ -246,8 +248,23 @@ body::before {
 
 .auth-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   margin-top: 20px;
+}
+
+.button-and-text-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.elegant-text {
+  margin-top: 10px;
+  font-size: 1em; /* Aumentado o tamanho da fonte */
+  color: #495057; /* Cor mais escura para melhor contraste */
+  font-style: italic;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  font-weight: 500; /* Adicionado peso da fonte */
 }
 
 /* Estilos para o modal de confirmação */
@@ -512,24 +529,6 @@ body::before {
   background: none !important;
 }
 
-/* Responsividade para dispositivos móveis */
-@media (max-width: 768px) {
-  .solicitacao-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  
-  .solicitacao-status {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .solicitacao-card {
-    padding: 15px;
-  }
-}
-
 /* Estilos para os status como botões 3D coloridos */
 .status {
   display: inline-block;
@@ -611,33 +610,71 @@ body::before {
     gap: 10px;
 }
 
-
-
 /* Estilos para os botões */
-.button-group .btn {
-    background-color: var(--vermelho-inter);
-    border-color: var(--vermelho-inter);
-    color: var(--branco);
-    transition: all 0.3s ease;
+.btn-3d {
+  position: relative;
+  display: inline-block;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  color: var(--branco);
+  
+  /* Efeito 3D */
+  box-shadow: 
+    0 4px 0 rgba(0, 0, 0, 0.2),
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  
+  /* Gradiente sutil para profundidade */
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 100%);
 }
 
-.button-group .btn:hover {
-    background-color: #28a745;
-    border-color: #28a745;
-    color: var(--branco);
+.btn-3d:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 0 rgba(0, 0, 0, 0.2),
+    0 8px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-.button-group .btn:disabled {
-    background-color: var(--vermelho-inter);
-    border-color: var(--vermelho-inter);
+.btn-3d:active {
+  transform: translateY(2px);
+  box-shadow: 
+    0 2px 0 rgba(0, 0, 0, 0.2),
+    0 3px 6px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-primary.btn-3d {
+  background-color: var(--vermelho-inter);
+  border-bottom: 4px solid #a50c23;
+}
+
+.btn-danger.btn-3d {
+  background-color: var(--vermelho-reprovado);
+  border-bottom: 4px solid #c82333;
+}
+
+.btn-success.btn-3d {
+  background-color: var(--verde-aprovado);
+  border-bottom: 4px solid #1e7e34;
+}
+
+.btn-3d:disabled {
     opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 
+      0 4px 0 rgba(0, 0, 0, 0.2),
+      0 6px 12px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
-
-.button-group .btn:disabled:hover {
-    background-color: var(--vermelho-inter);
-    border-color: var(--vermelho-inter);
-}
-
 
 /* Responsividade para dispositivos móveis */
 @media (max-width: 768px) {
@@ -652,4 +689,5 @@ body::before {
         margin-bottom: 10px;
     }
 }
+
 
