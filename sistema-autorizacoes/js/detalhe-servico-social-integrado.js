@@ -160,11 +160,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Ajustar a classe do badge de acordo com o status
     if (solicitacao.status_supervisor === 'Aprovado') {
-      statusSupervisor.className = 'badge badge-approved';
+      statusSupervisor.className = 'status status-aprovado';
     } else if (solicitacao.status_supervisor === 'Reprovado') {
-      statusSupervisor.className = 'badge badge-rejected';
+      statusSupervisor.className = 'status status-reprovado';
     } else {
-      statusSupervisor.className = 'badge badge-pending';
+      statusSupervisor.className = 'status status-pendente';
     }
     
     document.getElementById('data-aprovacao-supervisor').textContent = 
@@ -177,17 +177,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Ajustar a classe do badge de acordo com o status
     if (solicitacao.status_servico_social === 'Aprovado') {
-      statusAtual.className = 'badge badge-approved';
-      // Desabilitar botões se já aprovado
-      if (btnValidar) btnValidar.disabled = true;
-      if (btnReprovar) btnReprovar.disabled = true;
-    } else if (solicitacao.status_servico_social === 'Reprovado') {
-      statusAtual.className = 'badge badge-rejected';
-      // Desabilitar botões se já reprovado
+      statusAtual.className = solicitacao.status_servico_social === 'Aprovado' ? 'status status-aprovado' : 'status status-reprovado';
+      // Desabilitar botões se já aprovado ou reprovado
       if (btnValidar) btnValidar.disabled = true;
       if (btnReprovar) btnReprovar.disabled = true;
     } else {
-      statusAtual.className = 'badge badge-pending';
+      statusAtual.className = 'status status-pendente';
     }
   }
   
@@ -478,3 +473,22 @@ Serviço Social - Sport Club Internacional`;
     });
   }
 });
+
+
+  const btnGerarPdf = document.getElementById('btn-gerar-pdf');
+  if (btnGerarPdf) {
+    btnGerarPdf.addEventListener('click', async function() {
+      if (solicitacaoAtual && window.pdfService) {
+        const resultado = await window.pdfService.gerarRelatorio(solicitacaoAtual.id);
+        if (resultado.sucesso) {
+          alert(resultado.mensagem);
+        } else {
+          alert(resultado.mensagem);
+        }
+      } else {
+        alert('Serviço de PDF não disponível ou solicitação não carregada.');
+      }
+    });
+  }
+
+

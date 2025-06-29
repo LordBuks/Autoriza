@@ -27,3 +27,8 @@
   - [ ] Fazer commit das alterações.
   - [ ] Fazer push para o repositório do GitHub.
 
+
+
+- [x] Corrigir erro de geração de PDF: Expor a função `gerarRelatorio` no `window.pdfService`.
+- [x] Corrigir exibição de cores nos status do serviço social: Verificar e ajustar a lógica de aplicação de classes CSS nos arquivos `detalhe-servico-social-integrado.js` e `servico-social-controller.js`.
+

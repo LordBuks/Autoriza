@@ -136,11 +136,11 @@ const ServicoSocialController = (function() {
       
       // Ajustar a classe do badge de acordo com o status
       if (solicitacao.status_supervisor === 'Aprovado') {
-        statusSupervisor.className = 'badge bg-success';
+        statusSupervisor.className = 'status status-aprovado';
       } else if (solicitacao.status_supervisor === 'Reprovado') {
-        statusSupervisor.className = 'badge bg-danger';
+        statusSupervisor.className = 'status status-reprovado';
       } else {
-        statusSupervisor.className = 'badge bg-warning';
+        statusSupervisor.className = 'status status-pendente';
       }
     }
     
@@ -151,11 +151,11 @@ const ServicoSocialController = (function() {
       
       // Ajustar a classe do badge de acordo com o status
       if (solicitacao.status_servico_social === 'Aprovado') {
-        statusAtual.className = 'badge bg-success';
+        statusAtual.className = 'status status-aprovado';
       } else if (solicitacao.status_servico_social === 'Reprovado') {
-        statusAtual.className = 'badge bg-danger';
+        statusAtual.className = 'status status-reprovado';
       } else {
-        statusAtual.className = 'badge bg-warning';
+        statusAtual.className = 'status status-pendente';
       }
     }
     
