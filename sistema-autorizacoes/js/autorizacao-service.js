@@ -216,8 +216,9 @@ const AutorizacaoService = (function() {
     /**
      * Atualiza o status de uma solicitação no Firestore.
      * @param {string} id - ID da solicitação
-     * @param {string} perfil - Perfil que está atualizando ('supervisor', 'servico_social' ou 'monitor')
-     * @param {string} status - Novo status ('Aprovado' ou 'Reprovado')
+     * @param {string} perfil - Perfil que está atualizando (
+     *                          'supervisor', 'servico_social', 'monitor' ou 'geral' para status_geral)
+     * @param {string} status - Novo status
      * @param {string} observacao - Observação opcional
      * @returns {Promise<Object>} Promise com o resultado da operação
      */
@@ -240,7 +241,7 @@ const AutorizacaoService = (function() {
           data_modificacao: new Date().toISOString()
         };
 
-        // 3. Atualizar o status do perfil específico
+        // 3. Atualizar o status do perfil específico ou o status_geral
         if (perfil === 'supervisor') {
           dadosAtualizar.status_supervisor = status;
           dadosAtualizar.observacao_supervisor = observacao;
@@ -259,34 +260,60 @@ const AutorizacaoService = (function() {
               dadosAtualizar.status_monitor = 'Reprovado';
               dadosAtualizar.observacao_monitor = 'Reprovado automaticamente devido à reprovação do supervisor';
             }
+            dadosAtualizar.status_geral = 'reprovado_supervisor'; // Novo status geral
+          } else if (status === 'Aprovado') {
+            // Se supervisor aprova, e pais já aprovaram, vai para serviço social
+            if (solicitacao.status_pais === 'Aprovado') {
+              dadosAtualizar.status_geral = 'pendente_servico_social';
+            } else {
+              dadosAtualizar.status_geral = 'pendente_pais'; // Ou manter o status anterior se os pais ainda não aprovaram
+            }
           }
         } else if (perfil === 'servico_social') {
           dadosAtualizar.status_servico_social = status;
           dadosAtualizar.observacao_servico_social = observacao;
+          if (status === 'Aprovado') {
+            dadosAtualizar.status_geral = 'aprovado_servico_social';
+          } else if (status === 'Reprovado') {
+            dadosAtualizar.status_geral = 'reprovado_servico_social';
+          }
         } else if (perfil === 'monitor') {
           dadosAtualizar.status_monitor = status;
           dadosAtualizar.observacao_monitor = observacao;
+          if (status === 'Arquivado') {
+            dadosAtualizar.status_geral = 'arquivado_monitor';
+          }
+        } else if (perfil === 'geral') {
+          // Usado para atualizar o status_geral diretamente, por exemplo, pela aprovação dos pais
+          dadosAtualizar.status_geral = status;
         } else {
              return { sucesso: false, mensagem: 'Perfil inválido para atualização.' };
         }
 
-        // 4. Determinar o status final com base nos status atualizados
-        const statusSupervisorAtualizado = (perfil === 'supervisor') ? status : solicitacao.status_supervisor;
+        // 4. Determinar o status final com base nos status atualizados (mantido para compatibilidade, mas status_geral é o principal)
+        const statusSupervisorAtualizado = dadosAtualizar.status_supervisor || solicitacao.status_supervisor;
         const statusServicoSocialAtualizado = dadosAtualizar.status_servico_social || solicitacao.status_servico_social;
         const statusMonitorAtualizado = dadosAtualizar.status_monitor || solicitacao.status_monitor;
+        const statusPaisAtualizado = dadosAtualizar.status_pais || solicitacao.status_pais; // Adicionado status dos pais
 
         // Se qualquer um dos perfis reprovou, o status final é reprovado
         if (statusSupervisorAtualizado === 'Reprovado' || 
             statusServicoSocialAtualizado === 'Reprovado' || 
-            statusMonitorAtualizado === 'Reprovado') {
+            statusMonitorAtualizado === 'Reprovado' ||
+            statusPaisAtualizado === 'Reprovado') { // Incluído status dos pais
           dadosAtualizar.status_final = 'Reprovado';
         } 
         // Se todos aprovaram, o status final é aprovado
         else if (statusSupervisorAtualizado === 'Aprovado' && 
                  statusServicoSocialAtualizado === 'Aprovado' && 
-                 statusMonitorAtualizado === 'Aprovado') {
+                 statusMonitorAtualizado === 'Aprovado' &&
+                 statusPaisAtualizado === 'Aprovado') { // Incluído status dos pais
           dadosAtualizar.status_final = 'Aprovado';
         } 
+        // Se o monitor arquivou, o status final é arquivado
+        else if (statusMonitorAtualizado === 'Arquivado') {
+          dadosAtualizar.status_final = 'Arquivado';
+        }
         // Caso contrário, continua em análise
         else {
           dadosAtualizar.status_final = 'Em Análise';
@@ -294,7 +321,7 @@ const AutorizacaoService = (function() {
 
         // 5. Atualizar o documento no Firestore
         await window.firebaseService.atualizarDocumento(COLLECTION_NAME, id, dadosAtualizar);
-        console.log(`Status da solicitação ${id} atualizado no Firestore pelo ${perfil}. Novo status final: ${dadosAtualizar.status_final}`);
+        console.log(`Status da solicitação ${id} atualizado no Firestore pelo ${perfil}. Novo status geral: ${dadosAtualizar.status_geral}`);
 
         // Log da reprovação automática se aplicável
         if (perfil === 'supervisor' && status === 'Reprovado') {
@@ -306,19 +333,19 @@ const AutorizacaoService = (function() {
 
         // Notificar se o serviço de notificação estiver disponível
         if (window.notificacaoService) {
-          if (perfil === 'supervisor' && dadosAtualizar.status_final !== 'Reprovado') {
+          if (perfil === 'supervisor' && dadosAtualizar.status_geral !== 'reprovado_supervisor') {
             // Notifica Serviço Social apenas se não foi reprovado pelo supervisor
             window.notificacaoService.enviarNotificacaoServicoSocial(solicitacaoAtualizada);
-          } else if (perfil === 'servico_social' && dadosAtualizar.status_final !== 'Reprovado') {
+          } else if (perfil === 'servico_social' && dadosAtualizar.status_geral !== 'reprovado_servico_social') {
             // Notifica Monitor apenas se não foi reprovado
             window.notificacaoService.enviarNotificacaoMonitor(solicitacaoAtualizada);
-          } else if (perfil === 'monitor') {
-            // Notifica Atleta após decisão do Monitor
+          } else if (perfil === 'monitor' && dadosAtualizar.status_geral === 'arquivado_monitor') {
+            // Notifica Atleta após arquivamento pelo Monitor
             window.notificacaoService.enviarNotificacaoAtleta(solicitacaoAtualizada);
           }
           
           // Se foi reprovado por qualquer perfil, notificar o atleta imediatamente
-          if (dadosAtualizar.status_final === 'Reprovado') {
+          if (dadosAtualizar.status_geral && dadosAtualizar.status_geral.startsWith('reprovado')) {
              window.notificacaoService.enviarNotificacaoAtleta(solicitacaoAtualizada); 
           }
         }
@@ -350,4 +377,6 @@ const AutorizacaoService = (function() {
 // Exportar para uso global (se ainda necessário)
 // Se estiver usando módulos ES6, prefira exportar.
 window.AutorizacaoService = AutorizacaoService;
+
+
 

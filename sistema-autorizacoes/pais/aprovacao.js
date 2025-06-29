@@ -3,21 +3,21 @@
  * Sistema de Autorizações Digitais - SC Internacional.
  */
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", function() {
     // Elementos da UI
-    const loadingContainer = document.getElementById('loading');
-    const errorContainer = document.getElementById('error-container');
-    const errorMessage = document.getElementById('error-message');
-    const mainContent = document.getElementById('main-content');
-    const successContainer = document.getElementById('success-container');
-    const successMessage = document.getElementById('success-message');
+    const loadingContainer = document.getElementById("loading");
+    const errorContainer = document.getElementById("error-container");
+    const errorMessage = document.getElementById("error-message");
+    const mainContent = document.getElementById("main-content");
+    const successContainer = document.getElementById("success-container");
+    const successMessage = document.getElementById("success-message");
     
     // Botões de ação
-    const btnAprovar = document.getElementById('btn-aprovar');
-    const btnReprovar = document.getElementById('btn-reprovar');
+    const btnAprovar = document.getElementById("btn-aprovar");
+    const btnReprovar = document.getElementById("btn-reprovar");
     
     // Campos de texto
-    const observacaoInput = document.getElementById('observacao');
+    const observacaoInput = document.getElementById("observacao");
     
     // Variáveis globais
     let solicitacaoId = null;
@@ -32,12 +32,12 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     async function inicializarPagina() {
         try {
-            console.log('Inicializando página de aprovação...');
+            console.log("Inicializando página de aprovação...");
             
             // Extrair parâmetros da URL
             const urlParams = new URLSearchParams(window.location.search);
-            solicitacaoId = urlParams.get('id');
-            tokenValidacao = urlParams.get('token');
+            solicitacaoId = urlParams.get("id");
+            tokenValidacao = urlParams.get("token");
             
             console.log("Parâmetros da URL:", { solicitacaoId, tokenValidacao });
             
@@ -94,12 +94,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const verificarFirebase = () => {
                 tentativas++;
                 
-                if (window.firebaseService && typeof firebase !== 'undefined') {
-                    console.log('Firebase disponível');
+                if (window.firebaseService && typeof firebase !== "undefined") {
+                    console.log("Firebase disponível");
                     resolve();
                 } else if (tentativas >= maxTentativas) {
-                    console.warn('Firebase não disponível após múltiplas tentativas');
-                    reject(new Error('Firebase não disponível'));
+                    console.warn("Firebase não disponível após múltiplas tentativas");
+                    reject(new Error("Firebase não disponível"));
                 } else {
                     console.log(`Aguardando Firebase... tentativa ${tentativas}`);
                     setTimeout(verificarFirebase, 500);
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             if (window.auditoriaService) {
                 await window.auditoriaService.registrarAcessoPais(solicitacaoId, tokenValidacao);
-                console.log('Acesso registrado na auditoria');
+                console.log("Acesso registrado na auditoria");
             } else {
                 console.warn("Serviço de auditoria não disponível");
             }
@@ -157,10 +157,10 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     async function carregarDadosSolicitacao() {
         try {
-            console.log('Carregando dados da solicitação...');
+            console.log("Carregando dados da solicitação...");
             
             if (!window.firebaseService) {
-                throw new Error('Serviço Firebase não disponível');
+                throw new Error("Serviço Firebase não disponível");
             }
             
             // Buscar documento no Firestore
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingContainer.classList.add("hidden");
             mainContent.classList.remove("hidden");
             
-            console.log('Dados carregados com sucesso');
+            console.log("Dados carregados com sucesso");
             
         } catch (error) {
             console.error("Erro ao carregar dados da solicitação:", error);
@@ -225,9 +225,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById("data-hora-retorno").textContent = formatarDataHora(dados.data_retorno, dados.horario_retorno);
             document.getElementById("motivo-destino").textContent = dados.motivo_destino || "N/A";
             
-            console.log('Dados preenchidos na página');
+            console.log("Dados preenchidos na página");
         } catch (error) {
-            console.error('Erro ao preencher dados na página:', error);
+            console.error("Erro ao preencher dados na página:", error);
         }
     }
     
@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (btnReprovar) {
             btnReprovar.addEventListener("click", () => registrarDecisao("Reprovado"));
         }
-        console.log('Event listeners configurados');
+        console.log("Event listeners configurados");
     }
     
     /**
@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     async function registrarDecisao(decisao) {
         try {
-            console.log('Registrando decisão:', decisao);
+            console.log("Registrando decisão:", decisao);
             
             // Desabilitar botões para evitar duplo clique
             btnAprovar.disabled = true;
@@ -258,23 +258,34 @@ document.addEventListener('DOMContentLoaded', function() {
             const observacao = observacaoInput.value.trim();
             
             if (!window.firebaseService) {
-                throw new Error('Serviço Firebase não disponível');
+                throw new Error("Serviço Firebase não disponível");
             }
             
+            // Determinar o status_geral com base na decisão dos pais
+            let novoStatusGeral;
+            if (decisao === "Aprovado") {
+                novoStatusGeral = "pendente_servico_social";
+            } else if (decisao === "Reprovado") {
+                novoStatusGeral = "reprovado_pais";
+            } else {
+                novoStatusGeral = "erro"; // Ou algum status padrão para caso inesperado
+            }
+
             // Dados para atualização
             const dadosAtualizacao = {
                 status_pais: decisao,
                 observacao_pais: observacao,
                 data_decisao_pais: firebase.firestore.FieldValue.serverTimestamp(),
                 ip_decisao_pais: await obterIP(),
-                user_agent_pais: navigator.userAgent
+                user_agent_pais: navigator.userAgent,
+                status_geral: novoStatusGeral // Adiciona o novo status geral
             };
             
             // Atualizar documento no Firestore
             const resultado = await window.firebaseService.atualizarDocumento("solicitacoes", solicitacaoId, dadosAtualizacao);
             
             if (!resultado.sucesso) {
-                throw new Error(resultado.erro || 'Erro ao salvar decisão');
+                throw new Error(resultado.erro || "Erro ao salvar decisão");
             }
             
             // Registrar na auditoria
@@ -285,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Mostrar mensagem de sucesso
             mostrarSucesso(`Solicitação ${decisao.toLowerCase()} com sucesso! Obrigado por utilizar o Sistema de Autorizações Digitais.`);
             
-            console.log('Decisão registrada com sucesso');
+            console.log("Decisão registrada com sucesso");
             
         } catch (error) {
             console.error("Erro ao registrar decisão:", error);
@@ -303,12 +314,12 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     async function obterIP() {
         try {
-            const response = await fetch('https://api.ipify.org?format=json');
+            const response = await fetch("https://api.ipify.org?format=json");
             const data = await response.json();
             return data.ip;
         } catch (error) {
-            console.warn('Não foi possível obter IP:', error);
-            return 'unknown';
+            console.warn("Não foi possível obter IP:", error);
+            return "unknown";
         }
     }
     
@@ -350,11 +361,11 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             let dataObj;
             
-            if (data && typeof data.toDate === 'function') {
+            if (data && typeof data.toDate === "function") {
                 dataObj = data.toDate();
             } else if (data instanceof Date) {
                 dataObj = data;
-            } else if (typeof data === 'string') {
+            } else if (typeof data === "string") {
                 dataObj = new Date(data);
             } else {
                 return "N/A";
@@ -381,11 +392,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             return resultado;
         } catch (error) {
-            console.error('Erro ao formatar data/hora:', error);
+            console.error("Erro ao formatar data/hora:", error);
             return "N/A";
         }
     }
     
-    console.log('Script de aprovação carregado');
+    console.log("Script de aprovação carregado");
 });
+
+
 

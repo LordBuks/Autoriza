@@ -44,17 +44,19 @@
           <p><strong>Telefone:</strong> <span id="telefone-responsavel">Carregando...</span></p>
           
           <h3>Status da Solicitação</h3>
+          <p><strong>Status Geral:</strong> <span id="status-geral" class="badge">Carregando...</span></p>
+          <p><strong>Status Pais:</strong> <span id="status-pais" class="badge">Carregando...</span></p>
           <p><strong>Status Supervisor:</strong> <span id="status-supervisor" class="badge">Carregando...</span></p>
           <p><strong>Data da Aprovação Supervisor:</strong> <span id="data-aprovacao-supervisor">Carregando...</span></p>
           <p><strong>Status Serviço Social:</strong> <span id="status-servico-social" class="badge">Carregando...</span></p>
           <p><strong>Data da Aprovação Serviço Social:</strong> <span id="data-aprovacao-servico-social">Carregando...</span></p>
+          <p><strong>Status Monitor:</strong> <span id="status-monitor" class="badge">Carregando...</span></p>
           <p><strong>Status Final:</strong> <span id="status-final" class="badge">Carregando...</span></p>
         </div>
         
         <div class="auth-actions">
           <button id="btn-enviar-whatsapp" class="btn btn-primary">Enviar Mensagem ao Responsável</button>
-          <!-- <button id="btn-validar" class="btn btn-primary">Validar Autorização</button> -->
-          <!-- <button id="btn-reprovar" class="btn btn-secondary">Reprovar Autorização</button> -->
+          <button id="btn-arquivar" class="btn btn-secondary">Arquivar</button>
         </div>
       </div>
       
@@ -78,11 +80,6 @@
   </div>
 
   <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade ) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-  <!-- Firebase Config (Adicionado - inicializa firebaseService  ) -->
   <script src="../../js/firebase-config.js"></script>
 
   <!-- Script de lógica da página de detalhes -->
@@ -90,13 +87,13 @@
   <script>
     // Função de logout
     function logout() {
-      if (confirm(\'Tem certeza que deseja sair do sistema?\')) {
+      if (confirm('Tem certeza que deseja sair do sistema?')) {
         // Limpar dados de sessão se houver
         localStorage.clear();
         sessionStorage.clear();
         
         // Redirecionar para a página de login
-        window.location.href = \'../../index.html\';
+        window.location.href = '../../index.html';
       }
     }
   </script>

@@ -564,3 +564,63 @@ window.pdfService = (function() {
         gerarRelatorioPdf: gerarPDF
     };
 })();
+
+
+    // Função principal para gerar o relatório PDF
+    async function gerarRelatorio(solicitacaoId) {
+        try {
+            // Carrega os dados da solicitação e auditoria
+            const dados = await obterDadosSolicitacao(solicitacaoId);
+            
+            // Inicializa o jsPDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: CONFIG.orientacao,
+                unit: 'mm',
+                format: CONFIG.formato
+            });
+            
+            // Adiciona cabeçalho e rodapé para a primeira página
+            criarCabecalhoPDF(doc);
+            
+            // Adiciona informações da solicitação
+            let posicaoY = adicionarInformacoesSolicitacao(doc, dados);
+            
+            // Adiciona histórico de auditoria
+            posicaoY = adicionarHistoricoAuditoria(doc, dados, posicaoY);
+            
+            // Adiciona seção de validação legal
+            posicaoY = adicionarSecaoValidacaoLegal(doc, dados.solicitacao, posicaoY);
+            
+            // Adiciona assinaturas digitais
+            posicaoY = adicionarAssinaturasDigitais(doc, dados.solicitacao, posicaoY);
+            
+            // Adiciona rodapé a todas as páginas
+            const totalPaginas = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= totalPaginas; i++) {
+                criarRodapePDF(doc, i);
+            }
+            
+            // Salva o PDF
+            const nomeArquivo = `relatorio_autorizacao_${solicitacaoId.substring(0, 8)}.pdf`;
+            doc.save(nomeArquivo);
+            
+            // Registra o evento de geração de PDF
+            await window.auditoriaService.registrarGeracaoPDF(solicitacaoId, 'Relatório de Auditoria');
+            
+            return { sucesso: true, mensagem: `Relatório ${nomeArquivo} gerado com sucesso!` };
+        } catch (error) {
+            console.error('Erro ao gerar relatório PDF:', error);
+            return { sucesso: false, mensagem: `Erro ao gerar relatório PDF: ${error.message}` };
+        }
+    }
+
+    // Interface pública do serviço
+    return {
+        gerarRelatorio: gerarRelatorio
+    };
+})();
+
+console.log('PDFService carregado e exposto globalmente');
+
+

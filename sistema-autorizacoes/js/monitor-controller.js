@@ -1,42 +1,27 @@
 /**
- * Controlador de Serviço Social - Sistema de Autorizações Digitais
+ * Controlador de Monitor - Sistema de Autorizações Digitais
  * 
- * Este módulo unifica as funcionalidades de serviço social (integrado e não integrado)
- * utilizando o padrão Module e o serviço centralizado de autorizações (agora assíncrono).
+ * Este módulo gerencia as funcionalidades específicas do perfil de monitor,
+ * incluindo a visualização de solicitações e a funcionalidade de arquivamento.
  */
 
-const ServicoSocialController = (function() {
+const MonitorController = (function() {
   // Elementos da interface
-  let btnAprovar;
-  let btnReprovar;
-  let modalObservacao;
-  let btnConfirmar;
-  let btnCancelar;
+  let btnArquivar;
   let loadingIndicator; // Indicador de carregamento
   let alertContainer; // Container para mensagens de alerta
 
   // Variáveis de controle
   let solicitacaoAtual = null;
-  let acaoAtual = null; // 'Aprovado' ou 'Reprovado'
   let idSolicitacaoAtual = null;
 
   // Inicialização do controlador
   async function inicializar() {
-    console.log("ServicoSocialController inicializando...");
+    console.log("MonitorController inicializando...");
     // Capturar elementos do DOM
-    btnAprovar = document.getElementById("btn-aprovar");
-    btnReprovar = document.getElementById("btn-reprovar");
-    modalObservacao = document.getElementById("modal-observacao");
-    btnConfirmar = document.getElementById("btn-confirmar");
-    btnCancelar = document.getElementById("btn-cancelar");
+    btnArquivar = document.getElementById("btn-arquivar");
     loadingIndicator = document.getElementById("loading-indicator");
     alertContainer = document.getElementById("alert-container");
-
-    // Verificar se estamos na página correta (detalhe do serviço social)
-    if (!btnAprovar && !btnReprovar) {
-        console.log("Não estamos na página de detalhe do Serviço Social.");
-        return;
-    }
 
     // Obter ID da solicitação da URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -52,7 +37,7 @@ const ServicoSocialController = (function() {
 
     // Configurar eventos
     configurarEventos();
-    console.log("ServicoSocialController inicializado.");
+    console.log("MonitorController inicializado.");
   }
 
   // Função para mostrar/ocultar indicador de carregamento
@@ -85,8 +70,7 @@ const ServicoSocialController = (function() {
 
       if (!solicitacaoAtual) {
         mostrarAlerta("Solicitação não encontrada.", "alert-danger");
-        if (btnAprovar) btnAprovar.disabled = true;
-        if (btnReprovar) btnReprovar.disabled = true;
+        if (btnArquivar) btnArquivar.disabled = true;
         setLoading(false);
         return;
       }
@@ -99,8 +83,7 @@ const ServicoSocialController = (function() {
     } catch (error) {
       console.error("Erro ao carregar solicitação:", error);
       mostrarAlerta("Erro ao carregar dados da solicitação. Verifique o console.", "alert-danger");
-      if (btnAprovar) btnAprovar.disabled = true;
-      if (btnReprovar) btnReprovar.disabled = true;
+      if (btnArquivar) btnArquivar.disabled = true;
     } finally {
       setLoading(false);
     }
@@ -122,18 +105,29 @@ const ServicoSocialController = (function() {
       document.getElementById('nome-responsavel').textContent = solicitacao.nome_responsavel || 'N/A';
       document.getElementById('telefone-responsavel').textContent = solicitacao.telefone_responsavel || 'N/A';
       
-      // Verificar status do supervisor
-      const statusSupervisor = document.getElementById('status-supervisor');
-      if (statusSupervisor) {
-          statusSupervisor.textContent = solicitacao.status_supervisor || 'Pendente';
-          statusSupervisor.className = `badge ${getBadgeClass(solicitacao.status_supervisor)}`;
+      // Novos campos de status
+      const statusGeralElement = document.getElementById('status-geral');
+      if (statusGeralElement) {
+        statusGeralElement.textContent = solicitacao.status_geral || 'N/A';
+        statusGeralElement.className = `badge ${getBadgeClass(solicitacao.status_geral)}`;
       }
-      
-      // Exibir status atual do serviço social
-      const statusAtual = document.getElementById('status-atual');
-      if (statusAtual) {
-          statusAtual.textContent = solicitacao.status_servico_social || 'Pendente';
-          statusAtual.className = `badge ${getBadgeClass(solicitacao.status_servico_social)}`;
+
+      const statusPaisElement = document.getElementById('status-pais');
+      if (statusPaisElement) {
+        statusPaisElement.textContent = solicitacao.status_pais || 'N/A';
+        statusPaisElement.className = `badge ${getBadgeClass(solicitacao.status_pais)}`;
+      }
+
+      const statusServicoSocialElement = document.getElementById('status-servico-social');
+      if (statusServicoSocialElement) {
+        statusServicoSocialElement.textContent = solicitacao.status_servico_social || 'N/A';
+        statusServicoSocialElement.className = `badge ${getBadgeClass(solicitacao.status_servico_social)}`;
+      }
+
+      const statusMonitorElement = document.getElementById('status-monitor');
+      if (statusMonitorElement) {
+        statusMonitorElement.textContent = solicitacao.status_monitor || 'N/A';
+        statusMonitorElement.className = `badge ${getBadgeClass(solicitacao.status_monitor)}`;
       }
 
       // Mostrar observação do supervisor se existir
@@ -148,181 +142,117 @@ const ServicoSocialController = (function() {
           }
       }
 
-      // Mostrar observação atual do serviço social se existir
-      const containerObservacao = document.getElementById('container-observacao');
-      const observacaoAtualElement = document.getElementById('observacao-atual');
-      if (containerObservacao && observacaoAtualElement) {
+      // Mostrar observação do serviço social se existir
+      const containerObservacaoSS = document.getElementById('container-observacao-servico-social');
+      const observacaoSSElement = document.getElementById('observacao-servico-social');
+      if (containerObservacaoSS && observacaoSSElement) {
           if (solicitacao.observacao_servico_social) {
-              observacaoAtualElement.textContent = solicitacao.observacao_servico_social;
-              containerObservacao.style.display = 'block';
+              observacaoSSElement.textContent = solicitacao.observacao_servico_social;
+              containerObservacaoSS.style.display = 'block';
           } else {
-              containerObservacao.style.display = 'none';
+              containerObservacaoSS.style.display = 'none';
           }
       }
-      
-      // Desabilitar botões se:
-      // 1. O supervisor já reprovou
-      // 2. O serviço social já tomou uma decisão
-      const supervisorReprovou = solicitacao.status_supervisor === 'Reprovado';
-      const servicoSocialDecidiu = solicitacao.status_servico_social !== 'Pendente';
 
-      if (supervisorReprovou || servicoSocialDecidiu) {
-          if (btnAprovar) btnAprovar.disabled = true;
-          if (btnReprovar) btnReprovar.disabled = true;
-          
-          if (supervisorReprovou && btnAprovar) {
-              btnAprovar.textContent = 'Reprovado pelo Supervisor';
-              btnAprovar.classList.add('btn-danger'); // Indica visualmente
-              btnAprovar.classList.remove('btn-success');
-          } else if (servicoSocialDecidiu && btnAprovar) {
-              btnAprovar.textContent = `Status: ${solicitacao.status_servico_social}`;
-          }
-          if (btnReprovar) btnReprovar.style.display = 'none';
-
-      } else {
-          // Habilitar botões se o supervisor aprovou ou está pendente E o serviço social está pendente
-          if (btnAprovar) btnAprovar.disabled = false;
-          if (btnReprovar) btnReprovar.disabled = false;
-          if (btnAprovar) {
-              btnAprovar.textContent = 'Aprovar';
-              btnAprovar.classList.remove('btn-danger');
-              btnAprovar.classList.add('btn-success');
-          }
-          if (btnReprovar) btnReprovar.style.display = 'inline-block'; 
+      // Habilitar/desabilitar botão de arquivar
+      if (btnArquivar) {
+        if (solicitacao.status_geral === 'aprovado_servico_social' || solicitacao.status_geral === 'reprovado_servico_social') {
+          btnArquivar.disabled = false;
+        } else {
+          btnArquivar.disabled = true;
+        }
       }
   }
 
   // Função auxiliar para obter a classe do badge com base no status
   function getBadgeClass(status) {
       switch (status) {
+          case 'aprovado_servico_social': return 'bg-success';
+          case 'reprovado_servico_social': return 'bg-danger';
+          case 'pendente_pais': return 'bg-warning text-dark';
+          case 'pendente_servico_social': return 'bg-info text-dark';
+          case 'reprovado_pais': return 'bg-danger';
+          case 'arquivado_monitor': return 'bg-secondary';
           case 'Aprovado': return 'bg-success';
           case 'Reprovado': return 'bg-danger';
-          case 'Pendente': return 'bg-secondary';
-          default: return 'bg-warning text-dark'; // Em Análise ou outros
+          case 'Pendente': return 'bg-warning text-dark';
+          default: return 'bg-secondary'; // Para outros status ou N/A
       }
   }
 
-  // Configurar eventos dos botões e modal
+  // Configurar eventos dos botões
   function configurarEventos() {
-      if (btnAprovar) {
-          btnAprovar.addEventListener('click', () => {
-              if (btnAprovar.disabled) return;
-              acaoAtual = 'Aprovado';
-              abrirModalObservacao();
+      if (btnArquivar) {
+          btnArquivar.addEventListener('click', async () => {
+              if (btnArquivar.disabled) return;
+              await arquivarSolicitacao();
           });
-      }
-
-      if (btnReprovar) {
-          btnReprovar.addEventListener('click', () => {
-              if (btnReprovar.disabled) return;
-              acaoAtual = 'Reprovado';
-              abrirModalObservacao();
-          });
-      }
-
-      if (btnConfirmar) {
-          btnConfirmar.addEventListener('click', async () => {
-              const observacaoInput = document.getElementById('observacao');
-              const observacao = observacaoInput ? observacaoInput.value.trim() : '';
-              
-              if (acaoAtual === 'Reprovado' && !observacao) {
-                  alert('A observação é obrigatória ao reprovar.');
-                  return;
-              }
-
-              fecharModalObservacao();
-              await atualizarStatusSolicitacao(acaoAtual, observacao);
-              if(observacaoInput) observacaoInput.value = '';
-          });
-      }
-
-      if (btnCancelar) {
-          btnCancelar.addEventListener('click', () => {
-              fecharModalObservacao();
-              const observacaoInput = document.getElementById('observacao');
-              if(observacaoInput) observacaoInput.value = '';
-          });
-      }
-
-      window.addEventListener('click', (event) => {
-          if (modalObservacao && event.target == modalObservacao) {
-              fecharModalObservacao();
-          }
-      });
-  }
-
-  function abrirModalObservacao() {
-      if (modalObservacao) {
-          modalObservacao.style.display = 'block';
       }
   }
 
-  function fecharModalObservacao() {
-      if (modalObservacao) {
-          modalObservacao.style.display = 'none';
-      }
-  }
-
-  // Função para aprovar/reprovar solicitação (assíncrona)
-  async function atualizarStatusSolicitacao(novoStatus, observacao) {
+  // Função para arquivar solicitação
+  async function arquivarSolicitacao() {
     if (!solicitacaoAtual) {
-        mostrarAlerta("Erro: Nenhuma solicitação carregada.", "alert-danger");
+        mostrarAlerta("Erro: Nenhuma solicitação carregada para arquivar.", "alert-danger");
         return;
     }
 
     setLoading(true);
-    mostrarAlerta(`Atualizando status para ${novoStatus}...`, "alert-info");
+    mostrarAlerta("Arquivando solicitação...", "alert-info");
 
     try {
       const resultado = await window.AutorizacaoService.atualizarStatus(
         solicitacaoAtual.id,
-        'servico_social', // Perfil correto
-        novoStatus,
-        observacao
+        'monitor',
+        'Arquivado',
+        'Solicitação arquivada pelo monitor.'
       );
 
       if (resultado.sucesso) {
-        mostrarAlerta(`Solicitação ${novoStatus.toLowerCase()} com sucesso!`, "alert-success");
+        // Atualizar o status_geral para 'arquivado_monitor'
+        await window.AutorizacaoService.atualizarStatus(
+          solicitacaoAtual.id,
+          'geral',
+          'arquivado_monitor',
+          'Solicitação arquivada pelo monitor.'
+        );
+        mostrarAlerta("Solicitação arquivada com sucesso!", "alert-success");
         solicitacaoAtual = resultado.solicitacao; // Atualiza a variável local
         preencherDadosPagina(solicitacaoAtual); // Recarrega dados na página
       } else {
-        mostrarAlerta(`Erro ao ${novoStatus.toLowerCase()} solicitação: ${resultado.mensagem}`, "alert-danger");
+        mostrarAlerta(`Erro ao arquivar solicitação: ${resultado.mensagem}`, "alert-danger");
       }
     } catch (error) {
-        console.error(`Erro ao atualizar status para ${novoStatus}:`, error);
-        mostrarAlerta(`Erro técnico ao atualizar status. Verifique o console.`, "alert-danger");
+        console.error("Erro ao arquivar solicitação:", error);
+        mostrarAlerta(`Erro técnico ao arquivar solicitação. Verifique o console.`, "alert-danger");
     } finally {
         setLoading(false);
         setTimeout(() => { if (alertContainer) alertContainer.style.display = 'none'; }, 5000);
     }
   }
 
-  // Funções que estavam no código original mas parecem não ser usadas aqui 
-  // (aprovarSolicitacao, reprovarSolicitacao, enviarWhatsApp, obterSolicitacao, carregarSolicitacoes, atualizarInterface)
-  // Foram substituídas pela lógica integrada em inicializar, carregarSolicitacao e atualizarStatusSolicitacao.
-  // Removê-las ou mantê-las comentadas.
-
   // API pública
   return {
     inicializar: inicializar
-    // Não expor funções internas como aprovarSolicitacao, etc.
   };
 })();
 
 // Inicializar o controlador quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
   if (window.firebaseService && window.AutorizacaoService) {
-      ServicoSocialController.inicializar();
+      MonitorController.inicializar();
   } else {
       console.warn("firebaseService ou AutorizacaoService não encontrado imediatamente. Tentando inicializar em 500ms...");
       setTimeout(() => {
           if (window.firebaseService && window.AutorizacaoService) {
-              ServicoSocialController.inicializar();
+              MonitorController.inicializar();
           } else {
-              console.error("Falha ao inicializar ServicoSocialController: dependências não disponíveis.");
-              alert("Erro crítico: Não foi possível conectar aos serviços de dados. Funcionalidades do serviço social podem não funcionar.");
+              console.error("Falha ao inicializar MonitorController: dependências não disponíveis.");
+              alert("Erro crítico: Não foi possível conectar aos serviços de dados. Funcionalidades do monitor podem não funcionar.");
           }
       }, 500);
   }
 });
+
+
 

@@ -54,7 +54,12 @@ const SolicitacaoController = (function() {
       horario_retorno: document.getElementById("horario_retorno").value,
       motivo_destino: document.getElementById("motivo_destino").value,
       nome_responsavel: document.getElementById("nome_responsavel").value,
-      telefone_responsavel: document.getElementById("telefone_responsavel").value
+      telefone_responsavel: document.getElementById("telefone_responsavel").value,
+      // Novos campos de status
+      status_geral: 'pendente_pais',
+      status_pais: 'pendente',
+      status_servico_social: 'pendente',
+      status_monitor: 'pendente'
     };
 
     let resultado; // Declarar resultado fora do try para o escopo do catch (embora não usado no catch corrigido)
@@ -95,3 +100,4 @@ const SolicitacaoController = (function() {
     inicializar: inicializar
   };
 })(); // Fim do IIFE
+
