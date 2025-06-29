@@ -114,13 +114,23 @@ window.auditoriaService = (function() {
     return await registrarEvento(`SISTEMA_${tipo}`, solicitacaoId, dados);
   }
 
+  // Função específica para registrar geração de PDF
+  async function registrarGeracaoPDF(solicitacaoId, tipoPDF) {
+    return await registrarEvento('GERACAO_PDF', solicitacaoId, {
+      tipo_pdf: tipoPDF,
+      timestamp_geracao: new Date().toISOString(),
+      usuario_geracao: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'sistema'
+    });
+  }
+
   // Interface pública
   return {
     registrarEvento,
     obterHistoricoAuditoria,
     registrarAcessoPais,
     registrarDecisaoPais,
-    registrarEventoSistema
+    registrarEventoSistema,
+    registrarGeracaoPDF
   };
 })();
 

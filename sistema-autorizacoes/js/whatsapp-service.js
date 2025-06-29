@@ -31,16 +31,20 @@ class WhatsAppService {
   }
   // Gerar mensagem para confirmação de autorização
   gerarMensagemConfirmacao(dados, linkConfirmacao) {
-    return `Olá ${dados.nome_responsavel},\n\n`+
-           `O atleta ${dados.nome} solicitou uma autorização de saída do Sport Club Internacional.\n\n`+
-           `Detalhes da solicitação:\n`+
-           `- Data de Saída: ${this.formatarData(new Date(dados.data_saida))} às ${dados.horario_saida}\n`+
-           `- Data de Retorno: ${this.formatarData(new Date(dados.data_retorno))} às ${dados.horario_retorno}\n`+
-           `- Motivo/Destino: ${dados.motivo_destino}\n\n`+
-           `Para confirmar esta autorização, acesse o link abaixo:\n${linkConfirmacao}\n\n`+
-           `Esta confirmação é necessária para garantir a segurança do atleta.\n\n`+
-           `Em caso de dúvidas, entre em contato com o Departamento de Serviço Social.\n\n`+
-           `Atenciosamente,\nSport Club Internacional`;
+    return `🔴⚪ *Sport Club Internacional* ⚪🔴\n\n`+
+           `Olá, *${dados.nome_responsavel}*! 👋\n\n`+
+           `O Sport Club Internacional, através do *Serviço Social*, informa que o(a) atleta *${dados.nome}* solicitou uma autorização para sair do clube.\n\n`+
+           `📋 *Detalhes da solicitação:*\n`+
+           `📅 *Saída:* ${this.formatarData(new Date(dados.data_saida))} às ${dados.horario_saida}\n`+
+           `🔄 *Retorno:* ${this.formatarData(new Date(dados.data_retorno))} às ${dados.horario_retorno}\n`+
+           `📍 *Motivo/Destino:* ${dados.motivo_destino}\n\n`+
+           `⚠️ *IMPORTANTE:* Para a segurança e integridade do processo, precisamos da sua autorização.\n\n`+
+           `👆 *Clique no link abaixo para APROVAR ou REPROVAR esta solicitação:*\n\n`+
+           `🔗 ${linkConfirmacao}\n\n`+
+           `✅ Esta confirmação é *obrigatória* para garantir a segurança do(a) atleta.\n\n`+
+           `❓ Em caso de dúvidas, entre em contato com o Departamento de Serviço Social.\n\n`+
+           `Contamos com a sua colaboração! 🤝\n\n`+
+           `Atenciosamente,\n*Serviço Social do Sport Club Internacional* 🔴⚪`;
   }
   
   // Formatar data para exibição

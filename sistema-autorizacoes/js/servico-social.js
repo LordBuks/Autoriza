@@ -324,7 +324,7 @@ document.addEventListener("DOMContentLoaded", async function() { // Adicionado a
         
         try {
             const token = gerarToken();
-            const link = `${window.location.origin}/sistema-autorizacoes/pais/aprovacao.html?id=${solicitacaoAtual.id}&token=${token}`;
+            const link = `https://autorizabase.vercel.app/pais/aprovacao.html?id=${solicitacaoAtual.id}&token=${token}`;
             
             const dadosAtualizacao = {
                 token_aprovacao_pais: token,
