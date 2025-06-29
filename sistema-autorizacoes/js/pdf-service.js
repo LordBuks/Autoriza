@@ -429,142 +429,22 @@ window.pdfService = (function() {
             posicaoY += 8;
             doc.text(`${solicitacao.status_pais} digitalmente em: ${solicitacao.data_decisao_pais ? formatarData(solicitacao.data_decisao_pais) : 'N/A'}`, CONFIG.margens.esquerda, posicaoY);
             posicaoY += 8;
-            doc.text(`Telefone Validado: ${solicitacao.telefone_responsavel || 'N/A'}`, CONFIG.margens.esquerda, posicaoY);
-            posicaoY += 8;
             doc.text('Assinatura Digital: [HASH_RESPONSAVEL_VALIDADO]', CONFIG.margens.esquerda, posicaoY);
             posicaoY += 15;
         }
         
         // Assinatura do Serviço Social
-        if (solicitacao.status_servico_social) {
+        if (solicitacao.status_servico_social === 'Aprovado') {
             doc.text('SERVIÇO SOCIAL:', CONFIG.margens.esquerda, posicaoY);
             posicaoY += 8;
-            doc.text(`${solicitacao.status_servico_social} digitalmente em: ${solicitacao.data_decisao_servico_social ? formatarData(solicitacao.data_decisao_servico_social) : 'N/A'}`, CONFIG.margens.esquerda, posicaoY);
+            doc.text(`Aprovado digitalmente em: ${solicitacao.data_aprovacao_servico_social ? formatarData(solicitacao.data_aprovacao_servico_social) : 'N/A'}`, CONFIG.margens.esquerda, posicaoY);
             posicaoY += 8;
             doc.text('Assinatura Digital: [HASH_SERVICO_SOCIAL_VALIDADO]', CONFIG.margens.esquerda, posicaoY);
             posicaoY += 15;
         }
         
-        return posicaoY;
+        return posicaoY + 10;
     }
-    
-    // Função para adicionar seção de assinaturas ao PDF
-    function adicionarSecaoAssinaturas(doc, posicaoYInicial) {
-        let posicaoY = posicaoYInicial;
-        
-        // Verifica se precisa adicionar nova página
-        if (posicaoY > doc.internal.pageSize.height - CONFIG.margens.inferior - 60) {
-            doc.addPage();
-            criarCabecalhoPDF(doc);
-            posicaoY = CONFIG.cabecalho.altura + 15;
-        }
-        
-        // Título da seção
-        doc.setFontSize(14);
-        doc.setTextColor(CORES.primaria);
-        doc.text('Assinaturas', CONFIG.margens.esquerda, posicaoY);
-        posicaoY += 20;
-        
-        // Linha para assinatura do responsável
-        const larguraLinha = 70;
-        const espacoEntreLinhas = 80;
-        
-        doc.setDrawColor(CORES.texto);
-        
-        // Primeira assinatura
-        doc.line(
-            CONFIG.margens.esquerda,
-            posicaoY,
-            CONFIG.margens.esquerda + larguraLinha,
-            posicaoY
-        );
-        
-        doc.setFontSize(10);
-        doc.text(
-            'Responsável pelo Atleta',
-            CONFIG.margens.esquerda + larguraLinha / 2,
-            posicaoY + 5,
-            { align: 'center' }
-        );
-        
-        // Segunda assinatura
-        doc.line(
-            CONFIG.margens.esquerda + espacoEntreLinhas,
-            posicaoY,
-            CONFIG.margens.esquerda + espacoEntreLinhas + larguraLinha,
-            posicaoY
-        );
-        
-        doc.text(
-            'Serviço Social',
-            CONFIG.margens.esquerda + espacoEntreLinhas + larguraLinha / 2,
-            posicaoY + 5,
-            { align: 'center' }
-        );
-        
-        return posicaoY + 20;
-    }
-    
-    // Função para gerar o PDF completo
-    async function gerarPDF(solicitacaoId) {
-        try {
-            // Obtém dados da solicitação
-            const dados = await obterDadosSolicitacao(solicitacaoId);
-            
-            // Registra evento de auditoria
-            await window.auditoriaService.registrarGeracaoPDF(solicitacaoId, 'relatorio_completo');
-            
-            // Cria documento PDF
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: CONFIG.orientacao,
-                unit: 'mm',
-                format: CONFIG.formato
-            });
-            
-            // Adiciona cabeçalho
-            criarCabecalhoPDF(doc);
-            
-            // Adiciona informações da solicitação
-            let posicaoY = adicionarInformacoesSolicitacao(doc, dados);
-            
-            // Adiciona seção de validação legal
-            posicaoY = adicionarSecaoValidacaoLegal(doc, dados.solicitacao, posicaoY);
-            
-            // Adiciona histórico de auditoria
-            posicaoY = adicionarHistoricoAuditoria(doc, dados, posicaoY);
-            
-            // Adiciona assinaturas digitais
-            posicaoY = adicionarAssinaturasDigitais(doc, dados.solicitacao, posicaoY);
-            
-            // Adiciona seção de assinaturas
-            adicionarSecaoAssinaturas(doc, posicaoY);
-            
-            // Adiciona rodapé em todas as páginas
-            const totalPaginas = doc.internal.getNumberOfPages();
-            for (let i = 1; i <= totalPaginas; i++) {
-                criarRodapePDF(doc, i);
-            }
-            
-            // Gera nome do arquivo
-            const nomeArquivo = `autorizacao_digital_${solicitacaoId.substring(0, 8)}_${new Date().getTime()}.pdf`;
-            
-            // Salva o PDF
-            doc.save(nomeArquivo);
-            
-            return { sucesso: true, nomeArquivo: nomeArquivo };
-        } catch (erro) {
-            console.error('Erro ao gerar PDF:', erro);
-            return { sucesso: false, erro: erro.message };
-        }
-    }
-    
-    // API pública do serviço
-    return {
-        gerarRelatorioPdf: gerarPDF
-    };
-})();
-
 
     // Função principal para gerar o relatório PDF
     async function gerarRelatorio(solicitacaoId) {
@@ -622,5 +502,4 @@ window.pdfService = (function() {
 })();
 
 console.log('PDFService carregado e exposto globalmente');
-
 
