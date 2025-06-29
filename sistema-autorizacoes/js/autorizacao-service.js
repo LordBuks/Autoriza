@@ -216,7 +216,7 @@ const AutorizacaoService = (function() {
     /**
      * Atualiza o status de uma solicitação no Firestore.
      * @param {string} id - ID da solicitação
-     * @param {string} perfil - Perfil que está atualizando ('supervisor' ou 'servico_social')
+     * @param {string} perfil - Perfil que está atualizando ('supervisor', 'servico_social' ou 'monitor')
      * @param {string} status - Novo status ('Aprovado' ou 'Reprovado')
      * @param {string} observacao - Observação opcional
      * @returns {Promise<Object>} Promise com o resultado da operação
@@ -240,33 +240,68 @@ const AutorizacaoService = (function() {
           data_modificacao: new Date().toISOString()
         };
 
+        // 3. Atualizar o status do perfil específico
         if (perfil === 'supervisor') {
           dadosAtualizar.status_supervisor = status;
           dadosAtualizar.observacao_supervisor = observacao;
+          
+          // LÓGICA DE REPROVAÇÃO AUTOMÁTICA
+          // Se o supervisor reprovar, todos os status pendentes devem ser reprovados automaticamente
+          if (status === 'Reprovado') {
+            // Reprovar automaticamente serviço social se estiver pendente
+            if (solicitacao.status_servico_social === 'Pendente') {
+              dadosAtualizar.status_servico_social = 'Reprovado';
+              dadosAtualizar.observacao_servico_social = 'Reprovado automaticamente devido à reprovação do supervisor';
+            }
+            
+            // Reprovar automaticamente monitor se estiver pendente
+            if (solicitacao.status_monitor === 'Pendente') {
+              dadosAtualizar.status_monitor = 'Reprovado';
+              dadosAtualizar.observacao_monitor = 'Reprovado automaticamente devido à reprovação do supervisor';
+            }
+          }
         } else if (perfil === 'servico_social') {
           dadosAtualizar.status_servico_social = status;
           dadosAtualizar.observacao_servico_social = observacao;
+        } else if (perfil === 'monitor') {
+          dadosAtualizar.status_monitor = status;
+          dadosAtualizar.observacao_monitor = observacao;
         } else {
              return { sucesso: false, mensagem: 'Perfil inválido para atualização.' };
         }
 
-        // 3. Determinar o status final com base nos status atualizados
+        // 4. Determinar o status final com base nos status atualizados
         const statusSupervisorAtualizado = (perfil === 'supervisor') ? status : solicitacao.status_supervisor;
-        const statusServicoSocialAtualizado = (perfil === 'servico_social') ? status : solicitacao.status_servico_social;
+        const statusServicoSocialAtualizado = dadosAtualizar.status_servico_social || solicitacao.status_servico_social;
+        const statusMonitorAtualizado = dadosAtualizar.status_monitor || solicitacao.status_monitor;
 
-        if (statusSupervisorAtualizado === 'Reprovado' || statusServicoSocialAtualizado === 'Reprovado') {
+        // Se qualquer um dos perfis reprovou, o status final é reprovado
+        if (statusSupervisorAtualizado === 'Reprovado' || 
+            statusServicoSocialAtualizado === 'Reprovado' || 
+            statusMonitorAtualizado === 'Reprovado') {
           dadosAtualizar.status_final = 'Reprovado';
-        } else if (statusSupervisorAtualizado === 'Aprovado' && statusServicoSocialAtualizado === 'Aprovado') {
+        } 
+        // Se todos aprovaram, o status final é aprovado
+        else if (statusSupervisorAtualizado === 'Aprovado' && 
+                 statusServicoSocialAtualizado === 'Aprovado' && 
+                 statusMonitorAtualizado === 'Aprovado') {
           dadosAtualizar.status_final = 'Aprovado';
-        } else {
-          dadosAtualizar.status_final = 'Em Análise'; // Se um aprovou e outro está pendente, continua em análise
+        } 
+        // Caso contrário, continua em análise
+        else {
+          dadosAtualizar.status_final = 'Em Análise';
         }
 
-        // 4. Atualizar o documento no Firestore
+        // 5. Atualizar o documento no Firestore
         await window.firebaseService.atualizarDocumento(COLLECTION_NAME, id, dadosAtualizar);
         console.log(`Status da solicitação ${id} atualizado no Firestore pelo ${perfil}. Novo status final: ${dadosAtualizar.status_final}`);
 
-        // 5. Obter a solicitação atualizada para notificação (opcional, mas bom para ter dados completos)
+        // Log da reprovação automática se aplicável
+        if (perfil === 'supervisor' && status === 'Reprovado') {
+          console.log(`Reprovação automática aplicada para solicitação ${id}: Serviço Social e Monitor foram reprovados automaticamente`);
+        }
+
+        // 6. Obter a solicitação atualizada para notificação
         const solicitacaoAtualizada = { ...solicitacao, ...dadosAtualizar };
 
         // Notificar se o serviço de notificação estiver disponível
@@ -274,11 +309,15 @@ const AutorizacaoService = (function() {
           if (perfil === 'supervisor' && dadosAtualizar.status_final !== 'Reprovado') {
             // Notifica Serviço Social apenas se não foi reprovado pelo supervisor
             window.notificacaoService.enviarNotificacaoServicoSocial(solicitacaoAtualizada);
-          } else if (perfil === 'servico_social') {
-            // Notifica Atleta após decisão do Serviço Social
+          } else if (perfil === 'servico_social' && dadosAtualizar.status_final !== 'Reprovado') {
+            // Notifica Monitor apenas se não foi reprovado
+            window.notificacaoService.enviarNotificacaoMonitor(solicitacaoAtualizada);
+          } else if (perfil === 'monitor') {
+            // Notifica Atleta após decisão do Monitor
             window.notificacaoService.enviarNotificacaoAtleta(solicitacaoAtualizada);
           }
-          // Se o supervisor reprovou, talvez notificar o atleta imediatamente?
+          
+          // Se foi reprovado por qualquer perfil, notificar o atleta imediatamente
           if (dadosAtualizar.status_final === 'Reprovado') {
              window.notificacaoService.enviarNotificacaoAtleta(solicitacaoAtualizada); 
           }
