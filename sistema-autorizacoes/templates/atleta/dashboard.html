@@ -44,10 +44,15 @@
       font-size: 1rem; /* Tamanho da fonte dos botões */
     }
 
+    /* Sobrescreve o display para botões do dashboard */
+    .button-group-dashboard .btn {
+      display: inline-block; /* Permite que fiquem lado a lado */
+    }
+
     /* Nova classe para os botões do dashboard */
     .btn-dashboard-narrow {
-      width: 600px; /* Define a largura FIXA dos botões */
-      /* margin: 8px auto; REMOVIDO daqui, pois o centralização será controlada pelo Flexbox no .form-group */
+      width: 280px; /* Largura fixa para os botões */
+      margin: 8px auto; /* Centraliza os botões individualmente */
     }
 
     .form-group {
@@ -131,30 +136,23 @@
   <div class="container">
     <div class="card">
       <h2 class="card-title">Dashboard do Atleta</h2>
-      <p>Utilize este sistema para solicitar autorizações de saída do alojamento. Você receberá atualizações sobre o status por e-mail.</p>
+      <p>Utilize este sistema para solicitar a sua autorização de saída do alojamento. Após concluir a solicitação voce  poderár consultar o status com o código gerado.</p>
       
       <div class="alert alert-info">
         <strong>Atenção:</strong> Todas as solicitações passam por aprovação do supervisor e do serviço social, além da confirmação do seu responsável.
       </div>
     </div>
     
-    <div class="card">
-      <h2 class="card-title">O que deseja fazer?</h2>
-      
-      <!-- Cada botão está dentro de um form-group -->
-      <div class="form-group">
-        <a href="solicitar.html" class="btn btn-primary btn-dashboard-narrow">Solicitar Nova Autorização</a>
-      </div>
-      
-      <div class="form-group">
-        <a href="consultar.html" class="btn btn-primary btn-dashboard-narrow">Consultar Solicitações</a>
-      </div>
+      <div class="card">
+        <h2 class="card-title">O que deseja fazer?</h2>
+        
+        <div class="button-group-dashboard">
+          <a href="solicitar.html" class="btn btn-primary btn-dashboard-narrow">Solicitar Nova Autorização</a>
+          <a href="consultar.html" class="btn btn-primary btn-dashboard-narrow">Consultar Solicitações</a>
+          <button onclick="logout()" class="btn btn-logout btn-dashboard-narrow">Sair do Sistema</button>
+        </div>
 
-      <div class="form-group">
-        <button onclick="logout()" class="btn btn-logout btn-dashboard-narrow">Sair do Sistema</button>
       </div>
-
-    </div>
 
     <div class="card">
       <h3 class="card-title">Informações Legais</h3>
@@ -186,16 +184,18 @@
   <script>
     // Função de logout
     function logout( ) {
-      if (confirm('Tem certeza que deseja sair do sistema?')) {
+      if (confirm(\'Tem certeza que deseja sair do sistema?\')) {
         // Limpar dados de sessão se houver
         localStorage.clear();
         sessionStorage.clear();
         
         // Redirecionar para a página de login
-        window.location.href = '../../index.html';
+        window.location.href = \'../../index.html\';
       }
     }
   </script>
   <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
 </body>
 </html>
+
+

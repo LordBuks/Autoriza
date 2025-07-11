@@ -104,7 +104,7 @@ body::before {
 
 .btn {
   display: inline-block;
-  padding: 12px 24px;
+  padding: 10px 16px;
   border: none;
   border-radius: 5px;
   font-size: 1rem;
@@ -167,9 +167,9 @@ body::before {
 }
 
 .alert-info {
-  background-color: #d1ecf1;
+  background-color: #ffc10729;
   color: #0c5460;
-  border: 1px solid #bee5eb;
+  border: 1px solid #db2020;
 }
 
 .text-center {
@@ -614,7 +614,7 @@ body::before {
 .btn-3d {
   position: relative;
   display: inline-block;
-  padding: 12px 24px;
+  padding: 10px 16px;
   border: none;
   border-radius: 5px;
   font-size: 1rem;
@@ -708,4 +708,42 @@ body::before {
   color: black;
 }
 
+
+
+
+.button-group-dashboard {
+  display: flex;
+  justify-content: center; /* Centraliza os botões horizontalmente */
+  align-items: center; /* Alinha verticalmente */
+  gap: 10px; /* Espaçamento entre os botões */
+  padding: 10px 0; /* Adiciona um padding vertical */
+  flex-wrap: wrap; /* Permite quebra de linha em telas menores */
+}
+
+.btn-dashboard-narrow {
+  width: calc(33.33% - 10px); /* Ajuste para 3 botões com gap e largura maior */
+  max-width: 240px; /* Largura máxima aumentada */
+  min-width: 180px; /* Largura mínima aumentada */
+  flex-grow: 1; /* Permite que os botões cresçam para ocupar o espaço disponível */
+  flex-shrink: 1; /* Permite que os botões encolham se necessário */
+  box-sizing: border-box; /* Garante que padding e border sejam incluídos na largura */
+  padding: 12px 15px; /* Mantém o padding vertical e horizontal */
+  font-size: 1rem; /* Mantém o tamanho da fonte */
+  white-space: nowrap; /* Impede quebra de texto */
+}
+
+@media (max-width: 768px) {
+  .button-group-dashboard {
+    flex-direction: column; /* Em telas pequenas, empilha verticalmente */
+    align-items: stretch; /* Estica os botões para ocupar toda a largura */
+    gap: 10px;
+  }
+  
+  .btn-dashboard-narrow {
+    width: 100%; /* Em telas pequenas, os botões ocupam a largura total */
+    min-width: auto; /* Remove largura mínima em telas pequenas */
+    padding: 12px 15px; /* Mantém o padding menor para telas pequenas */
+    font-size: 1rem; /* Mantém o tamanho da fonte menor para telas pequenas */
+  }
+}
 
