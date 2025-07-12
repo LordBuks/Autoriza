@@ -34,7 +34,7 @@ body::before {
 }
 
 .container {
-  max-width: 800px;
+  max-width: 750px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -42,9 +42,9 @@ body::before {
 .header {
   background-color: var(--branco);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px 0;
+  padding: 8px 0;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 18px;
 }
 
 .header-logo {
@@ -54,7 +54,7 @@ body::before {
 
 .header-title {
   color: var(--vermelho-inter);
-  font-size: 2rem;
+  font-size: 1.2rem;
   font-weight: 700;
   margin: 0;
   letter-spacing: 1px;
@@ -70,7 +70,7 @@ body::before {
 
 .card-title {
   color: var(--vermelho-inter);
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   margin-top: 0;
   margin-bottom: 20px;
   border-bottom: 2px solid var(--vermelho-inter);
@@ -722,28 +722,16 @@ body::before {
 
 .btn-dashboard-narrow {
   width: calc(33.33% - 10px); /* Ajuste para 3 botões com gap e largura maior */
-  max-width: 240px; /* Largura máxima aumentada */
-  min-width: 180px; /* Largura mínima aumentada */
-  flex-grow: 1; /* Permite que os botões cresçam para ocupar o espaço disponível */
-  flex-shrink: 1; /* Permite que os botões encolham se necessário */
-  box-sizing: border-box; /* Garante que padding e border sejam incluídos na largura */
-  padding: 12px 15px; /* Mantém o padding vertical e horizontal */
-  font-size: 1rem; /* Mantém o tamanho da fonte */
-  white-space: nowrap; /* Impede quebra de texto */
-}
+  max
 
-@media (max-width: 768px) {
-  .button-group-dashboard {
-    flex-direction: column; /* Em telas pequenas, empilha verticalmente */
-    align-items: stretch; /* Estica os botões para ocupar toda a largura */
-    gap: 10px;
-  }
-  
-  .btn-dashboard-narrow {
-    width: 100%; /* Em telas pequenas, os botões ocupam a largura total */
-    min-width: auto; /* Remove largura mínima em telas pequenas */
-    padding: 12px 15px; /* Mantém o padding menor para telas pequenas */
-    font-size: 1rem; /* Mantém o tamanho da fonte menor para telas pequenas */
-  }
-}
+/* --- CÓDIGO DE CORREÇÃO PARA CENTRALIZAR O TÍTULO  SISTEMA DE AUTORIZAÇÕES DIGITAIS--- */
 
+/* 
+  Esta regra garante que o título no header-nav se expanda
+  e centralize seu conteúdo, mantendo o botão 'Sair' à direita.
+*/
+.header-nav .user-info {
+  flex-grow: 1;          /* Faz o elemento do título crescer para ocupar o espaço vazio */
+  font-size: 14px;       
+  text-align: center;   /* Centraliza o texto dentro do elemento expandido */
+}
