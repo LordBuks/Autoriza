@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Autorizações Digitais - SC Internacional</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <title>Sistema de Controle de Autorizações - Login</title>
+  <link rel="stylesheet" href="css/login-styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   
   <!-- Content Security Policy (CSP) -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com; frame-src 'none';">
@@ -15,41 +16,46 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <header class="header">
-    <img src="https://i.imgur.com/odzcc03.png" alt="Logo SC Internacional" class="header-logo">
-    <h1 class="header-title">Sistema de Autorizações Digitais</h1>
-  </header>
-
-  <!-- O card de login agora usa a classe login-container diretamente e o container externo foi removido -->
-  <div class="card login-container">
-    <h2 class="card-title">Login</h2>
-    <form id="login-form">
-      <div class="form-group">
-        <label for="email" class="form-label">Email:</label>
-        <input type="email" id="email" class="form-control" required>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo-section">
+        <img src="https://i.imgur.com/odzcc03.png" alt="Logo SC Internacional" class="logo">
+        <h1 class="system-title">Sistema de Controle de Autorizações</h1>
       </div>
-      <div class="form-group">
-        <label for="senha" class="form-label">Senha:</label>
-        <input type="password" id="senha" class="form-control" required>
+      <div class="login-form-section">
+        <h2 class="login-title">Login</h2>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" placeholder="email@inter.com" required>
+          </div>
+          <div class="form-group">
+            <label for="senha">Senha:</label>
+            <input type="password" id="senha" name="senha" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="login-btn">
+            <span id="loginBtnText">Entrar</span>
+            <i id="loginSpinner" class="fas fa-spinner fa-spin" style="display: none;"></i>
+          </button>
+        </form>
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
       </div>
-      <button type="submit" class="btn btn-primary">Entrar</button>
-    </form>
-    <div id="login-error-message" class="alert alert-danger mt-3" style="display: none;"></div>
-  </div>
-
-
-  <footer class="footer">
-    <p>
+      <div class="social-service-block">
+        <img src="https://imgur.com/HIsH9X5.png" alt="Logo Serviço Social" class="footer-social-logo">
+        <p>Gerenciamento de Autorizações das Categorias de Base</p>
+        <p>Departamento de Serviço Social</p>
+      </div>
+    </div>
+    <footer class="login-footer">
+      <p>© 2025 VampTech Ltda. Todos os direitos reservados.</p>
     </footer>
+  </div>
 
   <!-- Firebase Config -->
   <script src="js/firebase-config.js"></script>
-  <!-- Firebase Service -->
-  <script src="js/firebase-service.js"></script>
   <!-- Security Service -->
   <script src="js/security-service.js"></script>
   <!-- Login Script -->
   <script src="js/login.js"></script>
-    <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
 </body>
 </html>

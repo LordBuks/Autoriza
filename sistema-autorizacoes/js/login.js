@@ -1,9 +1,11 @@
 // Lógica de login e autenticação com Firebase Authentication (VFx33)
 document.addEventListener("DOMContentLoaded", function () {
-  const loginForm = document.getElementById("login-form");
-  const alertMessage = document.getElementById("login-error-message");
+  const loginForm = document.getElementById("loginForm");
+  const alertMessage = document.getElementById("errorMessage");
   const emailInput = document.getElementById("email");
   const senhaInput = document.getElementById("senha");
+  const loginBtnText = document.getElementById("loginBtnText");
+  const loginSpinner = document.getElementById("loginSpinner");
 
   // Verificar se o Firebase Service está disponível
   if (!window.firebaseService) {
@@ -36,7 +38,9 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      showAlert("Autenticando...", "alert-info");
+      // Mostrar spinner e ocultar texto do botão
+      if (loginBtnText) loginBtnText.style.display = "none";
+      if (loginSpinner) loginSpinner.style.display = "inline-block";
 
       try {
         const resultadoLogin = await window.firebaseService.loginComEmailSenha(email, password);
@@ -92,6 +96,10 @@ document.addEventListener("DOMContentLoaded", function () {
       } catch (error) {
         console.error("Erro inesperado durante o login:", error);
         showAlert("Ocorreu um erro inesperado durante a autenticação. Tente novamente.");
+      } finally {
+        // Restaurar botão ao estado original
+        if (loginBtnText) loginBtnText.style.display = "inline";
+        if (loginSpinner) loginSpinner.style.display = "none";
       }
     });
   }
@@ -127,8 +135,6 @@ document.addEventListener("DOMContentLoaded", function () {
   function showAlert(message, type = "alert-danger") {
     if (alertMessage) {
       alertMessage.textContent = message;
-      alertMessage.className = "alert";
-      alertMessage.classList.add(type);
       alertMessage.style.display = "block";
     } else {
         alert(message);
@@ -152,4 +158,3 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 });
-
