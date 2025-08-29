@@ -1,14 +1,15 @@
+
 // Configuração do Firebase para o Sistema de Autorizações
 
 // Configuração do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyCnKpJrJrm_ZvpvHgdjuATHJur-HBKY-kQ",
-  authDomain: "sistema-de-autorizacoes.firebaseapp.com",
-  projectId: "sistema-de-autorizacoes",
-  storageBucket: "sistema-de-autorizacoes.firebasestorage.app",
-  messagingSenderId: "380824234132",
-  appId: "1:380824234132:web:5c605aebd6b4b38569ac81",
-  measurementId: "G-0HK2KFESG9"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Verificar se o Firebase já foi inicializado
@@ -231,4 +232,5 @@ function formatarDataHora(data, hora = null) {
 
 // Expor função auxiliar globalmente
 window.formatarDataHora = formatarDataHora;
+
 

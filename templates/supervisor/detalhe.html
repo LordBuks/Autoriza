@@ -10,9 +10,9 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com; frame-src 'none';">
 
   <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade ) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <header class="header">
@@ -74,8 +74,12 @@
           <textarea id="observacao" class="form-control" rows="3" placeholder="Adicione uma observação sobre esta decisão"></textarea>
         </div>
         <div class="form-group text-center">
-          <button id="btn-confirmar" class="btn btn-primary">Confirmar</button>
-          <button id="btn-cancelar" class="btn btn-secondary">Cancelar</button>
+          <!-- Novos botões para Aprovar/Reprovar -->
+          <button id="btn-aprovar-modal" class="btn btn-success" style="display: none;">Aprovar</button>
+          <button id="btn-reprovar-modal" class="btn btn-danger" style="margin-left: 10px; display: none;">Reprovar</button>
+          <!-- Botões existentes (renomeados para clareza) -->
+          <button id="btn-confirmar-observacao" class="btn btn-primary" style="display: none;">Confirmar</button>
+          <button id="btn-cancelar-modal" class="btn btn-secondary" style="margin-left: 10px;">Cancelar</button>
         </div>
       </div>
       
@@ -86,14 +90,14 @@
   </div>
 
   <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade ) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   
   <!-- Serviços da aplicação -->
-  <script src="../../js/firebase-config.js"></script>
-  <script src="../../js/autorizacao-service.js"></script>
-  <script src="../../js/detalhe-supervisor.js"></script>
+  <script type="module" src="../../js/firebase-config.js"></script>
+  <script type="module" src="../../js/autorizacao-service.js"></script>
+  <script type="module" src="../../js/detalhe-supervisor.js"></script>
   <script>
     // Função de logout
     function logout() {
@@ -110,5 +114,6 @@
     <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
 </body>
 </html>
+
 
 

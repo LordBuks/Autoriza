@@ -3,8 +3,8 @@ document.addEventListener("DOMContentLoaded", async function() { // Tornar a fun
     // Elementos da página
     const btnAcao = document.getElementById("btn-acao");
     const modalObservacao = document.getElementById("modal-observacao");
-    const btnConfirmar = document.getElementById("btn-confirmar");
-    const btnCancelar = document.getElementById("btn-cancelar");
+    const btnConfirmar = document.getElementById("btn-confirmar"); // Este será renomeado para btnConfirmarObservacao
+    const btnCancelar = document.getElementById("btn-cancelar"); // Este será renomeado para btnCancelarModal
     const detalheContainer = document.getElementById("detalhe-solicitacao"); // Container principal para mostrar/ocultar
     const loadingIndicator = document.createElement("div"); // Criar indicador de loading dinamicamente
     loadingIndicator.id = "loading-indicator";
@@ -20,9 +20,15 @@ document.addEventListener("DOMContentLoaded", async function() { // Tornar a fun
   
     // Variáveis de controle
     let solicitacaoAtual = null;
-    let acaoAtual = null; // 'Aprovado' ou 'Reprovado' (usar os mesmos valores do serviço)
+    let acaoAtual = null; // \'Aprovado\' ou \'Reprovado\' (usar os mesmos valores do serviço)
     let idSolicitacao = null;
   
+    // Novos elementos do modal (assumindo que foram adicionados ao HTML)
+    const btnAprovarModal = document.getElementById("btn-aprovar-modal");
+    const btnReprovarModal = document.getElementById("btn-reprovar-modal");
+    const btnConfirmarObservacao = document.getElementById("btn-confirmar-observacao");
+    const btnCancelarModal = document.getElementById("btn-cancelar-modal");
+
     // Verificar dependências
     if (!window.AutorizacaoService || !window.firebaseService) {
         mostrarAlerta("Erro crítico: Serviços essenciais (AutorizacaoService ou FirebaseService) não estão disponíveis. A página não pode funcionar.", "alert-danger");
@@ -118,10 +124,8 @@ document.addEventListener("DOMContentLoaded", async function() { // Tornar a fun
             } else if (statusSupervisor === "Reprovado") {
                 btnAcao.textContent = "Aprovar Solicitação";
                 btnAcao.classList.add("btn-success"); // Cor verde para aprovar
-            } else {
-                // Se o status for pendente, pode-se decidir se exibe um botão para aprovar ou reprovar
-                // Por enquanto, vamos manter o botão de aprovar como padrão para pendente
-                btnAcao.textContent = "Aprovar Solicitação";
+            } else { // Se o status for pendente
+                btnAcao.textContent = "Ação do Supervisor"; // Texto genérico
                 btnAcao.classList.add("btn-primary"); // Cor padrão
             }
         }
@@ -196,37 +200,84 @@ document.addEventListener("DOMContentLoaded", async function() { // Tornar a fun
         btnAcao.addEventListener("click", () => {
             if (btnAcao.disabled) return;
             const statusSupervisor = solicitacaoAtual.status_supervisor || "Pendente";
+
+            // Oculta todos os botões de ação do modal por padrão
+            if (btnAprovarModal) btnAprovarModal.style.display = "none";
+            if (btnReprovarModal) btnReprovarModal.style.display = "none";
+            if (btnConfirmarObservacao) btnConfirmarObservacao.style.display = "none";
+
             if (statusSupervisor === "Aprovado") {
+                // Se já aprovado, o botão principal é para Reprovar
                 acaoAtual = "Reprovado";
+                if (btnConfirmarObservacao) {
+                    btnConfirmarObservacao.textContent = "Confirmar Reprovação";
+                    btnConfirmarObservacao.style.display = "block";
+                }
             } else if (statusSupervisor === "Reprovado") {
+                // Se já reprovado, o botão principal é para Aprovar
                 acaoAtual = "Aprovado";
-            } else {
-                // Se for pendente, a ação padrão é aprovar
-                acaoAtual = "Aprovado";
+                if (btnConfirmarObservacao) {
+                    btnConfirmarObservacao.textContent = "Confirmar Aprovação";
+                    btnConfirmarObservacao.style.display = "block";
+                }
+            } else { // Status Pendente
+                // Exibe os botões de Aprovar e Reprovar no modal
+                if (btnAprovarModal) btnAprovarModal.style.display = "block";
+                if (btnReprovarModal) btnReprovarModal.style.display = "block";
             }
             if (modalObservacao) modalObservacao.style.display = "block";
         });
     }
-  
-    if (btnConfirmar) {
-        btnConfirmar.addEventListener("click", async () => { // Tornar o handler assíncrono
+
+    // Event Listeners para os novos botões do modal
+    if (btnAprovarModal) {
+        btnAprovarModal.addEventListener("click", async () => {
+            acaoAtual = "Aprovado";
             const observacaoInput = document.getElementById("observacao");
             const observacao = observacaoInput ? observacaoInput.value.trim() : "";
-  
-            // Validação da observação para reprovação
-            if (acaoAtual === "Reprovado" && !observacao) {
-                alert("A observação é obrigatória ao reprovar."); // Usar alert simples para modal
-                return;
-            }
-  
             if (modalObservacao) modalObservacao.style.display = "none";
-            await atualizarStatusSolicitacao(acaoAtual, observacao); // Chamar a função assíncrona
-            if (observacaoInput) observacaoInput.value = ""; // Limpar o campo
+            await atualizarStatusSolicitacao(acaoAtual, observacao);
+            if (observacaoInput) observacaoInput.value = "";
         });
     }
-  
-    if (btnCancelar) {
-        btnCancelar.addEventListener("click", () => {
+
+    if (btnReprovarModal) {
+        btnReprovarModal.addEventListener("click", async () => {
+            acaoAtual = "Reprovado";
+            const observacaoInput = document.getElementById("observacao");
+            const observacao = observacaoInput ? observacaoInput.value.trim() : "";
+            // Validação da observação para reprovação
+            if (!observacao) {
+                alert("A observação é obrigatória ao reprovar.");
+                return;
+            }
+            if (modalObservacao) modalObservacao.style.display = "none";
+            await atualizarStatusSolicitacao(acaoAtual, observacao);
+            if (observacaoInput) observacaoInput.value = "";
+        });
+    }
+
+    // Ajustar o event listener do btnConfirmar (agora btnConfirmarObservacao)
+    if (btnConfirmarObservacao) {
+        btnConfirmarObservacao.addEventListener("click", async () => {
+            const observacaoInput = document.getElementById("observacao");
+            const observacao = observacaoInput ? observacaoInput.value.trim() : "";
+
+            // Validação da observação para reprovação
+            if (acaoAtual === "Reprovado" && !observacao) {
+                alert("A observação é obrigatória ao reprovar.");
+                return;
+            }
+
+            if (modalObservacao) modalObservacao.style.display = "none";
+            await atualizarStatusSolicitacao(acaoAtual, observacao);
+            if (observacaoInput) observacaoInput.value = "";
+        });
+    }
+
+    // Ajustar o event listener do btnCancelar (agora btnCancelarModal)
+    if (btnCancelarModal) {
+        btnCancelarModal.addEventListener("click", () => {
             if (modalObservacao) modalObservacao.style.display = "none";
             const observacaoInput = document.getElementById("observacao");
             if (observacaoInput) observacaoInput.value = ""; // Limpar o campo
@@ -245,6 +296,8 @@ document.addEventListener("DOMContentLoaded", async function() { // Tornar a fun
   
   });
   
+
+
 
 
 

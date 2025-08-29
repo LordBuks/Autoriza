@@ -260,7 +260,8 @@ const AutorizacaoService = (function() {
               dadosAtualizar.status_monitor = 'Reprovado';
               dadosAtualizar.observacao_monitor = 'Reprovado automaticamente devido à reprovação do supervisor';
             }
-            dadosAtualizar.status_geral = 'reprovado_supervisor'; // Novo status geral
+            dadosAtualizar.status_final = 'Reprovado'; // Define o status final como Reprovado
+            dadosAtualizar.status_geral = 'Reprovado'; // Define o status geral como Reprovado
           } else if (status === 'Aprovado') {
             // Se supervisor aprova, e pais já aprovaram, vai para serviço social
             if (solicitacao.status_pais === 'Aprovado') {
@@ -299,7 +300,7 @@ const AutorizacaoService = (function() {
         // Se qualquer um dos perfis reprovou, o status final é reprovado
         if (statusSupervisorAtualizado === 'Reprovado' || 
             statusServicoSocialAtualizado === 'Reprovado' || 
-            statusMonitorAtualizado === 'Reprovado' ||
+            statusMonitorAtualizado === 'Reprovado' || 
             statusPaisAtualizado === 'Reprovado') { // Incluído status dos pais
           dadosAtualizar.status_final = 'Reprovado';
         } 
@@ -333,7 +334,7 @@ const AutorizacaoService = (function() {
 
         // Notificar se o serviço de notificação estiver disponível
         if (window.notificacaoService) {
-          if (perfil === 'supervisor' && dadosAtualizar.status_geral !== 'reprovado_supervisor') {
+          if (perfil === 'supervisor' && dadosAtualizar.status_geral !== 'Reprovado') { // Alterado de 'reprovado_supervisor' para 'Reprovado'
             // Notifica Serviço Social apenas se não foi reprovado pelo supervisor
             window.notificacaoService.enviarNotificacaoServicoSocial(solicitacaoAtualizada);
           } else if (perfil === 'servico_social' && dadosAtualizar.status_geral !== 'reprovado_servico_social') {
@@ -341,11 +342,11 @@ const AutorizacaoService = (function() {
             window.notificacaoService.enviarNotificacaoMonitor(solicitacaoAtualizada);
           } else if (perfil === 'monitor' && dadosAtualizar.status_geral === 'arquivado_monitor') {
             // Notifica Atleta após arquivamento pelo Monitor
-            window.notificacaoService.enviarNotificacaoAtleta(solicitacaoAtualizada);
+            window.notificacaoService.enviarNotificacaoAtleta(solicitacaoAtualizada); 
           }
           
           // Se foi reprovado por qualquer perfil, notificar o atleta imediatamente
-          if (dadosAtualizar.status_geral && dadosAtualizar.status_geral.startsWith('reprovado')) {
+          if (dadosAtualizar.status_geral && dadosAtualizar.status_geral.startsWith('Reprovado')) { // Alterado de 'reprovado' para 'Reprovado'
              window.notificacaoService.enviarNotificacaoAtleta(solicitacaoAtualizada); 
           }
         }
@@ -377,6 +378,8 @@ const AutorizacaoService = (function() {
 // Exportar para uso global (se ainda necessário)
 // Se estiver usando módulos ES6, prefira exportar.
 window.AutorizacaoService = AutorizacaoService;
+
+
 
 
 

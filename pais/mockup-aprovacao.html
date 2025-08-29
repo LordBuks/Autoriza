@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aprovação de Saída - SC Internacional</title>
+  <title>Aprovação Parental - Mockup - SC Internacional</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root {
@@ -116,9 +116,9 @@
     }
     
     .message-box {
-      background-color: #e63946;
-      border: 1px solid #c1121f;
-      color: #ffffff;
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
       padding: 15px;
       border-radius: 5px;
       margin-bottom: 20px;
@@ -200,9 +200,9 @@
     }
     
     .legal-notice {
-      background-color: #fff3cd;
-      border: 1px solid #ffeeba;
-      color: #856404;
+      background-color: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
       padding: 15px;
       border-radius: 5px;
       margin: 20px 0;
@@ -238,6 +238,17 @@
       display: none;
     }
     
+    .mockup-notice {
+      background-color: #e7f3ff;
+      border: 2px solid #0066cc;
+      color: #003d7a;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      text-align: center;
+      font-weight: bold;
+    }
+    
     @media (max-width: 768px) {
       .container {
         padding: 10px;
@@ -261,17 +272,6 @@
       }
     }
   </style>
-  <!-- Content Security Policy (CSP) -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' https: data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://api.ipify.org; frame-src 'none';">
-
-  <!-- Firebase SDK (Atualizado para versão 9.x com compatibilidade ) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <!-- Scripts do sistema -->
-  <script src="../js/firebase-config.js"></script>
-  <script src="../js/auditoria-service.js"></script>
-  <script src="./aprovacao.js"></script>
 </head>
 <body>
   <header class="header">
@@ -280,60 +280,43 @@
   </header>
 
   <div class="container">
-    <!-- Tela de carregamento -->
-    <div id="loading" class="card">
-      <div class="loading">
-        <p>Carregando dados da solicitação...</p>
-      </div>
-    </div>
-    
-    <!-- Mensagem de erro -->
-    <div id="error-container" class="card hidden">
-      <h2 class="card-title">Erro ao Carregar Solicitação</h2>
-      <div class="error-message" id="error-message">
-        Ocorreu um erro ao carregar os dados da solicitação. Por favor, verifique o link ou entre em contato com o Serviço Social.
-      </div>
-    </div>
-    
-    <!-- Mensagem de sucesso após decisão -->
-    <div id="success-container" class="card hidden">
-      <h2 class="card-title">Decisão Registrada com Sucesso</h2>
-      <div class="success-message" id="success-message">
-        Sua decisão foi registrada com sucesso. Obrigado por utilizar o Sistema de Autorizações Digitais.
-      </div>
+    <!-- Aviso de Mockup -->
+    <div class="mockup-notice">
+      <h3>🔍 MOCKUP - PÁGINA DE DEMONSTRAÇÃO</h3>
+      <p>Esta é uma versão de demonstração da página de aprovação parental para fins de validação e conformidade legal. Os dados exibidos são fictícios e os botões não executam ações reais.</p>
     </div>
     
     <!-- Conteúdo principal -->
-    <div id="main-content" class="card hidden">
+    <div class="card">
       <h2 class="card-title">Aprovação de Saída do Atleta</h2>
       
       <div class="audit-info">
-        <p><strong>Código da Solicitação:</strong> <span id="solicitacao-id">Carregando...</span></p>
-        <p><strong>Data de Geração:</strong> <span id="data-geracao">Carregando...</span></p>
-        <p><strong>Responsável:</strong> <span id="nome-responsavel">Carregando...</span></p>
+        <p><strong>Código da Solicitação:</strong> <span id="solicitacao-id">SOL-2025-001234</span></p>
+        <p><strong>Data de Geração:</strong> <span id="data-geracao">08/06/2025 às 14:30:15</span></p>
+        <p><strong>Responsável:</strong> <span id="nome-responsavel">Maria Silva Santos</span></p>
       </div>
       
       <div class="message-box">
-        <p><strong>Prezado(a ) <span id="saudacao-responsavel">Responsável</span>,</strong></p>
-        <p>O atleta <span id="nome-atleta-mensagem"></span> solicitou autorização para sair do clube. Por favor, verifique os detalhes abaixo e aprove ou reprove esta solicitação. Sua decisão será registrada e auditada pelo sistema.</p>
+        <p><strong>Prezada <span id="saudacao-responsavel">Maria Silva Santos</span>,</strong></p>
+        <p>O atleta <span id="nome-atleta-mensagem">João Silva Santos</span> solicitou autorização para sair do clube. Por favor, verifique os detalhes abaixo e aprove ou reprove esta solicitação. Sua decisão será registrada e auditada pelo sistema.</p>
       </div>
       
       <h3 style="margin-bottom: 15px;">Dados do Atleta</h3>
       <div class="info-row">
         <div class="info-group">
           <div class="info-label">Nome:</div>
-          <div class="info-value" id="nome-atleta">Carregando...</div>
+          <div class="info-value" id="nome-atleta">João Silva Santos</div>
         </div>
         <div class="info-group">
           <div class="info-label">Categoria:</div>
-          <div class="info-value" id="categoria-atleta">Carregando...</div>
+          <div class="info-value" id="categoria-atleta">Sub-17</div>
         </div>
       </div>
       
       <div class="info-row">
         <div class="info-group">
           <div class="info-label">Telefone:</div>
-          <div class="info-value" id="telefone-atleta">Carregando...</div>
+          <div class="info-value" id="telefone-atleta">(51) 99999-8888</div>
         </div>
       </div>
       
@@ -341,23 +324,23 @@
       <div class="info-row">
         <div class="info-group">
           <div class="info-label">Data/Hora Saída:</div>
-          <div class="info-value" id="data-hora-saida">Carregando...</div>
+          <div class="info-value" id="data-hora-saida">10/06/2025 às 18:00</div>
         </div>
         <div class="info-group">
           <div class="info-label">Data/Hora Retorno:</div>
-          <div class="info-value" id="data-hora-retorno">Carregando...</div>
+          <div class="info-value" id="data-hora-retorno">11/06/2025 às 08:00</div>
         </div>
       </div>
       
       <div class="info-row">
         <div class="info-group">
           <div class="info-label">Motivo/Destino:</div>
-          <div class="info-value" id="motivo-destino">Carregando...</div>
+          <div class="info-value" id="motivo-destino">Visita familiar - Casa dos avós em Canoas/RS</div>
         </div>
       </div>
       
       <div class="timestamp">
-        <p>Data e hora atual: <span id="current-timestamp">Carregando...</span></p>
+        <p>Data e hora atual: <span id="current-timestamp">08/06/2025 às 14:30:45</span></p>
       </div>
       
       <div class="form-group">
@@ -370,8 +353,8 @@
       </div>
       
       <div class="btn-group">
-        <button id="btn-aprovar" class="btn btn-approve">APROVAR SAÍDA</button>
-        <button id="btn-reprovar" class="btn btn-reject">REPROVAR SAÍDA</button>
+        <button id="btn-aprovar" class="btn btn-approve" onclick="aprovar()">APROVAR SAÍDA</button>
+        <button id="btn-reprovar" class="btn btn-reject" onclick="reprovar()">REPROVAR SAÍDA</button>
       </div>
     </div>
     
@@ -379,8 +362,105 @@
       <p>Sistema de Autorizações Digitais - SC Internacional</p>
     </div>
   </div>
+
   <p style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #6c757d;">© 2025 VampTech Ltda. Todos os direitos reservados.</p>
+
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script>
+    let solicitacaoId = null;
+    let dadosSolicitacao = null;
+
+    // Dados de exemplo para demonstração (fallback)
+    const dadosExemplo = {
+      nome: "João Silva Santos",
+      categoria: "Sub-17",
+      responsavel: "Maria Silva Santos",
+      telefone: "(51) 99999-8888",
+      destino: "Visita familiar - Casa dos avós em Canoas/RS",
+      data_saida: "10/06/2025 às 18:00",
+      data_retorno: "11/06/2025 às 08:00",
+      data_solicitacao: "08/06/2025",
+      motivo: "Visita familiar - Casa dos avós em Canoas/RS"
+    };
+
+    async function carregarDados() {
+      // Tentar obter ID da URL
+      const urlParams = new URLSearchParams(window.location.search);
+      solicitacaoId = urlParams.get('id');
+      
+      if (solicitacaoId && window.firebaseService) {
+        try {
+          // Carregar dados reais do Firebase
+          dadosSolicitacao = await window.firebaseService.obterDocumento('solicitacoes', solicitacaoId);
+          
+          if (dadosSolicitacao) {
+            document.getElementById('nome-atleta').textContent = dadosSolicitacao.nome || 'N/A';
+            document.getElementById('categoria-atleta').textContent = dadosSolicitacao.categoria || 'N/A';
+            document.getElementById('nome-responsavel').textContent = dadosSolicitacao.nome_responsavel || 'N/A';
+            document.getElementById('telefone-atleta').textContent = dadosSolicitacao.telefone || 'N/A';
+            document.getElementById('data-hora-saida').textContent = dadosSolicitacao.data_saida || 'N/A';
+            document.getElementById('data-hora-retorno').textContent = dadosSolicitacao.data_retorno || 'N/A';
+            document.getElementById('motivo-destino').textContent = dadosSolicitacao.motivo || 'N/A';
+            
+            // Verificar se já foi decidido
+            if (dadosSolicitacao.status_pais) {
+              mostrarResultado(dadosSolicitacao.status_pais);
+            }
+            
+            return;
+          }
+        } catch (error) {
+          console.error('Erro ao carregar dados:', error);
+        }
+      }
+      
+      // Usar dados de exemplo se não conseguir carregar do Firebase
+      document.getElementById('nome-atleta').textContent = dadosExemplo.nome;
+      document.getElementById('categoria-atleta').textContent = dadosExemplo.categoria;
+      document.getElementById('telefone-atleta').textContent = dadosExemplo.telefone;
+      document.getElementById('data-hora-saida').textContent = dadosExemplo.data_saida;
+      document.getElementById('data-hora-retorno').textContent = dadosExemplo.data_retorno;
+      document.getElementById('motivo-destino').textContent = dadosExemplo.motivo;
+    }
+
+    function mostrarResultado(status) {
+      const isAprovado = status === 'Aprovado';
+      const classe = isAprovado ? 'success-message' : 'error-message';
+      const icone = isAprovado ? '✅' : '❌';
+      
+      const resultDiv = document.createElement('div');
+      resultDiv.className = classe;
+      resultDiv.innerHTML = `${icone} Autorização ${status.toUpperCase()}`;
+      
+      const btnGroup = document.querySelector('.btn-group');
+      btnGroup.parentNode.insertBefore(resultDiv, btnGroup);
+      btnGroup.style.display = 'none';
+    }
+
+    function aprovar() {
+      alert('DEMONSTRAÇÃO: Aprovação registrada! Em um sistema real, isso seria salvo no banco de dados.');
+      mostrarResultado('Aprovado');
+    }
+
+    function reprovar() {
+      alert('DEMONSTRAÇÃO: Reprovação registrada! Em um sistema real, isso seria salvo no banco de dados.');
+      mostrarResultado('Reprovado');
+    }
+
+    // Atualizar timestamp atual
+    function atualizarTimestamp() {
+      const agora = new Date();
+      const timestamp = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR');
+      document.getElementById('current-timestamp').textContent = timestamp;
+    }
+
+    // Carregar dados quando a página carregar
+    window.addEventListener('load', function() {
+      carregarDados();
+      atualizarTimestamp();
+      setInterval(atualizarTimestamp, 1000); // Atualizar a cada segundo
+    });
+  </script>
 </body>
 </html>
-
 
