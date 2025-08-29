@@ -1,3 +1,6 @@
+import { auth, db, storage } from '../src/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+
 // Lógica para a tela de detalhe do monitor - VERSÃO CORRIGIDA
 document.addEventListener('DOMContentLoaded', function() {
   // Elementos da página
@@ -42,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function aguardarAutenticacao() {
     return new Promise((resolve, reject) => {
       const verificarAuth = () => {
-        const user = firebase.auth().currentUser;
+        const user = auth.currentUser;
         if (user) {
           console.log("Usuário autenticado:", user.email);
           resolve();
@@ -52,11 +55,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       };
       
-      if (firebase.auth().currentUser) {
-        console.log("Usuário já autenticado:", firebase.auth().currentUser.email);
+      if (auth.currentUser) {
+        console.log("Usuário já autenticado:", auth.currentUser.email);
         resolve();
       } else {
-        firebase.auth().onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, (user) => {
           if (user) {
             console.log("Estado de autenticação mudou - usuário logado:", user.email);
             resolve();
@@ -139,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     try {
         // Verificar autenticação antes da chamada
-        const user = firebase.auth().currentUser;
+        const user = auth.currentUser;
         if (!user) {
             throw new Error("Usuário não autenticado. Faça login novamente.");
         }

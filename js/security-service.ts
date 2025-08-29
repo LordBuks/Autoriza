@@ -1,9 +1,7 @@
 // Serviço de segurança para o Sistema de Autorizações
 // Implementa medidas de segurança como proteção contra XSS, CSRF e criptografia de dados sensíveis
 
-export class SecurityService {
-  private encryptionKey: string;
-
+class SecurityService {
   constructor() {
     // Chave de criptografia (em produção, deve ser armazenada em variáveis de ambiente)
     // A geração no frontend é apenas para demonstração e não é segura para produção.
@@ -14,7 +12,7 @@ export class SecurityService {
   }
   
   // Inicializar medidas de segurança
-  private initializeSecurityMeasures() {
+  initializeSecurityMeasures() {
     // Verificar se estamos em HTTPS e redirecionar se não estiver
     this.forceHttps();
     
@@ -28,7 +26,7 @@ export class SecurityService {
   }
   
   // Forçar o uso de HTTPS
-  private forceHttps() {
+  forceHttps() {
     if (window.location.protocol !== "https:" && window.location.hostname !== "localhost" && !window.location.hostname.includes("127.0.0.1" )) {
       console.warn("Redirecionando para HTTPS...");
       window.location.href = window.location.href.replace("http:", "https:" );
@@ -36,18 +34,18 @@ export class SecurityService {
   }
   
   // Configurar proteção contra XSS
-  private setupXssProtection() {
+  setupXssProtection() {
     // Sobrescrever o método innerHTML para sanitizar conteúdo
     const originalInnerHTMLDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
     const self = this;
     
     if (originalInnerHTMLDescriptor && originalInnerHTMLDescriptor.set) {
       Object.defineProperty(Element.prototype, "innerHTML", {
-        set: function(value: string) {
+        set: function(value) {
           // Usar uma abordagem mais robusta para sanitização, como DOMPurify se disponível
           // Para este exemplo, uma sanitização básica é aplicada
           const sanitizedValue = self.sanitizeHtml(value);
-          originalInnerHTMLDescriptor.set!.call(this, sanitizedValue);
+          originalInnerHTMLDescriptor.set.call(this, sanitizedValue);
         },
         get: originalInnerHTMLDescriptor.get
       });
@@ -55,7 +53,7 @@ export class SecurityService {
   }
   
   // Configurar proteção contra CSRF
-  private setupCsrfProtection() {
+  setupCsrfProtection() {
     // Gerar token CSRF
     const csrfToken = this.generateCsrfToken();
     
@@ -78,26 +76,26 @@ export class SecurityService {
   }
   
   // Sanitizar HTML para prevenir XSS (básico, considerar DOMPurify)
-  private sanitizeHtml(html: string): string {
+  sanitizeHtml(html) {
     if (typeof html !== "string") return html;
     
-    // Usar DOMParser para uma sanitização mais segura
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, "text/html");
-    
+    // Remover tags HTML e caracteres especiais
+    const temp = document.createElement("div");
+    temp.innerHTML = html; // Usar innerHTML para que o navegador parseie
     // Remover scripts e atributos de evento
-    doc.querySelectorAll("script").forEach(script => script.remove());
+    const scripts = temp.querySelectorAll("script");
+    scripts.forEach(script => script.remove());
     const eventAttributes = ["onload", "onerror", "onclick", "onmouseover"];
-    doc.querySelectorAll("*").forEach(element => {
+    temp.querySelectorAll("*").forEach(element => {
       eventAttributes.forEach(attr => {
         element.removeAttribute(attr);
       });
     });
-    return doc.body.innerHTML;
+    return temp.innerHTML;
   }
   
   // Sanitizar entrada de texto
-  public sanitizeInput(input: string): string {
+  sanitizeInput(input) {
     if (typeof input !== "string") return input;
     
     // Remover tags HTML e caracteres especiais
@@ -110,20 +108,20 @@ export class SecurityService {
   }
   
   // Validar token CSRF
-  public validateCsrfToken(token: string): boolean {
+  validateCsrfToken(token) {
     const storedToken = sessionStorage.getItem("csrf_token");
     return token === storedToken;
   }
   
   // Gerar token CSRF (melhorar para geração segura no backend)
-  private generateCsrfToken(): string {
+  generateCsrfToken() {
     return "csrf-" + Math.random().toString(36).substring(2, 15) +
            Math.random().toString(36).substring(2, 15) +
            Date.now().toString(36);
   }
   
   // Gerar chave de criptografia (APENAS PARA DEMONSTRAÇÃO - NÃO SEGURO PARA PRODUÇÃO)
-  private generateEncryptionKey(): string {
+  generateEncryptionKey() {
     // Em produção, esta chave DEVE vir de variáveis de ambiente seguras ou serviço de gerenciamento de segredos.
     // Gerar no frontend é uma VULNERABILIDADE.
     return "key-" + Math.random().toString(36).substring(2, 15) +
@@ -132,7 +130,7 @@ export class SecurityService {
   }
   
   // Criptografar dados sensíveis (APENAS PARA DEMONSTRAÇÃO - NÃO SEGURO PARA PRODUÇÃO)
-  public encryptData(data: any): string | null {
+  encryptData(data) {
     if (!data) return null;
     
     try {
@@ -146,7 +144,7 @@ export class SecurityService {
   }
   
   // Descriptografar dados sensíveis (APENAS PARA DEMONSTRAÇÃO - NÃO SEGURO PARA PRODUÇÃO)
-  public decryptData(encryptedData: string): any | null {
+  decryptData(encryptedData) {
     if (!encryptedData) return null;
     
     try {
@@ -164,7 +162,7 @@ export class SecurityService {
   }
   
   // Gerar hash para validação (APENAS PARA DEMONSTRAÇÃO - NÃO SEGURO PARA PRODUÇÃO)
-  public generateHash(data: any): string | null {
+  generateHash(data) {
     if (!data) return null;
     
     try {
@@ -184,7 +182,7 @@ export class SecurityService {
   }
   
   // Validar dados com hash (APENAS PARA DEMONSTRAÇÃO - NÃO SEGURO PARA PRODUÇÃO)
-  public validateWithHash(data: any, hash: string): boolean {
+  validateWithHash(data, hash) {
     if (!data || !hash) return false;
     // Em uma implementação real, você recalcularia o hash do \'data\' e compararia com o \'hash\' fornecido.
     // Esta é uma implementação simplificada que apenas verifica o formato.
@@ -193,10 +191,4 @@ export class SecurityService {
 }
 
 // Exportar a instância do serviço
-export const securityService = new SecurityService();
-
-// Expor globalmente para compatibilidade com scripts JS antigos
-declare global { interface Window { securityService: SecurityService; } }
-if (typeof window !== 'undefined') { (window as any).securityService = securityService; }
-
-
+window.securityService = new SecurityService();

@@ -1,16 +1,24 @@
-import { firebaseService } from './firebase-config';
-
 // Lógica de login e autenticação com Firebase Authentication (VFx33)
-document.addEventListener("firebase-ready", function () {
+document.addEventListener("DOMContentLoaded", function () {
   const loginForm = document.getElementById("loginForm");
   const alertMessage = document.getElementById("errorMessage");
-  const emailInput = document.getElementById("email") as HTMLInputElement;
-  const senhaInput = document.getElementById("senha") as HTMLInputElement;
+  const emailInput = document.getElementById("email");
+  const senhaInput = document.getElementById("senha");
   const loginBtnText = document.getElementById("loginBtnText");
   const loginSpinner = document.getElementById("loginSpinner");
 
+  // Verificar se o Firebase Service está disponível
+  if (!window.firebaseService) {
+    console.error("Firebase Service não encontrado! A autenticação não funcionará.");
+    showAlert("Erro crítico: Serviço de autenticação indisponível.");
+    if(loginForm) {
+        loginForm.querySelectorAll("input, select, button").forEach(el => el.disabled = true);
+    }
+    return;
+  }
+
   // Mapeamento de perfis para redirecionamento
-  const profileRedirects: { [key: string]: string } = {
+  const profileRedirects = {
     admin: "templates/supervisor/dashboard.html", // Redirecionamento para admin
     atleta: "templates/atleta/dashboard.html",
     supervisor: "templates/supervisor/dashboard.html",
@@ -36,7 +44,7 @@ document.addEventListener("firebase-ready", function () {
       if (loginSpinner) loginSpinner.style.display = "inline-block";
 
       try {
-        const resultadoLogin = await firebaseService.loginComEmailSenha(email, password);
+        const resultadoLogin = await window.firebaseService.loginComEmailSenha(email, password);
 
         if (resultadoLogin.sucesso && resultadoLogin.usuario) {
           const user = resultadoLogin.usuario;
@@ -54,7 +62,7 @@ document.addEventListener("firebase-ready", function () {
 
             // Salvar categoria no localStorage se for supervisor
             if (perfilFirestore === 'supervisor') {
-                const dadosUsuario = await firebaseService.obterDocumento("usuarios", user.uid);
+                const dadosUsuario = await window.firebaseService.obterDocumento("usuarios", user.uid);
                 if (dadosUsuario.sucesso && dadosUsuario.dados.categoria) {
                     localStorage.setItem('supervisor_categoria', dadosUsuario.dados.categoria);
                     console.log(`Categoria do supervisor (${dadosUsuario.dados.categoria}) salva no localStorage.`);
@@ -70,7 +78,7 @@ document.addEventListener("firebase-ready", function () {
             // Usuário autenticado, mas não foi possível verificar o perfil no Firestore
             console.error(`Usuário ${email} autenticado, mas não foi encontrado registro na coleção 'usuarios' ou houve erro ao buscar.`);
             showAlert("Usuário autenticado, mas houve um problema ao verificar seu perfil. Verifique se seu cadastro está completo no sistema ou contate o suporte.");
-            await firebaseService.logout();
+            await window.firebaseService.logout();
           }
 
         } else {
@@ -98,9 +106,9 @@ document.addEventListener("firebase-ready", function () {
   }
 
   // Função para verificar o perfil do usuário no Firestore
-  async function verificarPerfilUsuario(uid: string) {
+  async function verificarPerfilUsuario(uid) {
     try {
-      const resultadoDoc = await firebaseService.obterDocumento("usuarios", uid);
+      const resultadoDoc = await window.firebaseService.obterDocumento("usuarios", uid);
       if (resultadoDoc.sucesso && resultadoDoc.dados && resultadoDoc.dados.perfil) {
         return resultadoDoc.dados.perfil;
       } else {
@@ -114,21 +122,20 @@ document.addEventListener("firebase-ready", function () {
   }
 
   // Função para salvar informações da sessão no localStorage
-  function saveSession(profile: string, email: string, uid: string) {
+  function saveSession(profile, email, uid) {
     const session = {
       profile: profile,
       email: email,
       uid: uid,
       loginTime: new Date().toISOString(),
     };
-    localStorage.setItem("VITE_current_session", JSON.stringify(session));
+    localStorage.setItem("current_session", JSON.stringify(session));
   }
 
   // Função para mostrar alertas
-  function showAlert(message: string, type = "alert-danger") {
+  function showAlert(message, type = "alert-danger") {
     if (alertMessage) {
       alertMessage.textContent = message;
-      alertMessage.className = `alert ${type}`;
       alertMessage.style.display = "block";
     } else {
         alert(message);
@@ -143,7 +150,7 @@ document.addEventListener("firebase-ready", function () {
   }
 
   // Função para redirecionar
-  function redirectToProfile(url: string) {
+  function redirectToProfile(url) {
     if (url) {
       window.location.href = url;
     } else {
@@ -152,17 +159,3 @@ document.addEventListener("firebase-ready", function () {
     }
   }
 });
-
-// Expor a função logout globalmente para uso em outros arquivos HTML/JS que não são módulos
-(window as any).logout = async () => {
-  try {
-    await firebaseService.logout();
-    localStorage.removeItem("VITE_current_session");
-    localStorage.removeItem("supervisor_categoria");
-    window.location.href = "/index.html"; // Redirecionar para a página de login
-  } catch (error) {
-    console.error("Erro ao fazer logout:", error);
-    alert("Erro ao fazer logout. Tente novamente.");
-  }
-};
-

@@ -1,3 +1,6 @@
+import { auth, db, storage } from '../src/firebase';
+import { serverTimestamp } from 'firebase/firestore';
+
 /**
  * Script para a página de aprovação de saída pelos pais/responsáveis
  * Sistema de Autorizações Digitais - SC Internacional.
@@ -275,7 +278,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const dadosAtualizacao = {
                 status_pais: decisao,
                 observacao_pais: observacao,
-                data_decisao_pais: firebase.firestore.FieldValue.serverTimestamp(),
+                data_decisao_pais: serverTimestamp(),
                 ip_decisao_pais: await obterIP(),
                 user_agent_pais: navigator.userAgent,
                 status_geral: novoStatusGeral // Adiciona o novo status geral

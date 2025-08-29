@@ -1,3 +1,4 @@
+import './firebase-compat-shim';
 /**
  * Serviço de Geração de PDF
  * Responsável por gerar relatórios em PDF para solicitações

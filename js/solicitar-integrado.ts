@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // localStorage.setItem('solicitacoes', JSON.stringify(solicitacoes));
 
       // Obter o UID do atleta logado
-      const currentUser = firebase.auth().currentUser;
+      const currentUser = auth.currentUser;
       
       if (currentUser) {
         // Adiciona o UID do atleta logado aos dados que serão salvos

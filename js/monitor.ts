@@ -1,3 +1,6 @@
+import { auth, db, storage } from '../src/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+
 // Lógica para o painel do monitor - VERSÃO CORRIGIDA
 document.addEventListener("DOMContentLoaded", async function() {
   const solicitacoesPreAprovadasContainer = document.getElementById("solicitacoes-pre-aprovadas");
@@ -30,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async function() {
   function aguardarAutenticacao() {
     return new Promise((resolve) => {
       const verificarAuth = () => {
-        const user = firebase.auth().currentUser;
+        const user = auth.currentUser;
         if (user) {
           console.log("Usuário autenticado:", user.email);
           resolve();
@@ -41,12 +44,12 @@ document.addEventListener("DOMContentLoaded", async function() {
       };
       
       // Verificar se já está autenticado
-      if (firebase.auth().currentUser) {
-        console.log("Usuário já autenticado:", firebase.auth().currentUser.email);
+      if (auth.currentUser) {
+        console.log("Usuário já autenticado:", auth.currentUser.email);
         resolve();
       } else {
         // Aguardar mudança no estado de autenticação
-        firebase.auth().onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, (user) => {
           if (user) {
             console.log("Estado de autenticação mudou - usuário logado:", user.email);
             resolve();
@@ -104,7 +107,7 @@ document.addEventListener("DOMContentLoaded", async function() {
       
       try {
           // Verificar autenticação antes da chamada
-          const user = firebase.auth().currentUser;
+          const user = auth.currentUser;
           if (!user) {
               throw new Error("Usuário não autenticado. Faça login novamente.");
           }

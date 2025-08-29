@@ -1,3 +1,6 @@
+import { auth, db, storage } from '../src/firebase';
+import { serverTimestamp } from 'firebase/firestore';
+
 /**
  * Serviço de Auditoria
  * Responsável por registrar e obter eventos de auditoria no Firestore.
@@ -18,9 +21,9 @@ window.auditoriaService = (function() {
       const evento = {
         tipo: tipo,
         solicitacaoId: solicitacaoId,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        timestamp: serverTimestamp(),
         timestampLocal: new Date().toISOString(),
-        usuarioId: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'anonimo',
+        usuarioId: auth.currentUser ? auth.currentUser.uid : 'anonimo',
         dados: dados,
         userAgent: navigator.userAgent,
         ip: await obterIP(),
@@ -119,7 +122,7 @@ window.auditoriaService = (function() {
     return await registrarEvento('GERACAO_PDF', solicitacaoId, {
       tipo_pdf: tipoPDF,
       timestamp_geracao: new Date().toISOString(),
-      usuario_geracao: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'sistema'
+      usuario_geracao: auth.currentUser ? auth.currentUser.uid : 'sistema'
     });
   }
 

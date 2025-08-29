@@ -1,9 +1,7 @@
+import './firebase-compat-shim';
 // Configuração do Firebase para o Sistema de Autorizações
 
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, query, where, onSnapshot, getDocs } from 'firebase/firestore';
-import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-
+// Configuração do Firebase
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -14,166 +12,188 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-console.log("Firebase Config:", firebaseConfig);
-
-let app;
-let db;
-let auth;
-
-try {
-  app = (!getApps().length ? initializeApp(firebaseConfig) : getApp());
-  db = getFirestore(app);
-  auth = getAuth(app);
-  console.log("Firebase inicializado com sucesso");
-} catch (error: any) {
-  console.error("Erro ao inicializar o Firebase App:", error);
-  throw new Error("Falha na inicialização do Firebase: " + error.message);
+// Verificar se o Firebase já foi inicializado
+if (!firebase.apps.length) {
+  try {
+    /* firebase.initializeApp removed — initialized in src/firebase.ts */
+    console.log('Firebase inicializado com sucesso');
+  } catch (error) {
+    console.error('Erro ao inicializar Firebase:', error);
+  }
+} else {
+  console.log('Firebase já estava inicializado');
 }
 
-export class FirebaseService {
-  db: any;
-  auth: any;
-
+// Classe para gerenciar operações do Firebase
+class FirebaseService {
   constructor() {
-    this.db = db;
-    this.auth = auth;
-    console.log("FirebaseService inicializado com sucesso");
+    try {
+      this.db = firebase.firestore();
+      this.auth = firebase.auth();
+      console.log("FirebaseService inicializado com sucesso");
+      
+      // Configurar persistência offline (opcional)
+      this.db.enablePersistence({ synchronizeTabs: true })
+        .then(() => {
+          console.log('Persistência offline habilitada');
+        })
+        .catch((err) => {
+          if (err.code === 'failed-precondition') {
+            console.warn('Persistência falhou: múltiplas abas abertas');
+          } else if (err.code === 'unimplemented') {
+            console.warn('Persistência não suportada neste navegador');
+          }
+        });
+        
+    } catch (error) {
+      console.error('Erro ao criar FirebaseService:', error);
+      throw error;
+    }
   }
   
-  async loginComEmailSenha(email: string, senha: string) {
+  // Métodos para autenticação
+  async loginComEmailSenha(email, senha) {
     try {
-      const userCredential = await signInWithEmailAndPassword(this.auth, email, senha);
+      const userCredential = await this.auth.signInWithEmailAndPassword(email, senha);
       return { sucesso: true, usuario: userCredential.user };
-    } catch (error: any) {
-      console.error("Erro no login:", error);
+    } catch (error) {
+      console.error('Erro no login:', error);
       return { sucesso: false, erro: error.message };
     }
   }
   
   async logout() {
     try {
-      await signOut(this.auth);
+      await this.auth.signOut();
       return { sucesso: true };
-    } catch (error: any) {
-      console.error("Erro no logout:", error);
+    } catch (error) {
+      console.error('Erro no logout:', error);
       return { sucesso: false, erro: error.message };
     }
   }
   
-  async salvarDocumento(colecao: string, documento: any, id: string | null = null) {
+  // Métodos para Firestore (banco de dados)
+  async salvarDocumento(colecao, documento, id = null) {
     try {
       let docRef;
-      const colRef = collection(this.db, colecao);
       
       if (id) {
-        docRef = doc(colRef, id);
-        await setDoc(docRef, documento, { merge: true });
+        docRef = this.db.collection(colecao).doc(id);
+        await docRef.set(documento, { merge: true });
       } else {
-        docRef = doc(colRef);
-        await setDoc(docRef, documento);
+        docRef = await this.db.collection(colecao).add(documento);
       }
       
       return { sucesso: true, id: String(id || docRef.id) };
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Erro ao salvar documento em ${colecao}:`, error);
       return { sucesso: false, erro: error.message };
     }
   }
   
-  async obterDocumento(colecao: string, id: string) {
+  async obterDocumento(colecao, id) {
     try {
-      const docRef = doc(this.db, colecao, id);
-      const docSnap = await getDoc(docRef);
+      const doc = await this.db.collection(colecao).doc(id).get();
       
-      if (docSnap.exists()) {
-        return { sucesso: true, dados: { id: docSnap.id, ...docSnap.data() } };
+      if (doc.exists) {
+        return { sucesso: true, dados: { id: doc.id, ...doc.data() } };
       } else {
-        return { sucesso: false, erro: "Documento não encontrado" };
+        return { sucesso: false, erro: 'Documento não encontrado' };
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Erro ao obter documento de ${colecao}:`, error);
       return { sucesso: false, erro: error.message };
     }
   }
   
-  async obterDocumentos(colecao: string, filtros: Array<{ campo: string, operador: any, valor: any }> = []) {
+  async obterDocumentos(colecao, filtros = []) {
     try {
-      let q: any = collection(this.db, colecao);
+      let query = this.db.collection(colecao);
       
+      // Aplicar filtros se existirem
       filtros.forEach(filtro => {
-        q = query(q, where(filtro.campo, filtro.operador, filtro.valor));
+        query = query.where(filtro.campo, filtro.operador, filtro.valor);
       });
       
-      const querySnapshot = await getDocs(q);
-      const documentos: any[] = [];
+      const snapshot = await query.get();
+      const documentos = [];
       
-      querySnapshot.forEach(doc => {
+      snapshot.forEach(doc => {
         documentos.push({ id: doc.id, ...doc.data() });
       });
       
       return { sucesso: true, dados: documentos };
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Erro ao obter documentos de ${colecao}:`, error);
       return { sucesso: false, erro: error.message };
     }
   }
   
-  async atualizarDocumento(colecao: string, id: string, dados: any) {
+  async atualizarDocumento(colecao, id, dados) {
     try {
-      const docRef = doc(this.db, colecao, id);
-      await updateDoc(docRef, dados);
+      await this.db.collection(colecao).doc(id).update(dados);
       return { sucesso: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Erro ao atualizar documento em ${colecao}:`, error);
       return { sucesso: false, erro: error.message };
     }
   }
   
-  async excluirDocumento(colecao: string, id: string) {
+  async excluirDocumento(colecao, id) {
     try {
-      const docRef = doc(this.db, colecao, id);
-      await deleteDoc(docRef);
+      await this.db.collection(colecao).doc(id).delete();
       return { sucesso: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Erro ao excluir documento de ${colecao}:`, error);
       return { sucesso: false, erro: error.message };
     }
   }
   
-  observarDocumentos(colecao: string, filtros: Array<{ campo: string, operador: any, valor: any }> = [], callback: Function) {
+  // Método para ouvir mudanças em tempo real
+  observarDocumentos(colecao, filtros = [], callback) {
     try {
-      let q: any = collection(this.db, colecao);
+      let query = this.db.collection(colecao);
       
+      // Aplicar filtros se existirem
       filtros.forEach(filtro => {
-        q = query(q, where(filtro.campo, filtro.operador, filtro.valor));
+        query = query.where(filtro.campo, filtro.operador, filtro.valor);
       });
       
-      return onSnapshot(q, (snapshot) => {
-        const documentos: any[] = [];
+      // Retornar o unsubscribe para que possa ser cancelado posteriormente
+      return query.onSnapshot(snapshot => {
+        const documentos = [];
         snapshot.forEach(doc => {
           documentos.push({ id: doc.id, ...doc.data() });
         });
         callback({ sucesso: true, dados: documentos });
-      }, (error: any) => {
+      }, error => {
         console.error(`Erro ao observar documentos em ${colecao}:`, error);
         callback({ sucesso: false, erro: error.message });
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Erro ao configurar observador para ${colecao}:`, error);
       callback({ sucesso: false, erro: error.message });
-      return () => {};
+      return () => {}; // Retornar uma função vazia como fallback
     }
   }
 }
 
-export const firebaseService = new FirebaseService();
+// Criar e expor a instância do serviço globalmente
+try {
+  window.firebaseService = new FirebaseService();
+  console.log('FirebaseService exposto globalmente com sucesso');
+} catch (error) {
+  console.error('Erro ao criar instância global do FirebaseService:', error);
+}
 
-export function formatarDataHora(data: any, hora: string | null = null) {
+// Função auxiliar para formatar data e hora
+function formatarDataHora(data, hora = null) {
   if (!data) return "N/A";
   
   try {
-    let dataObj: Date;
+    let dataObj;
     
+    // Se for um timestamp do Firebase
     if (data && typeof data.toDate === 'function') {
       dataObj = data.toDate();
     } else if (data instanceof Date) {
@@ -184,7 +204,7 @@ export function formatarDataHora(data: any, hora: string | null = null) {
       return "N/A";
     }
     
-    const opcoes: Intl.DateTimeFormatOptions = { 
+    const opcoes = { 
       day: "2-digit", 
       month: "2-digit", 
       year: "numeric"
@@ -195,7 +215,7 @@ export function formatarDataHora(data: any, hora: string | null = null) {
     if (hora) {
       resultado += ` às ${hora}`;
     } else {
-      const opcoesHora: Intl.DateTimeFormatOptions = { 
+      const opcoesHora = { 
         hour: "2-digit", 
         minute: "2-digit",
         hour12: false
@@ -205,18 +225,11 @@ export function formatarDataHora(data: any, hora: string | null = null) {
     
     return resultado;
   } catch (error) {
-    console.error("Erro ao formatar data/hora:", error);
+    console.error('Erro ao formatar data/hora:', error);
     return "N/A";
   }
 }
 
-// Exposição global para compatibilidade com scripts JS antigos
-declare global { interface Window { firebaseService: any; formatarDataHora: any; } }
-if (typeof window !== 'undefined') {
-  (window as any).firebaseService = firebaseService;
-  (window as any).formatarDataHora = formatarDataHora;
-}
-
-// Sinalizar que o serviço Firebase está pronto
-try { document.dispatchEvent(new Event('firebase-ready')); } catch (e) {}
+// Expor função auxiliar globalmente
+window.formatarDataHora = formatarDataHora;
 
