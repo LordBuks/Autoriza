@@ -82,7 +82,7 @@ class NotificacaoService {
         </div>
         <div class="footer">
           <p>Este é um e-mail automático. Por favor, não responda.</p>
-          <p>© ${new Date().getFullYear()} VampTech Ltda. Todos os direitos reservados.</p>
+          <p>© ${new Date().getFullYear()} TechVamp.</p>
         </div>
       </body>
       </html>
@@ -150,7 +150,7 @@ class NotificacaoService {
         </div>
         <div class="footer">
           <p>Este é um e-mail automático. Por favor, não responda.</p>
-          <p>© ${new Date().getFullYear()} VampTech Ltda. Todos os direitos reservados.</p>
+          <p>© ${new Date().getFullYear()} TechVamp</p>
         </div>
       </body>
       </html>
@@ -221,7 +221,7 @@ class NotificacaoService {
         </div>
         <div class="footer">
           <p>Este é um e-mail automático. Por favor, não responda.</p>
-          <p>© ${new Date().getFullYear()} VampTech Ltda. Todos os direitos reservados.</p>
+          <p>© ${new Date().getFullYear()} TechVamp</p>
         </div>
       </body>
       </html>
@@ -292,7 +292,7 @@ class NotificacaoService {
         </div>
         <div class="footer">
           <p>Este é um e-mail automático. Por favor, não responda.</p>
-          <p>© ${new Date().getFullYear()} VampTech Ltda. Todos os direitos reservados.</p>
+          <p>© ${new Date().getFullYear()} TechVamp</p>
         </div>
       </body>
       </html>
