@@ -7,7 +7,7 @@
       "DOM.Iterable",
       "ESNext"
     ],
-    "allowJs": true,
+    "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -30,8 +30,6 @@
     "src",
     "./*.ts",
     "./*.tsx",
-    "./*.js",
-    "./*.jsx",
     "js/**/*.ts"
   ]
 }

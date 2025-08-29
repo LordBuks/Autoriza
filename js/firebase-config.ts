@@ -1,5 +1,6 @@
-import { initializeApp } from 'firebase/app';
-import { getApps, getApp } from 'firebase/app';
+// Configuração do Firebase para o Sistema de Autorizações
+
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 
@@ -13,7 +14,7 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-console.log('Firebase Config:', firebaseConfig);
+console.log("Firebase Config:", firebaseConfig);
 
 let app;
 let db;
@@ -23,10 +24,10 @@ try {
   app = (!getApps().length ? initializeApp(firebaseConfig) : getApp());
   db = getFirestore(app);
   auth = getAuth(app);
-  console.log('Firebase inicializado com sucesso');
+  console.log("Firebase inicializado com sucesso");
 } catch (error: any) {
-  console.error('Erro ao inicializar o Firebase App:', error);
-  throw new Error('Falha na inicialização do Firebase: ' + error.message);
+  console.error("Erro ao inicializar o Firebase App:", error);
+  throw new Error("Falha na inicialização do Firebase: " + error.message);
 }
 
 export class FirebaseService {
@@ -44,7 +45,7 @@ export class FirebaseService {
       const userCredential = await signInWithEmailAndPassword(this.auth, email, senha);
       return { sucesso: true, usuario: userCredential.user };
     } catch (error: any) {
-      console.error('Erro no login:', error);
+      console.error("Erro no login:", error);
       return { sucesso: false, erro: error.message };
     }
   }
@@ -54,7 +55,7 @@ export class FirebaseService {
       await signOut(this.auth);
       return { sucesso: true };
     } catch (error: any) {
-      console.error('Erro no logout:', error);
+      console.error("Erro no logout:", error);
       return { sucesso: false, erro: error.message };
     }
   }
@@ -87,7 +88,7 @@ export class FirebaseService {
       if (docSnap.exists()) {
         return { sucesso: true, dados: { id: docSnap.id, ...docSnap.data() } };
       } else {
-        return { sucesso: false, erro: 'Documento não encontrado' };
+        return { sucesso: false, erro: "Documento não encontrado" };
       }
     } catch (error: any) {
       console.error(`Erro ao obter documento de ${colecao}:`, error);
@@ -204,19 +205,18 @@ export function formatarDataHora(data: any, hora: string | null = null) {
     
     return resultado;
   } catch (error) {
-    console.error('Erro ao formatar data/hora:', error);
+    console.error("Erro ao formatar data/hora:", error);
     return "N/A";
   }
 }
 
-
-
-
 // Exposição global para compatibilidade com scripts JS antigos
-declare global { interface Window { firebaseService: any } }
-if (typeof window !== 'undefined') { (window as any).firebaseService = firebaseService; }
-
-export default firebaseService;
+declare global { interface Window { firebaseService: any; formatarDataHora: any; } }
+if (typeof window !== 'undefined') {
+  (window as any).firebaseService = firebaseService;
+  (window as any).formatarDataHora = formatarDataHora;
+}
 
 // Sinalizar que o serviço Firebase está pronto
 try { document.dispatchEvent(new Event('firebase-ready')); } catch (e) {}
+

@@ -1,7 +1,7 @@
-import { firebaseService } from './firebase-config.ts';
+import { firebaseService } from './firebase-config';
 
 // Lógica de login e autenticação com Firebase Authentication (VFx33)
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("firebase-ready", function () {
   const loginForm = document.getElementById("loginForm");
   const alertMessage = document.getElementById("errorMessage");
   const emailInput = document.getElementById("email") as HTMLInputElement;
@@ -165,5 +165,4 @@ document.addEventListener("DOMContentLoaded", function () {
     alert("Erro ao fazer logout. Tente novamente.");
   }
 };
-
 
